@@ -1,31 +1,13 @@
 # MANGALA PRIME — TEKNİK ŞARTNAME
-# Versiyon: v1.4.0 | Mayıs 2026
+# Versiyon: v1.5.0 | Mayıs 2026
 
 ---
 
-## Bölüm 1 — Proje Anayasası ve Ajan Yönergeleri
+## Bölüm 1 — Proje Anayasası
 
-### 1.1 Kesin Teknoloji Yığını
+Teknoloji yığını, kodlama kuralları, branch stratejisi ve ajan iş akışı için → bkz. `AGENTS.md`
 
-| Katman | Teknoloji |
-|--------|-----------|
-| Frontend Framework | React 18+ (TypeScript) |
-| Frontend Stil | Tailwind CSS + shadcn/ui (Radix UI) |
-| Backend Framework | NestJS (TypeScript, modüler) |
-| Veritabanı ORM | Prisma |
-| Gerçek Zamanlı | Socket.io |
-| State Yönetimi | Zustand |
-| Test | Jest |
-| CI/CD | GitHub Actions |
-| Sunucu | Hetzner Cloud (Ubuntu) |
-
-### 1.2 Mimari ve Kodlama Standartları
-
-- **Temiz Kod:** Değişken, fonksiyon, sınıf isimleri işlevleriyle tam uyumlu olmalı.
-- **Modüler Mimari:** Her domain (Auth, Game, User, Lobby) kendi modül klasöründe izole.
-- **Katı Tip Güvenliği:** `any` tipi tamamen yasak. TSC `--strict` modunda hatasız derlenmeli.
-- **Saf Fonksiyonlar:** `game-engine.service.ts` ve `elo.service.ts` dış bağımlılık içeremez.
-- **Monkey Patch Yasak:** Her çözüm kanıta dayalı, design pattern'e uygun, ölçeklenebilir olmalı.
+Bu şartname yalnızca **ürün ve teknik tasarım** detaylarını içerir.
 
 ---
 
@@ -40,8 +22,8 @@ Mangala Prime, geleneksel Türk zeka oyunu Mangala'nın dijital tarayıcı ortam
 
 **Faz 1 — Çekirdek MVP:**
 - Federasyon kurallarına uyumlu oyun motoru
-- Local PvP modu
-- WebSocket tabanlı matchmaking ve oyun odası
+- Local PvP modu (bkz. Bölüm 4.6)
+- WebSocket tabanlı matchmaking (bkz. Bölüm 9.5) ve oyun odası
 - Event Sourcing kayıt altyapısı
 
 **Faz 2 — Sosyal Lobi:**
@@ -108,6 +90,18 @@ Kendi bölgesindeki 6 kuyuyu ilk boşaltan oyuncu, rakibin kuyularındaki tüm t
 ### 4.5 Kazanma Koşulu
 
 Hazinesinde **25 veya daha fazla taş** biriktiren ilk oyuncu maçı kazanır.
+
+### 4.6 Local PvP Modu
+
+Local PvP aynı tarayıcı sekmesinde iki oyuncunun sırayla oynamasıdır:
+
+- **Tahta döndürme yok:** Tahta sabit kalır, P1 alt sıra (0-5), P2 üst sıra (7-12).
+- **Sıra göstergesi:** Aktif oyuncunun bölgesi vurgulanır, pasif bölge soluk gösterilir.
+- **State:** `GameStore` kullanılır, backend bağlantısı gerekmez.
+- **Kayıt:** Local PvP maçları veritabanına kaydedilmez, ELO etkilenmez.
+- **Timer:** Hamle timer'ı aynı şekilde çalışır (15 saniye).
+- **Device Fingerprint:** Local PvP modunda fingerprint kontrolü uygulanmaz.
+- **Matchmaking:** Local PvP'de matchmaking yoktur; "Local Maç" butonuna basıldığında doğrudan oyun başlar.
 
 ---
 
@@ -219,9 +213,13 @@ Maç bittiğinde tek transaction ile DB'ye yazılır.
 | `lobby:invite_send` | C→S | `{ targetUserId }` |
 | `lobby:invite_response` | C→S | `{ inviterUserId, accepted: boolean }` |
 | `lobby:invite_timeout` | S→C | `{ inviterUserId }` |
+| `lobby:queue_join` | C→S | `{ }` |
+| `lobby:queue_leave` | C→S | `{ }` |
+| `lobby:queue_timeout` | S→C | `{ message: string }` |
 | `lobby:error` | S→C | `{ error: { code, message } }` |
 
 Davet zaman aşımı: **30 saniye**
+Kuyruk zaman aşımı: **120 saniye**
 
 ### 7.2 Oyun (`/game` Namespace)
 
@@ -229,6 +227,8 @@ Davet zaman aşımı: **30 saniye**
 |-------|-----|---------|
 | `game:move` | C→S | `{ matchId, pitIndex }` |
 | `game:state_update` | S→C | `{ board, nextPlayerId, turnTimeLeft }` |
+| `game:match_found` | S→C | `{ matchId, opponentUsername, opponentElo, yourColor: 0 \| 1 }` |
+| `game:game_over` | S→C | `{ matchId, winnerId, reason: GameEndReason, p1EloChange, p2EloChange, finalBoard }` |
 | `game:error` | S→C | `{ error: { code, message }, board? }` |
 | `game:player_disconnected` | S→C | `{ playerId, reconnectWindowSecs: 60 }` |
 | `game:reconnect` | C→S | `{ matchId }` |
@@ -271,8 +271,9 @@ Davet zaman aşımı: **30 saniye**
 ### 9.2 Görsel Dil
 
 - **Mobile-First** tasarım (Tailwind CSS + shadcn/ui)
-- Oyun tahtası: **otantik ahşap doku**, derinlik hissi veren gölgelendirme
-- Taşlar: parıltılı 3D küre efekti, farklı renkler (mavi, sarı, pembe, yeşil, mor)
+- Oyun tahtası: **otantik ahşap doku**, derinlik hissi veren gölgelendirme (CSS gradyanları ve box-shadow ile pseudo-3D)
+- Taşlar: parıltılı 3D küre efekti (CSS radial-gradient + box-shadow), farklı renkler (mavi, sarı, pembe, yeşil, mor)
+- 3D kütüphane (Three.js vb.) kullanılmaz — tüm görsel efektler saf CSS ile sağlanır
 
 ### 9.3 Dokunmatik Hamle İlkesi
 
@@ -285,6 +286,23 @@ Geçerli kuyuya tıklandığı/dokunulduğu anda hamle backend'e gönderilir.
 - Her kuyu geçişinde 150-200ms gecikme
 - Kuyu hafifçe büyür/titrer, taş sayacı senkron artar
 - Animasyon süresince kullanıcı arayüzü tıklamalara kilitlenir
+
+### 9.5 Matchmaking Algoritması
+
+**Kuyruk Yapısı:** FIFO (First In, First Out) sıralı kuyruk.
+
+**Akış:**
+1. Oyuncu "Hızlı Maç Bul" butonuna basar → `lobby:queue_join` event'i gönderilir
+2. Sunucu device fingerprint kontrolü yapar (aynı `visitorId` varsa reddeder)
+3. Kuyrukta bekleyen başka oyuncu varsa eşleşme yapılır
+4. Her iki oyuncuya `game:match_found` event'i gönderilir
+5. Oyun odası oluşturulur, oyuncular odaya katılır
+
+**ELO Eşleşme (Faz 2):** MVP'de FIFO yeterlidir. Faz 2'de ELO farkı ±200 içinde eşleşme tercih edilir, 30 saniye beklenirse aralık genişletilir.
+
+**İptal:** Oyuncu "İptal Et" butonuyla `lobby:queue_leave` event'i gönderir, kuyruktan çıkarılır.
+
+**Bekleme Limiti:** 120 saniye — süre aşılırsa istemciye `lobby:queue_timeout` event'i gönderilir, otomatik kuyruktan çıkarılır.
 
 ---
 
@@ -447,6 +465,27 @@ Gerçek Skor: Galibiyet=1.0 | Beraberlik=0.5 | Yenilgi=0.0
 
 ## Bölüm 17 — Klasör Yapısı
 
+### Ortak / Paylaşılan (Shared)
+
+```
+/shared/
+  /types/
+    game.types.ts          ← Oyun tipleri (BoardState, Player, MoveResult, MatchStatus, GameEndReason)
+    api-response.types.ts  ← ApiResponse<T>, ApiError, REST request/response tipleri
+    socket-events.types.ts ← Tüm WebSocket event payload tipleri
+```
+
+> **Not:** `shared/` klasörü hem backend hem frontend tarafından import edilir.
+> Backend ve frontend kendi `tsconfig.json` dosyalarında `shared/` klasörüne path mapping tanımlar.
+> Backend-only tipler (GameRoom, timer vb.) `shared/` içinde yer almaz.
+
+### Çevre Değişkenleri Şablonları
+
+```
+/backend/.env.example
+/frontend/.env.example
+```
+
 ### Backend
 
 ```
@@ -466,7 +505,7 @@ Gerçek Skor: Galibiyet=1.0 | Beraberlik=0.5 | Yenilgi=0.0
     game-engine.service.ts
     game-engine.spec.ts
     dto/move.dto.ts
-    types/game.types.ts
+    types/game-room.types.ts  ← Backend-only: GameRoom, timer, socketId gibi sunucu tipleri
   /lobby/
     lobby.module.ts
     lobby.gateway.ts
@@ -482,9 +521,12 @@ Gerçek Skor: Galibiyet=1.0 | Beraberlik=0.5 | Yenilgi=0.0
     elo.service.spec.ts
   /common/
     /filters/http-exception.filter.ts
+    /filters/ws-exception.filter.ts
     /interceptors/response.interceptor.ts
-    /types/api-response.types.ts
+    /prisma/prisma.service.ts
+    /prisma/prisma.module.ts
 /prisma/schema.prisma
+/prisma/seed.ts
 ```
 
 ### Frontend

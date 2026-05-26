@@ -30,8 +30,8 @@ dikkatli yaz.
 `game.types.ts` şunları içermeli:
 - `BoardState = number[]` (14 elemanlı)
 - `Player = 0 | 1`
-- `MoveResult` interface — newBoard, nextPlayer, extraTurn, gameOver, winnerId?, capturedPits?
-- `GameRoom` interface — matchId, player1SocketId, player2SocketId, board, currentPlayer, timer
+- `MoveResult` interface — newBoard, nextPlayer, extraTurn, gameOver, winner? (Player, 0|1), capturedPits?
+- `GameRoom` interface — matchId, player1SocketId, player2SocketId, board, currentPlayer, timer (**Backend-only**, `shared/` dışında tanımlanır → `/backend/src/game/types/game-room.types.ts`)
 - `MatchStatus` enum — ACTIVE, FINISHED, ABANDONED
 - `GameEndReason` enum — NORMAL, TIMEOUT, DISCONNECT, FORFEIT
 

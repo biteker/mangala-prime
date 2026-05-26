@@ -23,55 +23,23 @@ tek başına, bu anayasada tanımlanan kurallara uyarak geliştiriyorsun.
 2. `.antigravity/context/current-state.md` dosyasını güncelle
 3. `.antigravity/context/next-task.md` dosyasını bir sonraki görevle güncelle
 4. Conventional commit formatında commit at (feature branch'e)
-5. PR aç — şablonu doldur
+5. PR aç — `.github/PULL_REQUEST_TEMPLATE.md` şablonunu doldur
 
 ---
 
-## Kesin Teknoloji Yığını
+## Kesin Kurallar (Kısa Özet)
 
-Aşağıdaki stack dışına çıkamazsın, alternatif araştıramazsın:
+Aşağıdaki kurallar `docs/spec.md`'den türetilmiştir. Detay için ilgili bölüme bak.
 
-| Katman | Teknoloji |
-|--------|-----------|
-| Frontend Framework | React 18+ (TypeScript) |
-| Frontend Stil | Tailwind CSS + shadcn/ui |
-| Backend Framework | NestJS (TypeScript, modüler) |
-| Veritabanı ORM | Prisma |
-| Gerçek Zamanlı | Socket.io |
-| State Yönetimi | Zustand |
-| Test | Jest |
-| CI/CD | GitHub Actions |
-| Sunucu | Hetzner Cloud (Ubuntu) |
-
----
-
-## Kesin Kodlama Kuralları
-
-- `any` tipi: **TAMAMEN YASAK.** TSC `--strict` modunda hatasız derlenmeli.
-- Her DTO: `class-validator` dekoratörleriyle doğrulanmalı.
-- Her public fonksiyonun dönüş tipi açıkça belirtilmeli.
-- Tüm Prisma sorguları try-catch ile sarılmalı.
-- Monkey patch, geçici yama, plansız çözüm yasak.
-- `game-engine.service.ts` ve `elo.service.ts` saf (pure) fonksiyon içermeli — dış bağımlılık yasak.
-
----
-
-## Dosya Yapısı Kuralı
-
-Tüm dosyalar `docs/spec.md` Bölüm 17'deki klasör yapısına uygun oluşturulur.
-Kendi başına yeni klasör veya katman icat edemezsin.
-
----
-
-## Hata Response Formatı (İstisna Yok)
-
-```typescript
-// Başarı
-{ "data": { ... } }
-
-// Hata
-{ "error": { "code": string, "message": string } }
-```
+- **Teknoloji yığını:** Değiştirilemez. → bkz. `docs/spec.md` AGENTS.md Teknoloji Yığını Tablosu
+- **`any` tipi:** TAMAMEN YASAK. TSC `--strict` modunda hatasız derlenmeli.
+- **Her DTO:** `class-validator` dekoratörleriyle doğrulanmalı.
+- **Her public fonksiyonun** dönüş tipi açıkça belirtilmeli.
+- **Tüm Prisma sorguları** try-catch ile sarılmalı. → bkz. `.antigravity/skills/prisma.md`
+- **Monkey patch,** geçici yama, plansız çözüm yasak.
+- **Saf fonksiyonlar:** `game-engine.service.ts` ve `elo.service.ts` dış bağımlılık içeremez.
+- **Hata response formatı:** → bkz. `docs/spec.md` Bölüm 13
+- **Dosya yapısı:** → bkz. `docs/spec.md` Bölüm 17 — kendi başına yeni klasör icat edemezsin.
 
 ---
 
@@ -106,5 +74,6 @@ Bir modül aşağıdaki üç kriter sağlanmadan tamamlanmış sayılmaz:
 | `.antigravity/skills/api-contract.md` | REST endpoint standardı |
 | `.antigravity/skills/websocket.md` | WebSocket event standardı |
 | `.antigravity/skills/frontend.md` | Frontend bileşen standardı |
+| `.antigravity/skills/prisma.md` | Prisma veritabanı standardı |
 | `docs/session-log.md` | Oturum geçmişi |
 | `REVIEW_CHECKLIST.md` | İnsan onay listesi |
