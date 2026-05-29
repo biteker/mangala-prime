@@ -25,6 +25,28 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-05-30] — Prisma Veritabanı ve Şema Kurulumu (Aşama 2)
+
+**Tamamlanan Görev:** SQLite tabanlı veritabanı altyapısı Prisma ORM 7.x sürümü standartları ve LibSQL adapter kullanılarak kuruldu. Test verileri veritabanına seed edildi ve NestJS global PrismaModule entegrasyonu tamamlandı.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `prisma/schema.prisma` — SQLite veritabanı şeması ve modelleri
+- `prisma/prisma.config.ts` — Prisma 7.x yapılandırma dosyası
+- `prisma/seed.ts` — Veritabanı tohumlama (seed) script'i
+- `backend/package.json` — Prisma 7, LibSQL, bcrypt bağımlılıkları ve seed script yapılandırması
+- `backend/.env`, `backend/.env.example` — SQLite veritabanı url tanımı
+- `backend/src/common/prisma/prisma.service.ts` — LibSQL adapter tabanlı Prisma istemci servisi
+- `backend/src/common/prisma/prisma.module.ts` — Global Prisma modülü
+- `backend/src/app.module.ts` — PrismaModule entegrasyonu
+
+**Test Sonuçları:** `npx prisma validate` ve `npx prisma db seed` başarıyla çalıştı.
+**Derleme:** ✅ Hatasız (NestJS backend projesi başarıyla derlendi).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Aşama 3 — ELO Servisinin Oluşturulması.
+**Commit:** feat(prisma): set up sqlite database schema, seed data, and nestjs module
+**PR:** feature/prisma → develop
+
+---
+
 ### Oturum [2026-05-30] — Monorepo Kurulumu ve Tip Tanımları (Aşama 1)
 
 **Tamamlanan Görev:** Projenin monorepo altyapısı (Root, Shared, NestJS Backend, Vite React Frontend) kuruldu. Tüm oyun kuralları, REST API ve WebSocket tipleri `@shared/index` altında ortaklaştırıldı. Zustand Tema Store şablonu entegre edildi.
