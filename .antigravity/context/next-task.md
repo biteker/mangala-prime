@@ -2,52 +2,55 @@
 
 ---
 
-## Görev: User (Kullanıcı ve Liderlik Tablosu) Modülü (Aşama 6/14)
+## Görev: Game Gateway (WebSocket Bağlantısı ve Oyun Odası) (Aşama 7/14)
 
 ### Ne Yapılacak?
-Kullanıcının kendi profil bilgilerini almasını, liderlik tablosunun (leaderboard) listelenmesini ve kullanıcı adına göre profil aranmasını sağlayan `UserModule` bileşenlerini NestJS backend bünyesinde geliştir.
+Oyun odalarını yöneten, oyuncular arası hamle iletimini sağlayan, kopma tolerans (reconnection) mekanizmasını barındıran ve WebSocket olay sözleşmelerini uygulayan `/game` namespace'li `GameGateway` bileşenlerini backend bünyesinde geliştir.
 
 ### Oluşturulacak Dosyalar
 
 **Backend:**
 ```
-/backend/src/user/user.module.ts
-/backend/src/user/user.controller.ts
-/backend/src/user/user.service.ts
-/backend/src/user/user.service.spec.ts
+/backend/src/game/game.gateway.ts
+/backend/src/game/game.service.ts
+/backend/src/game/dto/move.dto.ts
 ```
 
 ### İçerik Gereksinimleri
 
-`user.service.ts` ve `user.controller.ts` şunları içermeli:
-- **Kendi Profilini Getirme (`GET /users/me`):**
-  - JWT korumalı olmalıdır.
-  - İstek atan kullanıcının `id`, `username`, `eloScore`, `wins`, `losses` ve `totalMatches` bilgilerini içeren `UserProfileResponse` tipinde veri döndürür.
-- **Liderlik Tablosu (`GET /users/leaderboard`):**
-  - Herkese açık (Public) olmalıdır.
-  - ELO puanına göre en yüksekten en düşüğe sıralanmış ilk 50 kullanıcıyı `LeaderboardEntry[]` formatında döndürür.
-- **Kullanıcı Profili Arama (`GET /users/:username`):**
-  - Herkese açık (Public) olmalıdır.
-  - `:username` ile eşleşen kullanıcıyı veritabanında arar.
-  - Bulunamazsa `404 NOT_FOUND` hatası (`NOT_FOUND` koduyla) fırlatır.
-  - Bulunursa, kullanıcının profil bilgilerini ve son maç geçmişlerini `UserPublicProfileResponse` formatında döndürür.
-- **Evrensel Kurallar:**
-  - Tüm Prisma sorguları try-catch blokları ile sarmalanmalı (Skill: `.antigravity/skills/prisma.md`).
-  - `@Public()` decorator'ü uygun şekilde public endpoint'lere uygulanmalı, `/users/me` ise guard tarafından korunmalıdır.
+`game.gateway.ts` ve `game.service.ts` şunları içermeli:
+- **WebSocket Gateway Yapılandırması:**
+  - `/game` namespace altında tanımlanmalıdır.
+  - İstemciler bağlanırken JWT token doğrulaması yapılmalıdır (Auth Guard entegrasyonu).
+- **Hamle İşleme (`game:move`):**
+  - Gelen hamle isteğini (`matchId` ve `pitIndex`) doğrular.
+  - Sıra kontrolü yapar: sırası olmayan oyuncunun hamlesini `game:error` ile drop eder.
+  - Geçersiz `pitIndex` durumunda `game:error` fırlatır ve mevcut board durumunu push eder.
+  - Hamle sonrasında `GameEngineService.processMove` çağrılır ve yeni durum odadaki tüm oyunculara `game:state_update` event'i ile yayınlanır.
+- **Kopma ve Reconnect Protokolü:**
+  - Oyuncu disconnect olduğunda odaya `game:player_disconnected` yayını yapılır ve 60 saniyelik tolerans penceresi başlar.
+  - Oyuncu sırasındayken disconnect olmuşsa hamle sayacı ve rakip kilitlenmelidir.
+  - 60 saniye içinde `game:reconnect` çağrısı alınırsa `game:reconnect_ack` ile durum güncellenip oyun devam ettirilir.
+  - 60 saniye aşılırsa maçı terk sayarak rakibe galibiyet yazar, ELO güncellemelerini tetikler ve `game:game_over` yayını yapar.
+- **Sohbet Entegrasyonu:**
+  - `game:chat_toggle` (sohbeti açıp kapatma) ve `game:message` (sohbet mesajı) event'leri işlenmeli, gelen mesajlar sanitize edilmelidir (XSS koruması).
+- **Zaman Yönetimi:**
+  - Her hamle için 15 saniyelik zamanlayıcı (timer) sunucuda koşturulmalı, süre bitiminde otomatik hükmen yenilgi uygulanmalıdır.
 
 ### Bağlam Dosyaları
-- `docs/spec.md` → Bölüm 11.3 & 13 (Endpoint yapısı ve hata formatı)
-- `shared/types/api-response.types.ts` → `UserProfileResponse`, `LeaderboardEntry`, `UserPublicProfileResponse` tanımları
-- `AGENTS.md` → Kesin Kurallar (any tipi yasağı)
+- `docs/spec.md` → Bölüm 7.2, 7.3 (Oyun WebSocket olay sözleşmeleri ve Kopma Toleransı)
+- `docs/spec.md` → Bölüm 8 & 16 & 19.4 (Güvenlik, Reconnect protokolü ve kabul kriterleri)
+- `.antigravity/skills/websocket.md` → WebSocket yazma standartları
 
 ### Kabul Kriterleri
-- [ ] `/users/me` token olmadan çağrıldığında 401 UNAUTHORIZED dönmeli
-- [ ] `/users/leaderboard` en yüksek ELO'ya sahip ilk 50 kullanıcıyı getirmeli
-- [ ] Olmayan kullanıcı arandığında 404 NOT_FOUND dönmeli
-- [ ] `npm run test -w backend` tüm testlerden geçmeli (UserModule için de unit testler yazılmalı)
+- [ ] Sırası olmayan oyuncu hamle attığında `game:error` dönmeli
+- [ ] Geçersiz kuyu seçildiğinde `game:error` + mevcut board dönmeli
+- [ ] Başarılı hamlede odadaki tüm istemcilere `game:state_update` yayını gitmeli
+- [ ] Reconnect süresi (60sn) aşıldığında oyun otomatik olarak hükmen sonlanmalı ve ELO güncellenmeli
+- [ ] `npm run test -w backend` tüm testlerden geçmeli
 - [ ] `npm run build` monorepo genelinde başarıyla tamamlanmalı
 
 ### Onay Durumu
 - [ ] Ajan testleri / derleme geçti
 - [ ] İnsan inceledi ve onayladı
-- [ ] feature/user branch'ten develop'a merge edildi
+- [ ] feature/game-gateway branch'ten develop'a merge edildi
