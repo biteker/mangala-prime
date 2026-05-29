@@ -1,14 +1,14 @@
 # Projenin Anlık Durumu
 
 Son Güncelleme: 2026-05-30
-Aktif Branch: feature/game-engine
+Aktif Branch: feature/auth
 
 ---
 
 ## Genel İlerleme
 
 ```
-Faz 1 MVP: ███░░░░░░░ %28
+Faz 1 MVP: ███░░░░░░░ %35
 ```
 
 ---
@@ -21,8 +21,8 @@ Faz 1 MVP: ███░░░░░░░ %28
 | Tip Tanımları | ✅ Onaylandı ve Merge Edildi | develop | Geliştirme tamamlandı, merge edildi. |
 | Prisma Şeması | ✅ Onaylandı ve Merge Edildi | develop | SQLite veritabanı kuruldu, test verileri seed edildi ve NestJS modülü bağlandı. |
 | ELO Servisi | ✅ Onaylandı ve Merge Edildi | develop | Saf ELO hesaplama formülleri ve transaction güncellemeleri tamamlandı, unit testleri yazıldı. |
-| Oyun Motoru | 🔍 İnsan İncelemesinde | feature/game-engine | Saf Mangala kural seti ve processMove mantığı tamamlandı, 8 zorunlu test geçti. |
-| Auth Modülü | ⬜ Başlanmadı | — | — |
+| Oyun Motoru | ✅ Onaylandı ve Merge Edildi | develop | Saf Mangala kural seti ve processMove mantığı tamamlandı, 8 zorunlu test geçti. |
+| Auth Modülü | 🔍 İnsan İncelemesinde | feature/auth | JWT kimlik doğrulama, cookie refresh rotasyonu, error/data sarmalayıcıları ve testleri tamamlandı. |
 | User Modülü | ⬜ Başlanmadı | — | — |
 | Game Gateway | ⬜ Başlanmadı | — | — |
 | Lobby Gateway | ⬜ Başlanmadı | — | — |
@@ -64,4 +64,4 @@ Faz 1 MVP: ███░░░░░░░ %28
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-05-30 — Mangala Oyun Motoru (feature/game-engine)
+Oturum 2026-05-30 — Auth Modülü (feature/auth)

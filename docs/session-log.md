@@ -25,6 +25,34 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-05-30] — Auth Modülü (Aşama 5)
+
+**Tamamlanan Görev:** Kullanıcı kayıt, giriş, cookie tabanlı refresh token rotasyonu ve çıkış işlemlerini yöneten JWT tabanlı AuthModule backend (NestJS) katmanında geliştirildi. DTO doğrulama, global HttpExceptionFilter hata sarmalayıcı ve global ResponseInterceptor veri sarmalayıcı entegre edilerek evrensel API standartlarına uyum sağlandı. Birim testleri yazıldı.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `backend/src/auth/auth.module.ts` — Auth modül konfigürasyonu ve JwtAuthGuard global APP_GUARD tanımı
+- `backend/src/auth/auth.controller.ts` — Register, login, refresh, logout endpoint'leri ve cookie yönetimi
+- `backend/src/auth/auth.service.ts` — Kayıt, giriş ve refresh token rotasyonu iş mantıkları
+- `backend/src/auth/auth.guard.ts` — JwtAuthGuard ve @Public() dekoratörü
+- `backend/src/auth/strategies/jwt.strategy.ts` — Request'lerdeki JWT token'ları doğrulamak için JwtStrategy
+- `backend/src/auth/dto/register.dto.ts` — class-validator tabanlı Register DTO'su
+- `backend/src/auth/dto/login.dto.ts` — class-validator tabanlı Login DTO'su
+- `backend/src/auth/auth.service.spec.ts` — Mock ve Jest tabanlı Auth birim testleri (7 test)
+- `backend/src/common/filters/http-exception.filter.ts` — Evrensel hata response formatı ({ error: ... })
+- `backend/src/common/interceptors/response.interceptor.ts` — Evrensel başarılı response formatı ({ data: ... })
+- `backend/src/app.module.ts` — AuthModule entegrasyonu
+- `backend/src/main.ts` — cookie-parser, Pipes, Filters ve Interceptors kaydı
+- `prisma/schema.prisma` — User modeline refreshToken alanı eklendi
+- `docs/session-log.md` — Oturum kaydı eklendi
+
+**Test Sonuçları:** 28/28 Jest testleri başarıyla geçti (`npm run test -w backend`).
+**Derleme:** ✅ Hatasız (NestJS backend ve tüm monorepo başarıyla derlendi).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Aşama 6 — User Modülü (Profil Arama ve Liderlik Tablosu).
+**Commit:** feat(auth): implement jwt authentication, token rotation, and error filter
+**PR:** feature/auth → develop
+
+---
+
 ### Oturum [2026-05-30] — Mangala Oyun Motoru (Aşama 4)
 
 **Tamamlanan Görev:** Mangala oyun motorunun taş dağıtma, ek hamle, rakip bölgede çift taş yakalama, Turan taktiği, bölge temizleme ve 25 taşa ulaşma kazanma koşullarını barındıran saf processMove mantığı ve 8 zorunlu Jest testi tamamlandı. NestJS GameModule entegrasyonu sağlandı.
