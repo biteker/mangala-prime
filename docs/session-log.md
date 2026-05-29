@@ -25,6 +25,26 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-05-30] — User Modülü (Aşama 6)
+
+**Tamamlanan Görev:** Kullanıcı profil bilgilerinin alınması, ELO tabanlı liderlik tablosu (top 50) sorgusu ve kullanıcı adına göre profil ve maç geçmişini getiren UserModule backend (NestJS) katmanında geliştirildi. Standarda uygun API dönüş tipleri ve try-catch prisma sorgu yapıları entegre edildi. Birim testleri yazıldı.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `backend/src/user/user.module.ts` — UserModule modül dosyası
+- `backend/src/user/user.controller.ts` — /users/me, /users/leaderboard, /users/:username endpoint'leri
+- `backend/src/user/user.service.ts` — Liderlik tablosu ve profil sorgulama mantığı
+- `backend/src/user/user.service.spec.ts` — Mock ve Jest tabanlı User birim testleri (5 test)
+- `backend/src/app.module.ts` — UserModule entegrasyonu
+- `docs/session-log.md` — Oturum kaydı eklendi
+
+**Test Sonuçları:** 33/33 Jest testleri başarıyla geçti (`npm run test -w backend`).
+**Derleme:** ✅ Hatasız (NestJS backend ve tüm monorepo başarıyla derlendi).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Aşama 7 — Game Gateway (WebSocket Bağlantısı ve Oyun Odası).
+**Commit:** feat(user): implement user profiles, top 50 leaderboard and match history
+**PR:** feature/user → develop
+
+---
+
 ### Oturum [2026-05-30] — Auth Modülü (Aşama 5)
 
 **Tamamlanan Görev:** Kullanıcı kayıt, giriş, cookie tabanlı refresh token rotasyonu ve çıkış işlemlerini yöneten JWT tabanlı AuthModule backend (NestJS) katmanında geliştirildi. DTO doğrulama, global HttpExceptionFilter hata sarmalayıcı ve global ResponseInterceptor veri sarmalayıcı entegre edilerek evrensel API standartlarına uyum sağlandı. Birim testleri yazıldı.

@@ -1,14 +1,14 @@
 # Projenin Anlık Durumu
 
 Son Güncelleme: 2026-05-30
-Aktif Branch: feature/auth
+Aktif Branch: feature/user
 
 ---
 
 ## Genel İlerleme
 
 ```
-Faz 1 MVP: ███░░░░░░░ %35
+Faz 1 MVP: ████░░░░░░ %42
 ```
 
 ---
@@ -22,8 +22,8 @@ Faz 1 MVP: ███░░░░░░░ %35
 | Prisma Şeması | ✅ Onaylandı ve Merge Edildi | develop | SQLite veritabanı kuruldu, test verileri seed edildi ve NestJS modülü bağlandı. |
 | ELO Servisi | ✅ Onaylandı ve Merge Edildi | develop | Saf ELO hesaplama formülleri ve transaction güncellemeleri tamamlandı, unit testleri yazıldı. |
 | Oyun Motoru | ✅ Onaylandı ve Merge Edildi | develop | Saf Mangala kural seti ve processMove mantığı tamamlandı, 8 zorunlu test geçti. |
-| Auth Modülü | 🔍 İnsan İncelemesinde | feature/auth | JWT kimlik doğrulama, cookie refresh rotasyonu, error/data sarmalayıcıları ve testleri tamamlandı. |
-| User Modülü | ⬜ Başlanmadı | — | — |
+| Auth Modülü | ✅ Onaylandı ve Merge Edildi | develop | JWT kimlik doğrulama, cookie refresh rotasyonu, error/data sarmalayıcıları ve testleri tamamlandı. |
+| User Modülü | 🔍 İnsan İncelemesinde | feature/user | Profil sorgulama (/users/me), liderlik tablosu (/users/leaderboard) ve geçmiş maç detaylı kullanıcı arama (/users/:username) tamamlandı. |
 | Game Gateway | ⬜ Başlanmadı | — | — |
 | Lobby Gateway | ⬜ Başlanmadı | — | — |
 
@@ -64,4 +64,4 @@ Faz 1 MVP: ███░░░░░░░ %35
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-05-30 — Auth Modülü (feature/auth)
+Oturum 2026-05-30 — User Modülü (feature/user)
