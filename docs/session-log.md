@@ -25,6 +25,26 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-05-30] — Monorepo Kurulumu ve Tip Tanımları (Aşama 1)
+
+**Tamamlanan Görev:** Projenin monorepo altyapısı (Root, Shared, NestJS Backend, Vite React Frontend) kuruldu. Tüm oyun kuralları, REST API ve WebSocket tipleri `@shared/index` altında ortaklaştırıldı. Zustand Tema Store şablonu entegre edildi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `package.json` — Root workspaces tanımı
+- `shared/package.json`, `shared/tsconfig.json` — Shared paketi
+- `shared/types/*.ts` — Oyun, API ve Socket tip tanımları
+- `backend/` — NestJS CLI ile başlatılan backend projesi (strict mod, shared alias eşleşmeleri)
+- `frontend/` — Vite React+TS ile başlatılan frontend projesi (shared alias, Zustand entegrasyonu)
+- `frontend/src/stores/theme.store.ts` — Çoklu tema yönetim store'u
+
+**Test Sonuçları:** Unit testler henüz yazılmadı (Aşama 1).
+**Derleme:** ✅ Hatasız (Shared, Backend ve Frontend paketleri başarıyla build edildi).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Aşama 2 — Prisma Veritabanı Şemasının Oluşturulması.
+**Commit:** feat(types): initialize monorepo structure and add core TS types
+**PR:** feature/types → develop
+
+---
+
 ### Oturum [2026-05-30] — Çoklu Tema Desteği Planlaması
 
 **Tamamlanan Görev:** Kullanıcı talebi üzerine sadece dark/light tema değil, tamamen farklı görünüm varyasyonlarına izin veren dinamik çoklu tema desteği (Klasik Ahşap, Modern Neon) planlandı ve kurallaştırıldı.
