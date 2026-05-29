@@ -14,6 +14,7 @@ model User {
   wins              Int      @default(0)
   losses            Int      @default(0)
   deviceFingerprint String?
+  refreshToken      String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
