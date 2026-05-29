@@ -31,8 +31,8 @@ interface MoveResult {
   nextPlayer: 0 | 1
   extraTurn: boolean
   gameOver: boolean
-  winnerId?: string
-  capturedPits?: number[]  // animasyon için hangi kuyular etkilendi
+  winner?: 0 | 1            // Player index (saf fonksiyon userId bilemez)
+  capturedPits?: number[]   // animasyon için hangi kuyular etkilendi
 }
 ```
 
