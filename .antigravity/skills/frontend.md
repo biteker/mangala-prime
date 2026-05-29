@@ -144,6 +144,50 @@ Layout → Spacing → Sizing → Typography → Colors → Effects → State
 
 ---
 
+## Çoklu Tema Yönetimi Standardı
+
+Tema yönetimi için Zustand store ve CSS değişkenleri kullanılır. 
+
+### Tema Store Şablonu
+
+```typescript
+// stores/theme.store.ts
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+
+export type ThemeType = 'theme-wood' | 'theme-neon'
+
+interface ThemeStore {
+  theme: ThemeType
+  setTheme: (theme: ThemeType) => void
+}
+
+export const useThemeStore = create<ThemeStore>()(
+  persist(
+    (set) => ({
+      theme: 'theme-wood',
+      setTheme: (theme) => {
+        // Eski tema sınıflarını temizle ve yenisini ekle
+        const root = window.document.documentElement
+        root.classList.remove('theme-wood', 'theme-neon')
+        root.classList.add(theme)
+        set({ theme })
+      },
+    }),
+    {
+      name: 'mangala-theme',
+    }
+  )
+)
+```
+
+### Tema Kullanım Kuralları
+
+1. Bileşenlerin içinde hiçbir renk veya gölge değeri statik (hardcoded) olarak yazılmamalıdır. Her zaman CSS değişkenlerini (`var(--...)`) kullanan Tailwind sınıfları (örneğin; `bg-background`, `text-primary`, `border-border`) veya doğrudan dinamik CSS değişkenleri (`bg-[var(--board-bg)]`) tercih edilmelidir.
+2. Yeni bir tema eklendiğinde sadece `globals.css` içinde o temaya ait CSS değişkenleri tanımlanmalı, bileşen kodlarına dokunulmamalıdır.
+
+---
+
 ## Yasaklar
 
 - `any` tipi

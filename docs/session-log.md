@@ -25,6 +25,23 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-05-30] — Çoklu Tema Desteği Planlaması
+
+**Tamamlanan Görev:** Kullanıcı talebi üzerine sadece dark/light tema değil, tamamen farklı görünüm varyasyonlarına izin veren dinamik çoklu tema desteği (Klasik Ahşap, Modern Neon) planlandı ve kurallaştırıldı.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `docs/spec.md` — Bölüm 9.6 Çoklu Tema Desteği gereksinimleri eklendi.
+- `.antigravity/skills/frontend.md` — Çoklu tema yönetimi standardı ve Zustand tema store şablonu eklendi.
+- `.antigravity/context/current-state.md` — Tema yönetimiyle ilgili alınan karar eklendi.
+
+**Test Sonuçları:** Test aşamasına henüz geçilmedi (Planlama/Tasarım aşaması).
+**Derleme:** ✅ Hatasız (Sadece markdown ve şablon dosyaları).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** GitHub reposunun oluşturulması ve ilk push işlemi, ardından Aşama 1 — Tip Tanımları.
+**Commit:** docs: add multi-theme support specifications and frontend standards
+**PR:** feature/planning-fixes → develop
+
+---
+
 ### Oturum [2026-05-26] — Planlama Dosyaları Düzeltmeleri
 
 **Tamamlanan Görev:** Analiz sonucu tespit edilen 9 aksiyon maddesi uygulandı: bilgi tekrarları temizlendi, eksik tanımlar eklendi, çelişkiler çözüldü, yeni dosyalar oluşturuldu.

@@ -59,6 +59,7 @@ Faz 1 MVP: ░░░░░░░░░░ %0
 - **Karar:** `MoveResult.winner` tipi `0 | 1` (Player) olacak — saf fonksiyon userId bilemez.
 - **Karar:** Matchmaking MVP'de FIFO kuyruk, Faz 2'de ELO tabanlı eşleşme.
 - **Karar:** 3D efektler saf CSS ile sağlanacak (Three.js vb. kullanılmayacak).
+- **Karar:** Çoklu tema desteği (Açık/Koyu ve bambaşka görsel varyasyonlar) CSS değişkenleri ve Zustand Store ile yönetilecek, harici tema motoru kurulmayacaktır.
 
 ---
 

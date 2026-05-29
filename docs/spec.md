@@ -304,6 +304,15 @@ Geçerli kuyuya tıklandığı/dokunulduğu anda hamle backend'e gönderilir.
 
 **Bekleme Limiti:** 120 saniye — süre aşılırsa istemciye `lobby:queue_timeout` event'i gönderilir, otomatik kuyruktan çıkarılır.
 
+### 9.6 Çoklu Tema Desteği
+
+- **Mimari:** CSS Değişkenleri (CSS Variables) ve Tailwind CSS tabanlı dinamik tema yönetimi. Harici ağır tema kütüphaneleri kullanılmaz.
+- **Zustand Tema Store:** Seçilen tema (`theme-wood` veya `theme-neon`) Zustand Store üzerinde tutulur ve `localStorage` ile kalıcı hale getirilir. Sayfa açılışında `html` veya `body` etiketine ilgili temanın sınıfı eklenir (örn: `.theme-wood` veya `.theme-neon`).
+- **Varsayılan Temalar:**
+  - **Klasik Ahşap (`theme-wood`):** Otantik ahşap dokulu oyun tahtası arka planı, kahverengi ve toprak tonlarında arayüz elemanları, geleneksel hissi veren yumuşak gölgeler.
+  - **Modern Neon (`theme-neon` - Koyu Tema öncelikli):** Koyu arka plan üzerine neon pembe ve mor parlayan taşlar, fütüristik çizgilerle tasarlanmış yarı saydam (glassmorphism) oyun tahtası ve arayüz elemanları.
+- **Genişletilebilirlik:** Yeni bir tema eklemek sadece CSS dosyasına yeni bir sınıf (örn: `.theme-cyberpunk`) ve bu sınıfın renk değişkenlerini tanımlamaktan ibarettir.
+
 ---
 
 ## Bölüm 10 — Test ve CI/CD
