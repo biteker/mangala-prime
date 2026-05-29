@@ -1,14 +1,14 @@
 # Projenin Anlık Durumu
 
-Son Güncelleme: 2026-05-24
-Aktif Branch: —
+Son Güncelleme: 2026-05-30
+Aktif Branch: feature/types
 
 ---
 
 ## Genel İlerleme
 
 ```
-Faz 1 MVP: ░░░░░░░░░░ %0
+Faz 1 MVP: █░░░░░░░░░ %7
 ```
 
 ---
@@ -18,7 +18,7 @@ Faz 1 MVP: ░░░░░░░░░░ %0
 ### Backend
 | Modül | Durum | Branch | Notlar |
 |-------|-------|--------|--------|
-| Tip Tanımları | ⬜ Başlanmadı | — | — |
+| Tip Tanımları | 🔍 İnsan İncelemesinde | feature/types | Geliştirme tamamlandı, derleme başarılı. |
 | Prisma Şeması | ⬜ Başlanmadı | — | — |
 | ELO Servisi | ⬜ Başlanmadı | — | — |
 | Oyun Motoru | ⬜ Başlanmadı | — | — |
@@ -64,4 +64,4 @@ Faz 1 MVP: ░░░░░░░░░░ %0
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-05-26 — Planlama Düzeltmeleri (feature/planning-fixes)
+Oturum 2026-05-30 — Monorepo Kurulumu ve Tip Tanımları (feature/types)

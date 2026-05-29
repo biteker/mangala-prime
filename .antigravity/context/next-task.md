@@ -2,66 +2,55 @@
 
 ---
 
-## Görev: Tip Tanımları (Aşama 1/14)
+## Görev: Prisma Şeması ve Veritabanı Kurulumu (Aşama 2/14)
 
 ### Ne Yapılacak?
-Projenin tüm modüllerinin üzerine inşa edileceği TypeScript tip ve
-interface tanımlarını oluştur. Bu dosyalar bir kez doğru yazılırsa
-sonraki her modül bunları import eder — değiştirilmesi maliyetlidir,
-dikkatli yaz.
+Projenin veritabanı katmanını yapılandır. SQLite tabanlı Prisma şemasını oluştur, modelleri tanımla, seed dosyası hazırla ve local veritabanını ayağa kaldır.
 
 ### Oluşturulacak Dosyalar
 
 **Backend:**
 ```
-/backend/src/common/types/game.types.ts
-/backend/src/common/types/api-response.types.ts
-/backend/src/common/types/socket-events.types.ts
-```
-
-**Frontend:**
-```
-/frontend/src/lib/types/game.types.ts   (backend ile senkron)
-/frontend/src/lib/types/api.types.ts
+/prisma/schema.prisma
+/prisma/seed.ts
+/backend/src/common/prisma/prisma.service.ts
+/backend/src/common/prisma/prisma.module.ts
 ```
 
 ### İçerik Gereksinimleri
 
-`game.types.ts` şunları içermeli:
-- `BoardState = number[]` (14 elemanlı)
-- `Player = 0 | 1`
-- `MoveResult` interface — newBoard, nextPlayer, extraTurn, gameOver, winner? (Player, 0|1), capturedPits?
-- `GameRoom` interface — matchId, player1SocketId, player2SocketId, board, currentPlayer, timer (**Backend-only**, `shared/` dışında tanımlanır → `/backend/src/game/types/game-room.types.ts`)
-- `MatchStatus` enum — ACTIVE, FINISHED, ABANDONED
-- `GameEndReason` enum — NORMAL, TIMEOUT, DISCONNECT, FORFEIT
+`schema.prisma` şunları içermeli:
+- `provider = "sqlite"` ve `url = env("DATABASE_URL")`
+- `User` modeli: id (UUID), username (unique), passwordHash, eloScore (default 1000), wins (default 0), losses (default 0), deviceFingerprint, createdAt, updatedAt.
+- `Match` modeli: id (UUID), player1Id, player2Id, winnerId, status (MatchStatus enum, default ACTIVE), isFriendly (Boolean, default false), p1EloChange, p2EloChange, createdAt, updatedAt.
+- `MoveHistory` modeli: id (UUID), matchId, playerId, pitIndex, boardState (JSON string formatında number[]), createdAt.
+- `MatchStatus` enum: ACTIVE, FINISHED, ABANDONED.
 
-`socket-events.types.ts` şunları içermeli:
-- Tüm WebSocket event payload tipleri (spec Bölüm 7)
-- Her event için ayrı interface
+`prisma.service.ts` şunları içermeli:
+- NestJS `PrismaClient` sarmalayıcısı.
+- NestJS kurallarına uygun connection handling.
+- Sorguların try-catch blokları ile sarılmasını sağlayan helper/wrapper pattern (Skill: `.antigravity/skills/prisma.md`).
 
-`api-response.types.ts` şunları içermeli:
-- `ApiResponse<T>` generic wrapper
-- `ApiError` interface
-- Tüm REST endpoint request/response tipleri (spec Bölüm 14)
+`seed.ts` şunları içermeli:
+- Test amaçlı 5-10 kullanıcı hesabı (şifre hash'leri bcrypt ile üretilmiş).
+- Liderlik tablosu testi için farklı ELO seviyelerinde oyuncular.
 
 ### Bağlam Dosyaları
-- `docs/spec.md` → Bölüm 4 (Oyun kuralları)
-- `docs/spec.md` → Bölüm 7 (WebSocket event'leri)
-- `docs/spec.md` → Bölüm 13 (Hata formatı)
-- `docs/spec.md` → Bölüm 14 (API sözleşmesi)
+- `docs/spec.md` → Bölüm 5 (Veritabanı stratejisi ve şeması)
+- `.antigravity/skills/prisma.md` → Prisma sorguları ve servis mimarisi kuralları
 
 ### Kabul Kriterleri
-- [ ] `tsc --noEmit` hatasız çalışır
-- [ ] `any` tipi kullanılmamış
-- [ ] Tüm WebSocket payload'ları tiplendirilmiş
-- [ ] Tüm REST request/response'ları tiplendirilmiş
-- [ ] Frontend tipleri backend tipleriyle senkron
+- [ ] `prisma schema` geçerlidir (`npx prisma validate`)
+- [ ] `npx prisma db push` başarıyla tamamlanır
+- [ ] `npx prisma db seed` başarıyla çalışır ve test verileri veritabanına yazılır
+- [ ] NestJS Prisma Module ve Service entegrasyonu tamamlanmıştır
+- [ ] `npm run build` backend için başarıyla tamamlanır
 
 ### Onay Durumu
 - [ ] Ajan testleri / derleme geçti
 - [ ] İnsan inceledi ve onayladı
-- [ ] feature/types branch'ten develop'a merge edildi
+- [ ] feature/prisma branch'ten develop'a merge edildi
 
 ### Tamamlanınca
-`current-state.md`'de Tip Tanımları satırını ✅ olarak işaretle.
-Bu dosyayı (next-task.md) Aşama 2 (Prisma Şeması) ile güncelle.
+`current-state.md`'de Prisma Şeması satırını ✅ olarak işaretle.
+Bu dosyayı (next-task.md) Aşama 3 (ELO Servisi) ile güncelle.
