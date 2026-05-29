@@ -139,27 +139,7 @@ Bellek sızıntısını önlemek için oda silinmeden önce
 5b. 60 saniye dolarsa: hükmen bitir, ELO güncelle
 ```
 
----
+## Event Referansı
 
-## Event Listesi (Referans)
+Tüm event listesi ve payload detayları → bkz. `docs/spec.md` Bölüm 7
 
-### /lobby Namespace
-| Event | Yön | Payload |
-|-------|-----|---------|
-| lobby:user_status | S→C | { userId, status } |
-| lobby:invite_send | C→S | { targetUserId } |
-| lobby:invite_response | C→S | { inviterUserId, accepted } |
-| lobby:invite_timeout | S→C | { inviterUserId } |
-| lobby:error | S→C | { error: { code, message } } |
-
-### /game Namespace
-| Event | Yön | Payload |
-|-------|-----|---------|
-| game:move | C→S | { matchId, pitIndex } |
-| game:state_update | S→C | { board, nextPlayerId, turnTimeLeft } |
-| game:error | S→C | { error, board? } |
-| game:player_disconnected | S→C | { playerId, reconnectWindowSecs: 60 } |
-| game:reconnect | C→S | { matchId } |
-| game:reconnect_ack | S→C | { board, nextPlayerId, turnTimeLeft, matchId, opponentUsername } |
-| game:chat_toggle | C→S | { matchId, chatEnabled } |
-| game:message | C→S | { matchId, message, type } |

@@ -25,4 +25,42 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
-_Henüz oturum kaydı yok — proje henüz başlamadı._
+### Oturum [2026-05-30] — Çoklu Tema Desteği Planlaması
+
+**Tamamlanan Görev:** Kullanıcı talebi üzerine sadece dark/light tema değil, tamamen farklı görünüm varyasyonlarına izin veren dinamik çoklu tema desteği (Klasik Ahşap, Modern Neon) planlandı ve kurallaştırıldı.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `docs/spec.md` — Bölüm 9.6 Çoklu Tema Desteği gereksinimleri eklendi.
+- `.antigravity/skills/frontend.md` — Çoklu tema yönetimi standardı ve Zustand tema store şablonu eklendi.
+- `.antigravity/context/current-state.md` — Tema yönetimiyle ilgili alınan karar eklendi.
+
+**Test Sonuçları:** Test aşamasına henüz geçilmedi (Planlama/Tasarım aşaması).
+**Derleme:** ✅ Hatasız (Sadece markdown ve şablon dosyaları).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** GitHub reposunun oluşturulması ve ilk push işlemi, ardından Aşama 1 — Tip Tanımları.
+**Commit:** docs: add multi-theme support specifications and frontend standards
+**PR:** feature/planning-fixes → develop
+
+---
+
+### Oturum [2026-05-26] — Planlama Dosyaları Düzeltmeleri
+
+**Tamamlanan Görev:** Analiz sonucu tespit edilen 9 aksiyon maddesi uygulandı: bilgi tekrarları temizlendi, eksik tanımlar eklendi, çelişkiler çözüldü, yeni dosyalar oluşturuldu.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `.gitignore` — Yeni: node_modules, .env, dist, db dosyaları için
+- `.github/PULL_REQUEST_TEMPLATE.md` — Yeni: PR şablonu
+- `.antigravity/skills/prisma.md` — Yeni: Prisma veritabanı yazma standardı
+- `docs/spec.md` — Bölüm 1 sadeleştirildi, Local PvP (4.6) eklendi, matchmaking (9.5) eklendi, eksik WS event'leri eklendi (game:match_found, game:game_over, lobby:queue_*), shared/backend çelişkisi çözüldü, 3D efekt kararı belgelendi, Reconnect tablosu korundu
+- `AGENTS.md` — Tekrarlayan bölümler referanslara dönüştürüldü, prisma.md referansı eklendi
+- `.antigravity/skills/game-engine.md` — MoveResult.winnerId → winner (Player tipi)
+- `.antigravity/skills/websocket.md` — Tekrarlayan event tablosu referansa dönüştürüldü
+- `.antigravity/skills/api-contract.md` — Tekrarlayan endpoint tablosu referansa dönüştürüldü
+- `.antigravity/context/next-task.md` — MoveResult ve GameRoom tipleri güncellendi
+- `.antigravity/context/current-state.md` — Alınan kararlar kaydedildi
+
+**Test Sonuçları:** Test aşamasına henüz geçilmedi (Planlama düzeltmeleri).
+**Derleme:** ✅ Hatasız (Sadece markdown dosyaları).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Aşama 1 — Tip Tanımları
+**Commit:** docs: fix planning files — resolve conflicts, add missing definitions, deduplicate
+**PR:** feature/planning-fixes → develop
+

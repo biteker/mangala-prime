@@ -95,17 +95,7 @@ async getProfile(@Request() req): Promise<ApiResponse<UserResponseDto>> {
 
 Public endpoint'lerde `@UseGuards` kullanma.
 
----
+## Endpoint Referansı
 
-## Endpoint Listesi (Referans)
+Tüm endpoint listesi, method, auth ve açıklamalar → bkz. `docs/spec.md` Bölüm 14
 
-| Endpoint | Method | Auth | Açıklama |
-|----------|--------|------|----------|
-| POST /auth/register | POST | Public | Kayıt |
-| POST /auth/login | POST | Public | Giriş |
-| POST /auth/refresh | POST | Cookie | Token yenile |
-| POST /auth/logout | POST | Bearer | Çıkış |
-| GET /users/me | GET | Bearer | Profil |
-| GET /users/leaderboard | GET | Public | İlk 50 |
-| GET /users/:username | GET | Public | Kullanıcı profili |
-| GET /matches/:id | GET | Bearer | Maç detayı |
