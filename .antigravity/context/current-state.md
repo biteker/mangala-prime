@@ -64,4 +64,4 @@ Faz 1 MVP: █░░░░░░░░░ %7
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-05-30 — Monorepo Kurulumu ve Tip Tanımları (feature/types)
+Oturum 2026-05-30 — TypeScript Sürüm Senkronizasyonu (feature/types)

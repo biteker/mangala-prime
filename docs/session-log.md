@@ -25,6 +25,22 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-05-30] — TypeScript Sürüm Senkronizasyonu ve Editör Hatalarının Giderilmesi
+
+**Tamamlanan Görev:** Monorepo yapısında frontend ve backend arasında yaşanan TypeScript sürüm uyuşmazlığı çözüldü. Tüm workspace paketlerinin TypeScript sürümü `^5.7.3` seviyesinde eşitlendi. `tsconfig.app.json` dosyasındaki geçersiz ve amorti edilmiş (deprecated) ayarlar (`baseUrl` ve geçersiz `ignoreDeprecations` sürümü) temizlendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/package.json` — TypeScript sürümü backend ile eşlenerek `^5.7.3` yapıldı.
+- `frontend/tsconfig.app.json` — Deprecated `baseUrl` seçeneği ve sürüm uyuşmazlığı yaratan `ignoreDeprecations` kaldırıldı.
+
+**Test Sonuçları:** Test aşamasına geçilmedi (Düzeltme ve derleme odaklı oturum).
+**Derleme:** ✅ Hatasız (Tüm workspaces başarıyla derleniyor).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Aşama 2 — Prisma Veritabanı Şemasının Oluşturulması.
+**Commit:** chore(frontend): align typescript version and clean up tsconfig deprecations
+**PR:** feature/types → develop
+
+---
+
 ### Oturum [2026-05-30] — Monorepo Kurulumu ve Tip Tanımları (Aşama 1)
 
 **Tamamlanan Görev:** Projenin monorepo altyapısı (Root, Shared, NestJS Backend, Vite React Frontend) kuruldu. Tüm oyun kuralları, REST API ve WebSocket tipleri `@shared/index` altında ortaklaştırıldı. Zustand Tema Store şablonu entegre edildi.
