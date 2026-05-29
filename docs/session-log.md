@@ -25,6 +25,42 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-05-30] — Mangala Oyun Motoru (Aşama 4)
+
+**Tamamlanan Görev:** Mangala oyun motorunun taş dağıtma, ek hamle, rakip bölgede çift taş yakalama, Turan taktiği, bölge temizleme ve 25 taşa ulaşma kazanma koşullarını barındıran saf processMove mantığı ve 8 zorunlu Jest testi tamamlandı. NestJS GameModule entegrasyonu sağlandı.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `backend/src/game/game-engine.service.ts` — Çekirdek oyun mantığını barındıran saf fonksiyon sınıfı
+- `backend/src/game/game-engine.spec.ts` — Oyun kurallarını test eden 12 unit testi
+- `backend/src/game/game.module.ts` — GameModule NestJS modülü
+- `backend/src/app.module.ts` — GameModule kaydı
+
+**Test Sonuçları:** 21/21 Jest testleri başarıyla geçti (`npm run test -w backend`).
+**Derleme:** ✅ Hatasız (NestJS backend ve tüm monorepo başarıyla derlendi).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Aşama 5 — Auth Modülü.
+**Commit:** feat(game): implement mangala game engine and unit tests
+**PR:** feature/game-engine → develop
+
+---
+
+### Oturum [2026-05-30] — ELO Derecelendirme Servisi (Aşama 3)
+
+**Tamamlanan Görev:** ELO derecelendirme formüllerini uygulayan saf fonksiyonlar ve bu değişimleri single transaction olarak veritabanına işleyen EloService backend modülü geliştirildi, Jest unit testleri tamamlandı.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `backend/src/elo/elo.service.ts` — Saf ELO fonksiyonları ve transaction güncellemesi
+- `backend/src/elo/elo.module.ts` — NestJS EloModule
+- `backend/src/elo/elo.service.spec.ts` — ELO formül ve transaction mock unit testleri
+- `backend/src/app.module.ts` — EloModule entegrasyonu
+
+**Test Sonuçları:** 9/9 Jest testleri başarıyla geçti (`npm run test -w backend`).
+**Derleme:** ✅ Hatasız (NestJS backend projesi başarıyla derlendi).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Aşama 4 — Mangala Oyun Motorunun (Game Engine) Oluşturulması.
+**Commit:** feat(elo): implement elo score calculation service and unit tests
+**PR:** feature/elo → develop
+
+---
+
 ### Oturum [2026-05-30] — Prisma Veritabanı ve Şema Kurulumu (Aşama 2)
 
 **Tamamlanan Görev:** SQLite tabanlı veritabanı altyapısı Prisma ORM 7.x sürümü standartları ve LibSQL adapter kullanılarak kuruldu. Test verileri veritabanına seed edildi ve NestJS global PrismaModule entegrasyonu tamamlandı.

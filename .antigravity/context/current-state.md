@@ -1,14 +1,14 @@
 # Projenin Anlık Durumu
 
 Son Güncelleme: 2026-05-30
-Aktif Branch: feature/prisma
+Aktif Branch: feature/game-engine
 
 ---
 
 ## Genel İlerleme
 
 ```
-Faz 1 MVP: ██░░░░░░░░ %14
+Faz 1 MVP: ███░░░░░░░ %28
 ```
 
 ---
@@ -19,9 +19,9 @@ Faz 1 MVP: ██░░░░░░░░ %14
 | Modül | Durum | Branch | Notlar |
 |-------|-------|--------|--------|
 | Tip Tanımları | ✅ Onaylandı ve Merge Edildi | develop | Geliştirme tamamlandı, merge edildi. |
-| Prisma Şeması | 🔍 İnsan İncelemesinde | feature/prisma | SQLite veritabanı kuruldu, test verileri seed edildi ve NestJS modülü bağlandı. |
-| ELO Servisi | ⬜ Başlanmadı | — | — |
-| Oyun Motoru | ⬜ Başlanmadı | — | — |
+| Prisma Şeması | ✅ Onaylandı ve Merge Edildi | develop | SQLite veritabanı kuruldu, test verileri seed edildi ve NestJS modülü bağlandı. |
+| ELO Servisi | ✅ Onaylandı ve Merge Edildi | develop | Saf ELO hesaplama formülleri ve transaction güncellemeleri tamamlandı, unit testleri yazıldı. |
+| Oyun Motoru | 🔍 İnsan İncelemesinde | feature/game-engine | Saf Mangala kural seti ve processMove mantığı tamamlandı, 8 zorunlu test geçti. |
 | Auth Modülü | ⬜ Başlanmadı | — | — |
 | User Modülü | ⬜ Başlanmadı | — | — |
 | Game Gateway | ⬜ Başlanmadı | — | — |
@@ -64,4 +64,4 @@ Faz 1 MVP: ██░░░░░░░░ %14
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-05-30 — Prisma Veritabanı ve Şema Kurulumu (feature/prisma)
+Oturum 2026-05-30 — Mangala Oyun Motoru (feature/game-engine)

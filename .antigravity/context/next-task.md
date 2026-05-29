@@ -2,55 +2,59 @@
 
 ---
 
-## Görev: Prisma Şeması ve Veritabanı Kurulumu (Aşama 2/14)
+## Görev: Auth (Kimlik Doğrulama) Modülü (Aşama 5/14)
 
 ### Ne Yapılacak?
-Projenin veritabanı katmanını yapılandır. SQLite tabanlı Prisma şemasını oluştur, modelleri tanımla, seed dosyası hazırla ve local veritabanını ayağa kaldır.
+Kullanıcı kayıt, giriş, refresh token rotasyonu ve çıkış işlemlerini yöneten JWT tabanlı `AuthModule` bileşenlerini NestJS backend bünyesinde geliştir.
 
 ### Oluşturulacak Dosyalar
 
 **Backend:**
 ```
-/prisma/schema.prisma
-/prisma/seed.ts
-/backend/src/common/prisma/prisma.service.ts
-/backend/src/common/prisma/prisma.module.ts
+/backend/src/auth/auth.module.ts
+/backend/src/auth/auth.controller.ts
+/backend/src/auth/auth.service.ts
+/backend/src/auth/auth.guard.ts
+/backend/src/auth/dto/register.dto.ts
+/backend/src/auth/dto/login.dto.ts
+/backend/src/auth/strategies/jwt.strategy.ts
 ```
 
 ### İçerik Gereksinimleri
 
-`schema.prisma` şunları içermeli:
-- `provider = "sqlite"` ve `url = env("DATABASE_URL")`
-- `User` modeli: id (UUID), username (unique), passwordHash, eloScore (default 1000), wins (default 0), losses (default 0), deviceFingerprint, createdAt, updatedAt.
-- `Match` modeli: id (UUID), player1Id, player2Id, winnerId, status (MatchStatus enum, default ACTIVE), isFriendly (Boolean, default false), p1EloChange, p2EloChange, createdAt, updatedAt.
-- `MoveHistory` modeli: id (UUID), matchId, playerId, pitIndex, boardState (JSON string formatında number[]), createdAt.
-- `MatchStatus` enum: ACTIVE, FINISHED, ABANDONED.
-
-`prisma.service.ts` şunları içermeli:
-- NestJS `PrismaClient` sarmalayıcısı.
-- NestJS kurallarına uygun connection handling.
-- Sorguların try-catch blokları ile sarılmasını sağlayan helper/wrapper pattern (Skill: `.antigravity/skills/prisma.md`).
-
-`seed.ts` şunları içermeli:
-- Test amaçlı 5-10 kullanıcı hesabı (şifre hash'leri bcrypt ile üretilmiş).
-- Liderlik tablosu testi için farklı ELO seviyelerinde oyuncular.
+`auth.service.ts` ve `auth.controller.ts` şunları içermeli:
+- **Kullanıcı Kayıt (`/auth/register`):**
+  - `{ username, password }` alır. Şifreyi `bcrypt` (cost factor 12) ile hash'ler.
+  - Aynı username ile kayıt denendiğinde `409 Conflict` fırlatır.
+  - Başarılı kayıtta `{ data: { userId, username } }` döner.
+- **Kullanıcı Giriş (`/auth/login`):**
+  - `{ username, password }` alır. Şifreyi doğrular.
+  - Hatalı şifre/kullanıcı durumunda `401 Unauthorized` fırlatır.
+  - Başarılı girişte `accessToken` (1 saat ömürlü) JSON response gövdesinde dönmeli, `refreshToken` (30 gün ömürlü) ise `HttpOnly`, `Secure`, `SameSite=Strict` cookie olarak set edilmelidir.
+- **Token Yenileme (`/auth/refresh`):**
+  - Cookie'deki `refreshToken`'ı okur, doğrular ve yeni bir çift (`accessToken` + rotated `refreshToken`) üretir.
+  - Eski `refreshToken` geçersiz kılınmalıdır (rotasyon kuralı).
+- **Çıkış İşlemi (`/auth/logout`):**
+  - `refreshToken` cookie'sini temizler.
+- **DTO Doğrulamaları:**
+  - `register.dto.ts` ve `login.dto.ts` `class-validator` dekoratörleri ile doğrulanmalı. Şifre en az 8 karakter olmalıdır.
+- **Hata Formatı:**
+  - Hata durumunda dönen response `{ error: { code, message } }` formatında olmalıdır.
 
 ### Bağlam Dosyaları
-- `docs/spec.md` → Bölüm 5 (Veritabanı stratejisi ve şeması)
-- `.antigravity/skills/prisma.md` → Prisma sorguları ve servis mimarisi kuralları
+- `docs/spec.md` → Bölüm 11 (Kimlik Doğrulama ve Oturum Güvenliği)
+- `docs/spec.md` → Bölüm 13 (Hata Yönetimi ve Response Standartları)
+- `AGENTS.md` → Kesin Kurallar (class-validator kullanımı, any tipi yasağı)
 
 ### Kabul Kriterleri
-- [ ] `prisma schema` geçerlidir (`npx prisma validate`)
-- [ ] `npx prisma db push` başarıyla tamamlanır
-- [ ] `npx prisma db seed` başarıyla çalışır ve test verileri veritabanına yazılır
-- [ ] NestJS Prisma Module ve Service entegrasyonu tamamlanmıştır
-- [ ] `npm run build` backend için başarıyla tamamlanır
+- [ ] Aynı kullanıcı adıyla ikinci kayıt denendiğinde 409 CONFLICT dönmeli
+- [ ] Yanlış şifre girildiğinde 401 UNAUTHORIZED dönmeli
+- [ ] Başarılı girişte accessToken body'de, refresh token HTTP-only cookie'de olmalı
+- [ ] Tüm DTO'lar class-validator ile doğrulanmalı
+- [ ] `npm run test -w backend` tüm testlerden geçmeli
+- [ ] `npm run build` monorepo genelinde başarıyla tamamlanmalı
 
 ### Onay Durumu
 - [ ] Ajan testleri / derleme geçti
 - [ ] İnsan inceledi ve onayladı
-- [ ] feature/prisma branch'ten develop'a merge edildi
-
-### Tamamlanınca
-`current-state.md`'de Prisma Şeması satırını ✅ olarak işaretle.
-Bu dosyayı (next-task.md) Aşama 3 (ELO Servisi) ile güncelle.
+- [ ] feature/auth branch'ten develop'a merge edildi
