@@ -1,0 +1,58 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                String   @id @default(uuid())
+  username          String   @unique
+  passwordHash      String
+  eloScore          Int      @default(1000)
+  wins              Int      @default(0)
+  losses            Int      @default(0)
+  deviceFingerprint String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  matchesAsP1 Match[]       @relation("Player1")
+  matchesAsP2 Match[]       @relation("Player2")
+  moves       MoveHistory[]
+}
+
+model Match {
+  id          String      @id @default(uuid())
+  player1Id   String
+  player2Id   String
+  winnerId    String?
+  status      MatchStatus @default(ACTIVE)
+  isFriendly  Boolean     @default(false)
+  p1EloChange Int?
+  p2EloChange Int?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  player1 User          @relation("Player1", fields: [player1Id], references: [id])
+  player2 User          @relation("Player2", fields: [player2Id], references: [id])
+  moves   MoveHistory[]
+}
+
+model MoveHistory {
+  id         String   @id @default(uuid())
+  matchId    String
+  playerId   String
+  pitIndex   Int
+  boardState String
+  createdAt  DateTime @default(now())
+
+  match  Match @relation(fields: [matchId], references: [id])
+  player User  @relation(fields: [playerId], references: [id])
+}
+
+enum MatchStatus {
+  ACTIVE
+  FINISHED
+  ABANDONED
+}

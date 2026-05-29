@@ -1,14 +1,14 @@
 # Projenin Anlık Durumu
 
 Son Güncelleme: 2026-05-30
-Aktif Branch: feature/types
+Aktif Branch: feature/prisma
 
 ---
 
 ## Genel İlerleme
 
 ```
-Faz 1 MVP: █░░░░░░░░░ %7
+Faz 1 MVP: ██░░░░░░░░ %14
 ```
 
 ---
@@ -18,8 +18,8 @@ Faz 1 MVP: █░░░░░░░░░ %7
 ### Backend
 | Modül | Durum | Branch | Notlar |
 |-------|-------|--------|--------|
-| Tip Tanımları | 🔍 İnsan İncelemesinde | feature/types | Geliştirme tamamlandı, derleme başarılı. |
-| Prisma Şeması | ⬜ Başlanmadı | — | — |
+| Tip Tanımları | ✅ Onaylandı ve Merge Edildi | develop | Geliştirme tamamlandı, merge edildi. |
+| Prisma Şeması | 🔍 İnsan İncelemesinde | feature/prisma | SQLite veritabanı kuruldu, test verileri seed edildi ve NestJS modülü bağlandı. |
 | ELO Servisi | ⬜ Başlanmadı | — | — |
 | Oyun Motoru | ⬜ Başlanmadı | — | — |
 | Auth Modülü | ⬜ Başlanmadı | — | — |
@@ -64,4 +64,4 @@ Faz 1 MVP: █░░░░░░░░░ %7
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-05-30 — Monorepo Kurulumu ve Tip Tanımları (feature/types)
+Oturum 2026-05-30 — Prisma Veritabanı ve Şema Kurulumu (feature/prisma)
