@@ -1,14 +1,14 @@
 # Projenin Anlık Durumu
 
 Son Güncelleme: 2026-05-30
-Aktif Branch: feature/lobby-page
+Aktif Branch: feature/game-page
 
 ---
 
 ## Genel İlerleme
 
 ```
-Faz 1 MVP: ███████░░░ %70
+Faz 1 MVP: █████████░ %90
 ```
 
 ---
@@ -32,8 +32,8 @@ Faz 1 MVP: ███████░░░ %70
 |-------|-------|--------|--------|
 | Store'lar + API katmanı | ✅ Onaylandı ve Merge Edildi | develop | Zustand store'ları ve Axios API istemcisi tamamlandı. |
 | Auth Sayfaları | ✅ Onaylandı ve Merge Edildi | develop | Giriş, kayıt formları, AuthGuard ve tema entegrasyonu tamamlandı. |
-| Lobi Sayfası | ⬜ Başlanmadı | — | — |
-| Oyun Tahtası (statik) | ⬜ Başlanmadı | — | — |
+| Lobi Sayfası | ✅ Onaylandı ve Merge Edildi | develop | Canlı lobi oyuncu listesi, meydan okuma modalları ve hızlı eşleşme sırası tamamlandı. |
+| Oyun Tahtası (canlı) | 🔍 İnsan İncelemesinde | feature/game-page | 14 kuyu/hazne yerleşimi, turn timer, chat modülü ve GameOverModal entegrasyonu tamamlandı. |
 | Animasyon Katmanı | ⬜ Başlanmadı | — | — |
 
 ### Altyapı
@@ -64,10 +64,12 @@ Faz 1 MVP: ███████░░░ %70
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-05-30 — Frontend Auth Sayfaları (Aşama 10)
+Oturum 2026-05-31 — Frontend Oyun Tahtası ve Canlı Oynanış (Aşama 12)
 
 ### Yapılanlar
-- Hash tabanlı router (`router.ts`) ve korumalı rota guard'ı (`AuthGuard.tsx`) yazıldı.
-- Giriş (`LoginForm.tsx`) ve Kayıt (`RegisterForm.tsx`) form bileşenleri geliştirildi, store'lara ve validasyonlara bağlandı.
-- CSS değişkenleri tabanlı Klasik Ahşap ve Modern Neon temaları `index.css` üzerinde form tasarımlarına uyarlandı.
-- `App.tsx` yerleşimi yenilendi, tema ve oturum yönetimi bağlantıları sağlandı, monorepo başarıyla build edildi.
+- 14 elemanlı dizi board state'ini ahşap ve neon temalarıyla premium render eden Mangala tahtası geliştirildi.
+- Oyuncunun rengine göre tahta perspektifini alt sırada kendi kuyuları olacak şekilde otomatik ters-yüz (flip) eden mantık kuruldu.
+- Kendi kuyularına tıklama ile `makeMove` hamle tetiklemesi bağlandı, rakip kuyuları ve hazneler kilitlendi.
+- Sıradaki oyuncu göstergesi ve 15 saniyelik geriye sayan turn timer (5sn altında kırmızı uyarı) arayüzde canlandırıldı.
+- Karşılaşma bittiğinde kazananı, bitiş sebebini ve ELO değişimlerini (+/- ELO) gösteren GameOverModal eklendi.
+- Preset şablonlar ve serbest metin girişli canlı chat paneli entegre edildi.

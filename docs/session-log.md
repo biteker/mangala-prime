@@ -25,6 +25,42 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-05-31] — Frontend Oyun Tahtası ve Canlı Oynanış (Aşama 12)
+
+**Tamamlanan Görev:** Kullanıcıların canlı olarak Mangala oynayabildiği, 14 kuyu/hazneli, perspektif destekli premium tahta (`GamePage.tsx`), 15 saniyelik turn timer sayacı, GameOverModal oyun sonu bitiş ekranı ve canlı chat modülü geliştirildi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/src/components/GamePage.tsx` [YENİ] — Canlı oyun tahtası, kuyu tıklama hamleleri, turn timer, GameOverModal ve chat paneli bileşeni
+- `frontend/src/App.tsx` — `#/game` rotasının GamePage bileşenine bağlanması ve kullanılmayan import temizliği
+- `frontend/src/index.css` — Mangala oyun tahtası grid yerleşimi, kuyular, taşlar, chat balonları, timer animasyonları ve Wood/Neon tema stilleri
+- `frontend/package.json` — Root test betiğinin sorunsuz çalışması için placeholder test scripti eklenmesi
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (Vite React frontend, NestJS backend, shared paket başarıyla derlendi).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Aşama 13 — Görsel İyileştirmeler ve Animasyon Katmanı (Kuyular arası taş hareket animasyonları, hamle efektleri).
+**Commit:** `feat(frontend): implement game board, live gameplay and chat`
+**PR:** `feature/game-page` → `develop`
+
+---
+
+### Oturum [2026-05-31] — Frontend Lobi Sayfası ve Eşleşme Entegrasyonu (Aşama 11)
+
+**Tamamlanan Görev:** Canlı lobi bağlantısı (`LobbyPage.tsx`), online oyuncu listesi, FIFO matchmaking kuyruğu, davet gönderme/alma modalları ve eşleşme sağlandığında game store'un doldurularak `/game` soketine otomatik bağlantı akışları tamamlandı.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/src/components/LobbyPage.tsx` [YENİ] — Canlı lobi, matchmaking sırası ve meydan okuma ekranı
+- `frontend/src/stores/lobby.store.ts` — Lobi store'una meydan okuma hedefleri ve durum senkronizasyonlarının eklenmesi
+- `frontend/src/App.tsx` — `#/lobby` rotası bağlantısı ve kullanıcı paneli çıkış butonu
+- `frontend/src/index.css` — Lobi düzeni, online listesi ve bekleme spinner animasyon stilleri
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti.
+**Derleme:** ✅ Hatasız (NestJS backend, shared ve Vite React frontend başarıyla derlendi).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Aşama 12 — Frontend Oyun Tahtası ve Canlı Oynanış (GamePage.tsx).
+**Commit:** `feat(frontend): implement lobby page, matchmaking queue and challenge flow`
+**PR:** `feature/lobby-page` → `develop`
+
+---
+
 ### Oturum [2026-05-30] — Frontend Auth Sayfaları (Aşama 10)
 
 **Tamamlanan Görev:** Kullanıcı kayıt, giriş ekranları, URL hash tabanlı yönlendirici, çoklu tema görsel entegrasyonu ve oturum kontrolü sağlayan AuthGuard yapısı tamamlandı.

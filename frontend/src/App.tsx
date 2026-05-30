@@ -4,15 +4,14 @@ import { AuthGuard } from './components/AuthGuard';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
 import { LobbyPage } from './components/LobbyPage';
+import { GamePage } from './components/GamePage';
 import { useAuthStore } from './stores/auth.store';
 import { useThemeStore } from './stores/theme.store';
-import { useGameStore } from './stores/game.store';
 
 function App(): React.JSX.Element {
   const { route, navigate } = useRouter();
   const { user, logout } = useAuthStore();
   const { theme, setTheme } = useThemeStore();
-  const { matchId } = useGameStore();
 
   // Tema sınıfının root elementine uygulanması
   useEffect(() => {
@@ -39,19 +38,7 @@ function App(): React.JSX.Element {
       case '#/lobby':
         return <LobbyPage />;
       case '#/game':
-        return (
-          <div className="auth-card" style={{ maxWidth: '600px', margin: '40px auto', textAlign: 'center' }}>
-            <h2 className="auth-title">Oyun Ekranı</h2>
-            <p>Aktif Maç ID: {matchId || 'Yok'}</p>
-            <button 
-              type="button" 
-              className="auth-button" 
-              onClick={(): void => navigate('#/lobby')}
-            >
-              Lobiye Dön
-            </button>
-          </div>
-        );
+        return <GamePage />;
       default:
         return <LoginForm />;
     }
