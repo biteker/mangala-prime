@@ -9,6 +9,7 @@ export interface OnlineUser {
   socketId: string;
   ip: string;
   status: 'lobby' | 'playing';
+  elo: number;
 }
 
 export interface QueuePlayer {
@@ -63,12 +64,14 @@ export class LobbyService {
   }
 
   async addUser(userId: string, username: string, socketId: string, ip: string): Promise<void> {
+    const elo = await this.getPlayerElo(userId);
     this.onlineUsers.set(userId, {
       userId,
       username,
       socketId,
       ip,
       status: 'lobby',
+      elo,
     });
   }
 

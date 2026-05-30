@@ -19,6 +19,7 @@ describe('LobbyGateway', () => {
     handleInviteResponse: jest.fn(),
     getOnlineUser: jest.fn(),
     getPlayerElo: jest.fn(),
+    getOnlineUsers: jest.fn().mockReturnValue([]),
   };
 
   const mockJwtService = {
@@ -55,6 +56,10 @@ describe('LobbyGateway', () => {
         },
         data: {},
         disconnect: jest.fn(),
+        emit: jest.fn(),
+        broadcast: {
+          emit: jest.fn(),
+        },
       };
       mockServer = {
         emit: jest.fn(),
@@ -73,7 +78,7 @@ describe('LobbyGateway', () => {
       expect(jwtService.verifyAsync).toHaveBeenCalledWith('valid-token', expect.any(Object));
       expect(mockSocket.data).toEqual({ userId: 'user-1', username: 'user1', ip: '192.168.1.100' });
       expect(lobbyService.addUser).toHaveBeenCalledWith('user-1', 'user1', 'socket-p1', '192.168.1.100');
-      expect(mockServer.emit).toHaveBeenCalledWith('lobby:user_status', { userId: 'user-1', status: 'lobby' });
+      expect(mockSocket.broadcast.emit).toHaveBeenCalledWith('lobby:user_status', { userId: 'user-1', status: 'lobby' });
       expect(mockSocket.disconnect).not.toHaveBeenCalled();
     });
 

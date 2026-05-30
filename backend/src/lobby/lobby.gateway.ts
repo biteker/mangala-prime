@@ -55,8 +55,17 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, O
 
       await this.lobbyService.addUser(userId, username, client.id, ip);
 
+      // Bağlanan istemciye lobi çevrimiçi kullanıcı listesini gönder
+      const onlineUsers = this.lobbyService.getOnlineUsers().map((u) => ({
+        userId: u.userId,
+        username: u.username,
+        status: u.status,
+        elo: u.elo,
+      }));
+      client.emit('lobby:init_users', onlineUsers);
+
       // Diğer herkese lobiye girdiğini duyur
-      this.server.emit('lobby:user_status', {
+      client.broadcast.emit('lobby:user_status', {
         userId,
         status: 'lobby',
       });

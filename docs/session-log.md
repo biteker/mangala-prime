@@ -25,6 +25,23 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-05-30] — Store'lar ve API Katmanı (Aşama 9)
+
+**Tamamlanan Görev:** Frontend tarafında API istekleri ve WebSocket bağlantılarını yönetecek API istemcisi (`api-client.ts`), lobi/matchmaking kuyruğunu yönetecek `LobbyStore` ve oyun/chat durumunu yönetecek `GameStore` Zustand kütüphanesi kullanılarak geliştirildi. Backend tarafında bulunan `LobbyGateway` birim testlerindeki mock socket hatası düzeltildi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/src/stores/lobby.store.ts` [YENİ] — WebSocket lobi bağlantısı, online kullanıcı listesi, davetler, FIFO matchmaking durumlarını yöneten store.
+- `frontend/src/stores/game.store.ts` [YENİ] — WebSocket oyun bağlantısı, Mangala tahta durumu, turn timer sayacı, chat mesajlaşması ve game over durumlarını yöneten store.
+- `backend/src/lobby/lobby.gateway.spec.ts` — `lobby:user_status` yayını ve connection testi mock socket broadcast yapısına adapte edildi.
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test -w backend`).
+**Derleme:** ✅ Hatasız (NestJS backend, shared paket ve Vite React frontend başarıyla derlendi).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Aşama 10 — Auth Sayfaları (Kayıt, Giriş Ekranları ve JWT Entegrasyonu).
+**Commit:** `feat(frontend): implement API client and Zustand stores for auth, lobby, and gameplay`
+**PR:** `feature/frontend-store` → `develop`
+
+---
+
 ### Oturum [2026-05-30] — Lobby Gateway (Aşama 8)
 
 **Tamamlanan Görev:** `/lobby` namespace'li WebSocket ağ geçidi (`LobbyGateway`) ve çevrimiçi oyuncuları, FIFO matchmaking kuyruğunu, davetleri, lobi ve oda kilitlerini, IP bazlı dostluk maçlarını ve fingerprint hile korumasını yöneten `LobbyService` NestJS modülü geliştirildi, test kapsamı hedeflerine uyuldu.

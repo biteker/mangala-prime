@@ -1,14 +1,14 @@
 # Projenin Anlık Durumu
 
 Son Güncelleme: 2026-05-30
-Aktif Branch: feature/user
+Aktif Branch: feature/frontend-store
 
 ---
 
 ## Genel İlerleme
 
 ```
-Faz 1 MVP: █████░░░░░ %50
+Faz 1 MVP: ██████░░░░ %60
 ```
 
 ---
@@ -25,12 +25,12 @@ Faz 1 MVP: █████░░░░░ %50
 | Auth Modülü | ✅ Onaylandı ve Merge Edildi | develop | JWT kimlik doğrulama, cookie refresh rotasyonu, error/data sarmalayıcıları ve testleri tamamlandı. |
 | User Modülü | ✅ Onaylandı ve Merge Edildi | develop | Profil, liderboard ve maç geçmişi tamamlandı. |
 | Game Gateway | ✅ Onaylandı ve Merge Edildi | develop | WebSocket gateway, reconnect penceresi ve turn timer tamamlandı. |
-| Lobby Gateway | 🔍 İnsan İncelemesinde | feature/lobby-gateway | WebSocket lobi, FIFO matchmaking kuyruğu, davet sistemi ve hile engelleme tamamlandı. |
+| Lobby Gateway | ✅ Onaylandı ve Merge Edildi | develop | WebSocket lobi, FIFO matchmaking kuyruğu, davet sistemi ve hile engelleme tamamlandı. |
 
 ### Frontend
 | Modül | Durum | Branch | Notlar |
 |-------|-------|--------|--------|
-| Store'lar + API katmanı | ⬜ Başlanmadı | — | — |
+| Store'lar + API katmanı | ✅ Onaylandı ve Merge Edildi | develop | Zustand store'ları ve Axios API istemcisi tamamlandı. |
 | Auth Sayfaları | ⬜ Başlanmadı | — | — |
 | Lobi Sayfası | ⬜ Başlanmadı | — | — |
 | Oyun Tahtası (statik) | ⬜ Başlanmadı | — | — |
@@ -64,13 +64,11 @@ Faz 1 MVP: █████░░░░░ %50
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-05-30 — Lobby Gateway (Aşama 8)
+Oturum 2026-05-30 — Store'lar ve API Katmanı (Aşama 9)
 
 ### Yapılanlar
-- `/lobby` namespace'i altında `LobbyGateway` WebSocket ağ geçidi kuruldu.
-- Çevrimiçi oyuncuların durum takibi (lobby, playing, offline) in-memory ve JWT doğrulama ile entegre edildi.
-- FIFO matchmaking kuyruk sistemi, 120 saniyelik kuyruk zaman aşımı (`lobby:queue_timeout`) ile geliştirildi.
-- Eşleşen oyuncuların IP adresleri karşılaştırılarak aynı IP'den gelenler için hilesiz dostluk maçı (`isFriendly: true`) ELO bypass'ı sağlandı.
-- Aynı cihaz hile koruması (duplicate device fingerprint) kuyruk girişlerinde engellendi.
-- 30 saniyelik davet zaman aşımı penceresi ile davet gönderme ve yanıtlama (kabul/red) mekanizmaları geliştirildi.
-- Jest birim testleri (12 test) eklenerek coverage limitleri (>%70) aşıldı ve tsc derlemesi yeşillendi.
+- `api-client.ts` ile Bearer token, sessiz refresh ve NestJS response unwrap/error formatlama yapısı kuruldu.
+- `auth.store.ts` ile kullanıcı giriş, kayıt, çıkış ve profil durum yönetimi Zustand üzerinde uygulandı.
+- `lobby.store.ts` ile WebSocket lobi bağlantısı, online listesi ve davet/kuyruk yönetimi geliştirildi.
+- `game.store.ts` ile WebSocket oyun bağlantısı, tahta durumu, turn timer ve chat yönetimi tamamlandı.
+- Backend `LobbyGateway` testlerindeki mock socket broadcast hataları giderilerek tüm testler yeşile döndürüldü.
