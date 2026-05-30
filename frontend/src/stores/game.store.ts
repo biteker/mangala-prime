@@ -82,7 +82,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       timerInterval = null;
     }
 
-    const newSocket = io('http://localhost:3000/game', {
+    const newSocket = io('http://127.0.0.1:3000/game', {
       auth: { token },
       transports: ['websocket'],
     });

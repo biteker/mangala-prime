@@ -55,7 +55,7 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
       state.socket.disconnect();
     }
 
-    const newSocket = io('http://localhost:3000/lobby', {
+    const newSocket = io('http://127.0.0.1:3000/lobby', {
       auth: { token },
       transports: ['websocket'],
     });
