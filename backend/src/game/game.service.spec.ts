@@ -100,7 +100,7 @@ describe('GameService', () => {
     });
 
     it('should_return_valid_for_correct_move', async () => {
-      const room = service.getRoom(matchId);
+      const room = service.getRoom(matchId)!;
       room.player1SocketId = 'socket-p1';
 
       const validation = await service.validateMove('socket-p1', { matchId, pitIndex: 2 });
@@ -120,7 +120,7 @@ describe('GameService', () => {
     });
 
     it('should_return_invalid_if_not_players_turn', async () => {
-      const room = service.getRoom(matchId);
+      const room = service.getRoom(matchId)!;
       room.player1SocketId = 'socket-p1';
       room.player2SocketId = 'socket-p2';
       room.currentPlayer = 1; // It is P2's turn
@@ -131,7 +131,7 @@ describe('GameService', () => {
     });
 
     it('should_return_invalid_if_pit_index_out_of_bounds_for_player', async () => {
-      const room = service.getRoom(matchId);
+      const room = service.getRoom(matchId)!;
       room.player1SocketId = 'socket-p1';
 
       // Player 1 can only move from index 0 to 5
@@ -141,7 +141,7 @@ describe('GameService', () => {
     });
 
     it('should_return_invalid_if_selected_pit_is_empty', async () => {
-      const room = service.getRoom(matchId);
+      const room = service.getRoom(matchId)!;
       room.player1SocketId = 'socket-p1';
       room.board[2] = 0; // Empty pit
 
@@ -165,7 +165,7 @@ describe('GameService', () => {
 
     it('should_process_move_and_switch_turn_when_no_extra_turn', async () => {
       // Arrange
-      const room = service.getRoom(matchId);
+      const room = service.getRoom(matchId)!;
       room.player1SocketId = 'socket-p1';
       room.player2SocketId = 'socket-p2';
 
@@ -188,7 +188,7 @@ describe('GameService', () => {
 
     it('should_process_move_and_handle_game_over', async () => {
       // Arrange
-      const room = service.getRoom(matchId);
+      const room = service.getRoom(matchId)!;
       room.player1SocketId = 'socket-p1';
       room.player2SocketId = 'socket-p2';
 
@@ -231,7 +231,7 @@ describe('GameService', () => {
     });
 
     it('should_handle_player_disconnect_and_freeze_timer_if_on_turn', async () => {
-      const room = service.getRoom(matchId);
+      const room = service.getRoom(matchId)!;
       room.player1SocketId = 'socket-p1';
 
       // Act
@@ -248,7 +248,7 @@ describe('GameService', () => {
     });
 
     it('should_trigger_abandon_if_reconnect_window_expires', async () => {
-      const room = service.getRoom(matchId);
+      const room = service.getRoom(matchId)!;
       room.player1SocketId = 'socket-p1';
       mockEloService.updateEloScores.mockResolvedValue({ p1EloChange: -15, p2EloChange: 15 });
 
@@ -264,7 +264,7 @@ describe('GameService', () => {
     });
 
     it('should_resume_timer_on_successful_reconnect', async () => {
-      const room = service.getRoom(matchId);
+      const room = service.getRoom(matchId)!;
       room.player1SocketId = 'socket-p1';
 
       // Disconnect
