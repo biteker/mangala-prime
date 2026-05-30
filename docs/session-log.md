@@ -25,6 +25,26 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-05-31] — Oyun Kuyu Tıklama ve Reconnect Düzeltmesi (Hata Giderme)
+
+**Tamamlanan Görev:** `yourColor` ve `currentPlayerId` null'a düşme hatası, React StrictMode uyumsuzluğu ve reconnect sonrası state senkronizasyon eksikliği giderildi. Oyuncular artık kuyulara tıklayabiliyor, hamle backend'e iletilebiliyor.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/src/stores/game.store.ts` — connectGame guard'dan `.connected` kontrolü kaldırıldı; `setMatchDetails`'de Player 2 için `currentPlayerId` hatası düzeltildi; socket'in `connect` olayında `game:reconnect` otomatik gönderilecek şekilde eklendi; `game:reconnect_ack` işleyicisine `yourColor` ataması eklendi
+- `frontend/src/components/GamePage.tsx` — `useEffect` cleanup'ta `disconnectGame` çağrısı kaldırıldı (StrictMode çift tetiklemesini engeller); debug console.log'ları temizlendi
+- `shared/types/socket-events.types.ts` — `GameReconnectAckPayload`'a `yourColor: Player` alanı eklendi
+- `backend/src/game/game.gateway.ts` — `game:reconnect_ack` event payload'ına `yourColor` alanı eklendi
+- `backend/src/game/game.service.ts` — Debug console.log'ları temizlendi
+- `backend/src/game/game.gateway.spec.ts` — `yourColor: 0` beklentisi test'e eklendi
+
+**Test Sonuçları:** 74/74 test geçti
+**Derleme:** ✅ Hatasız (TSC strict + Vite build)
+**Açık Sorunlar:** —
+**Bir Sonraki Görev:** Aşama 13 — Frontend Animasyon Katmanı (taş dağılım animasyonu, input-lock)
+**Commit:** `fix(game): fix yourColor/currentPlayerId null bug, add reconnect state sync`
+
+---
+
 ### Oturum [2026-05-31] — Frontend Oyun Tahtası ve Canlı Oynanış (Aşama 12)
 
 **Tamamlanan Görev:** Kullanıcıların canlı olarak Mangala oynayabildiği, 14 kuyu/hazneli, perspektif destekli premium tahta (`GamePage.tsx`), 15 saniyelik turn timer sayacı, GameOverModal oyun sonu bitiş ekranı ve canlı chat modülü geliştirildi.

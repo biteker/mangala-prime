@@ -33,7 +33,7 @@ Faz 1 MVP: █████████░ %90
 | Store'lar + API katmanı | ✅ Onaylandı ve Merge Edildi | develop | Zustand store'ları ve Axios API istemcisi tamamlandı. |
 | Auth Sayfaları | ✅ Onaylandı ve Merge Edildi | develop | Giriş, kayıt formları, AuthGuard ve tema entegrasyonu tamamlandı. |
 | Lobi Sayfası | ✅ Onaylandı ve Merge Edildi | develop | Canlı lobi oyuncu listesi, meydan okuma modalları ve hızlı eşleşme sırası tamamlandı. |
-| Oyun Tahtası (canlı) | 🔍 İnsan İncelemesinde | feature/game-page | 14 kuyu/hazne yerleşimi, turn timer, chat modülü ve GameOverModal entegrasyonu tamamlandı. |
+| Oyun Tahtası (canlı) | ✅ Onaylandı ve Merge Edildi | feature/game-page → develop | Hata düzeltmesi tamamlandı: yourColor/currentPlayerId null bug, StrictMode uyumluluğu, reconnect state sync. |
 | Animasyon Katmanı | ⬜ Başlanmadı | — | — |
 
 ### Altyapı
@@ -64,12 +64,13 @@ Faz 1 MVP: █████████░ %90
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-05-31 — Frontend Oyun Tahtası ve Canlı Oynanış (Aşama 12)
+Oturum 2026-05-31 — Oyun Kuyu Tıklama ve Reconnect Düzeltmesi (Hata Giderme)
 
 ### Yapılanlar
-- 14 elemanlı dizi board state'ini ahşap ve neon temalarıyla premium render eden Mangala tahtası geliştirildi.
-- Oyuncunun rengine göre tahta perspektifini alt sırada kendi kuyuları olacak şekilde otomatik ters-yüz (flip) eden mantık kuruldu.
-- Kendi kuyularına tıklama ile `makeMove` hamle tetiklemesi bağlandı, rakip kuyuları ve hazneler kilitlendi.
-- Sıradaki oyuncu göstergesi ve 15 saniyelik geriye sayan turn timer (5sn altında kırmızı uyarı) arayüzde canlandırıldı.
-- Karşılaşma bittiğinde kazananı, bitiş sebebini ve ELO değişimlerini (+/- ELO) gösteren GameOverModal eklendi.
-- Preset şablonlar ve serbest metin girişli canlı chat paneli entegre edildi.
+- `yourColor` ve `currentPlayerId`'nin null'a düşmesine yol açan React StrictMode uyumsuzluğu giderildi.
+- `connectGame` guard'dan `.connected` kontrolü kaldırıldı; aynı matchId için socket varsa yeni socket oluşturulmuyor.
+- Player 2 için `setMatchDetails`'de yanlış `'opponent'` stringi yerine `null` atanıyor (sunucunun ilk `state_update`'i doğru değeri gönderecek).
+- Socket `connect` olayında otomatik `game:reconnect` gönderilerek server'dan tam state (board + yourColor) çekiliyor.
+- `GameReconnectAckPayload`'a `yourColor` alanı eklendi; backend `game:reconnect_ack` emit'i güncellendi.
+- `GamePage.useEffect` cleanup'tan `disconnectGame` çağrısı kaldırıldı — artık yalnızca kullanıcı "Lobiye Dön" butonuna bastığında çağrılıyor.
+- Tüm DEBUG console.log satırları temizlendi.
