@@ -1,4 +1,4 @@
-import { BoardState, Player } from '@shared/index';
+import { BoardState, Player } from '@mangala/shared';
 
 export interface GameRoom {
   matchId: string;
