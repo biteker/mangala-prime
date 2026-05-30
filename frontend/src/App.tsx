@@ -3,6 +3,7 @@ import { useRouter } from './lib/router';
 import { AuthGuard } from './components/AuthGuard';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
+import { LobbyPage } from './components/LobbyPage';
 import { useAuthStore } from './stores/auth.store';
 import { useThemeStore } from './stores/theme.store';
 import { useGameStore } from './stores/game.store';
@@ -36,31 +37,7 @@ function App(): React.JSX.Element {
       case '#/register':
         return <RegisterForm />;
       case '#/lobby':
-        return (
-          <div className="auth-card" style={{ maxWidth: '600px', margin: '40px auto', textAlign: 'center' }}>
-            <h2 className="auth-title">Oyun Lobisi</h2>
-            <p style={{ marginBottom: '24px' }}>
-              Hoş geldiniz, <strong>{user?.username}</strong>! ELO Dereceniz: <strong>{user?.elo}</strong>
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <button 
-                type="button" 
-                className="auth-button" 
-                onClick={(): void => alert('Matchmaking bir sonraki aşamada entegre edilecektir.')}
-              >
-                Hızlı Maç Ara
-              </button>
-              <button 
-                type="button" 
-                className="auth-button" 
-                style={{ backgroundColor: 'var(--text-secondary)' }}
-                onClick={handleLogout}
-              >
-                Çıkış Yap
-              </button>
-            </div>
-          </div>
-        );
+        return <LobbyPage />;
       case '#/game':
         return (
           <div className="auth-card" style={{ maxWidth: '600px', margin: '40px auto', textAlign: 'center' }}>
@@ -84,11 +61,20 @@ function App(): React.JSX.Element {
     <AuthGuard>
       <header className="app-header">
         <div className="brand">Mangala Prime</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {user && (
-            <span style={{ fontSize: '14px', fontWeight: 600 }}>
-              {user.username} ({user.elo} ELO)
-            </span>
+            <>
+              <span style={{ fontSize: '14px', fontWeight: 600 }}>
+                {user.username} ({user.elo} ELO)
+              </span>
+              <button 
+                type="button" 
+                className="theme-toggle-btn" 
+                onClick={handleLogout}
+              >
+                Çıkış Yap
+              </button>
+            </>
           )}
           <button 
             type="button" 

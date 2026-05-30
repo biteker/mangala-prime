@@ -1,7 +1,7 @@
 # Projenin Anlık Durumu
 
 Son Güncelleme: 2026-05-30
-Aktif Branch: feature/auth-pages
+Aktif Branch: feature/lobby-page
 
 ---
 
@@ -31,7 +31,7 @@ Faz 1 MVP: ███████░░░ %70
 | Modül | Durum | Branch | Notlar |
 |-------|-------|--------|--------|
 | Store'lar + API katmanı | ✅ Onaylandı ve Merge Edildi | develop | Zustand store'ları ve Axios API istemcisi tamamlandı. |
-| Auth Sayfaları | 🔍 İnsan İncelemesinde | feature/auth-pages | Giriş, kayıt formları, AuthGuard ve tema entegrasyonu tamamlandı. |
+| Auth Sayfaları | ✅ Onaylandı ve Merge Edildi | develop | Giriş, kayıt formları, AuthGuard ve tema entegrasyonu tamamlandı. |
 | Lobi Sayfası | ⬜ Başlanmadı | — | — |
 | Oyun Tahtası (statik) | ⬜ Başlanmadı | — | — |
 | Animasyon Katmanı | ⬜ Başlanmadı | — | — |
