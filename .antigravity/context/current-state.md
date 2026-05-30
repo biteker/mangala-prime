@@ -1,14 +1,14 @@
 # Projenin Anlık Durumu
 
 Son Güncelleme: 2026-05-30
-Aktif Branch: feature/lobby-page
+Aktif Branch: feature/game-page
 
 ---
 
 ## Genel İlerleme
 
 ```
-Faz 1 MVP: ███████░░░ %70
+Faz 1 MVP: ████████░░ %80
 ```
 
 ---
@@ -32,7 +32,7 @@ Faz 1 MVP: ███████░░░ %70
 |-------|-------|--------|--------|
 | Store'lar + API katmanı | ✅ Onaylandı ve Merge Edildi | develop | Zustand store'ları ve Axios API istemcisi tamamlandı. |
 | Auth Sayfaları | ✅ Onaylandı ve Merge Edildi | develop | Giriş, kayıt formları, AuthGuard ve tema entegrasyonu tamamlandı. |
-| Lobi Sayfası | ⬜ Başlanmadı | — | — |
+| Lobi Sayfası | ✅ Onaylandı ve Merge Edildi | develop | Canlı lobi oyuncu listesi, meydan okuma modalları ve hızlı eşleşme sırası tamamlandı. |
 | Oyun Tahtası (statik) | ⬜ Başlanmadı | — | — |
 | Animasyon Katmanı | ⬜ Başlanmadı | — | — |
 
@@ -64,10 +64,10 @@ Faz 1 MVP: ███████░░░ %70
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-05-30 — Frontend Auth Sayfaları (Aşama 10)
+Oturum 2026-05-30 — Frontend Lobi Sayfası ve Eşleşme Entegrasyonu (Aşama 11)
 
 ### Yapılanlar
-- Hash tabanlı router (`router.ts`) ve korumalı rota guard'ı (`AuthGuard.tsx`) yazıldı.
-- Giriş (`LoginForm.tsx`) ve Kayıt (`RegisterForm.tsx`) form bileşenleri geliştirildi, store'lara ve validasyonlara bağlandı.
-- CSS değişkenleri tabanlı Klasik Ahşap ve Modern Neon temaları `index.css` üzerinde form tasarımlarına uyarlandı.
-- `App.tsx` yerleşimi yenilendi, tema ve oturum yönetimi bağlantıları sağlandı, monorepo başarıyla build edildi.
+- Canlı lobi bağlantısı (`LobbyPage.tsx`) ve online oyuncu listesi canlandırıldı.
+- FIFO bekleme kuyruğu arayüzü ve 120 saniyelik zamanlayıcı sayacı entegre edildi.
+- Giden meydan okumalar için 30 saniyelik geri sayımlı modal ve gelen meydan okumalar için kabul/ret onay pencereleri geliştirildi.
+- Eşleşme sağlandığında `game:match_found` olayıyla oyun store'unun doldurulması ve `/game` soketine otomatik bağlantı akışı kuruldu.
