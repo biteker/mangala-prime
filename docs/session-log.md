@@ -25,6 +25,29 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-05-30] — Prisma 7 Altyapı Düzeltmesi (Bugfix)
+
+**Tamamlanan Görev:** Prisma 7'nin kırıcı değişiklikleri (datasource.url kaldırıldı, prisma.config.ts zorunlu) düzeltildi. PrismaService libsql adapter ile güncellendi. Backend başarıyla çalışır hale getirildi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `prisma.config.ts` [YENİ] — Prisma 7 config: datasource.url + libsql adapter
+- `prisma/schema.prisma` — url datasource'dan kaldırıldı, driverAdapters previewFeatures deprecated kaldı
+- `backend/src/common/prisma/prisma.service.ts` — libsql adapter constructor ile yeniden yazıldı
+- `backend/tsconfig.json` — @prisma/client path override kaldırıldı
+- `prisma/migrations/20260530001228_init/migration.sql` [YENİ] — İlk migration
+
+**Test Sonuçları:** 33/33 Jest testleri başarıyla geçti.
+**Derleme:** ✅ Hatasız
+**API Doğrulama:**
+- `POST /auth/register` → 201 `{ data: { userId, username } }`
+- `POST /auth/login` → 200 `{ data: { accessToken } }` + httpOnly refresh cookie
+- `GET /users/me` → 200 `{ data: { id, username, elo, totalMatches, wins, losses } }`
+- `GET /users/leaderboard` → 200 `{ data: [{ rank, username, elo, wins, totalMatches }] }`
+**Açık Sorunlar:** —
+**Bir Sonraki Görev:** Game Gateway (Aşama 7) — feature/game-gateway branch'i
+**Commit:** `fix: Prisma 7 migration — prisma.config.ts, generate, PrismaService`
+
+---
+
 ### Oturum [2026-05-30] — User Modülü (Aşama 6)
 
 **Tamamlanan Görev:** Kullanıcı profil bilgilerinin alınması, ELO tabanlı liderlik tablosu (top 50) sorgusu ve kullanıcı adına göre profil ve maç geçmişini getiren UserModule backend (NestJS) katmanında geliştirildi. Standarda uygun API dönüş tipleri ve try-catch prisma sorgu yapıları entegre edildi. Birim testleri yazıldı.

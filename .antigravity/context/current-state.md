@@ -8,7 +8,7 @@ Aktif Branch: feature/user
 ## Genel İlerleme
 
 ```
-Faz 1 MVP: ████░░░░░░ %42
+Faz 1 MVP: █████░░░░░ %50
 ```
 
 ---
@@ -23,8 +23,8 @@ Faz 1 MVP: ████░░░░░░ %42
 | ELO Servisi | ✅ Onaylandı ve Merge Edildi | develop | Saf ELO hesaplama formülleri ve transaction güncellemeleri tamamlandı, unit testleri yazıldı. |
 | Oyun Motoru | ✅ Onaylandı ve Merge Edildi | develop | Saf Mangala kural seti ve processMove mantığı tamamlandı, 8 zorunlu test geçti. |
 | Auth Modülü | ✅ Onaylandı ve Merge Edildi | develop | JWT kimlik doğrulama, cookie refresh rotasyonu, error/data sarmalayıcıları ve testleri tamamlandı. |
-| User Modülü | 🔍 İnsan İncelemesinde | feature/user | Profil sorgulama (/users/me), liderlik tablosu (/users/leaderboard) ve geçmiş maç detaylı kullanıcı arama (/users/:username) tamamlandı. |
-| Game Gateway | ⬜ Başlanmadı | — | — |
+| User Modülü | ✅ Onaylandı ve Merge Edildi | develop | Profil, liderboard ve maç geçmişi tamamlandı. |
+| Game Gateway | 🔄 Devam Ediyor | feature/game-gateway | WebSocket gateway başlanacak. |
 | Lobby Gateway | ⬜ Başlanmadı | — | — |
 
 ### Frontend
@@ -64,4 +64,12 @@ Faz 1 MVP: ████░░░░░░ %42
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-05-30 — User Modülü (feature/user)
+Oturum 2026-05-30 — Prisma 7 Altyapı Düzeltmesi (feature/user)
+
+### Yapılanlar
+- `prisma.config.ts` oluşturuldu (Prisma 7 breaking change)
+- Schema `datasource` üzerinden `url` kaldırıldı
+- `PrismaService` libsql adapter ile yeniden yazıldı
+- `prisma migrate reset + migrate dev --name init` çalıştırıldı
+- `npm run build` başarılı, 33/33 test geçti
+- Backend REST API doğrulandı: register, login, /users/me, /users/leaderboard çalışıyor
