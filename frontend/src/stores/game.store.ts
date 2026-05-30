@@ -64,7 +64,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   connectGame: (matchId: string) => {
     const state = get();
-    if (state.socket && state.socket.connected && state.matchId === matchId) {
+    // Socket varsa ve aynı maç için kurulduysa (bağlanıyor olsa bile) tekrar oluşturma
+    if (state.socket && state.matchId === matchId) {
       return;
     }
 
@@ -95,6 +96,14 @@ export const useGameStore = create<GameState>((set, get) => ({
       gameOverDetails: null,
       disconnectedPlayerId: null,
       reconnectWindowSecs: null,
+    });
+
+    // Soket (yeniden) bağlandığında mevcut oda durumunu sunucudan talep et
+    newSocket.on('connect', () => {
+      const currentState = get();
+      if (currentState.matchId) {
+        newSocket.emit('game:reconnect', { matchId: currentState.matchId });
+      }
     });
 
     const startClientTimer = (seconds: number): void => {
@@ -137,10 +146,13 @@ export const useGameStore = create<GameState>((set, get) => ({
     });
 
     newSocket.on('game:reconnect_ack', (payload: GameReconnectAckPayload) => {
+      const currentState = get();
       set({
         board: payload.board,
         currentPlayerId: payload.nextPlayerId,
         opponentUsername: payload.opponentUsername,
+        // yourColor sunucudan geliyorsa güncelle, yoksa mevcut değeri koru
+        yourColor: payload.yourColor !== undefined ? payload.yourColor : currentState.yourColor,
         disconnectedPlayerId: null,
         reconnectWindowSecs: null,
       });
@@ -248,7 +260,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   setMatchDetails: (details) => {
     const user = useAuthStore.getState().user;
-    const nextPlayerId = details.yourColor === 0 ? (user?.id || null) : 'opponent';
+    // Player 1 (yourColor=0) başlar, Player 2 (yourColor=1) bekler
+    const nextPlayerId = details.yourColor === 0 ? (user?.id ?? null) : null;
     set({
       opponentUsername: details.opponentUsername,
       opponentElo: details.opponentElo,

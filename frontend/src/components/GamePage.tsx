@@ -32,16 +32,23 @@ export function GamePage(): React.JSX.Element {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // Otomatik sayfa yönlendirme ve bağlantı yönetimi
+  // Not: React StrictMode geliştirme modunda effect'i iki kez çalıştırır.
+  // connectGame guard'ı (socket && matchId === matchId) sayesinde çift soket oluşmaz.
+  // disconnectGame ise ancak matchId gerçekten null olduğunda lobiye döner.
   useEffect(() => {
     if (!matchId) {
       navigate('#/lobby');
       return;
     }
     connectGame(matchId);
+    // Cleanup: sadece bileşen gerçekten unmount edildiğinde çalışır.
+    // game:game_over alındığında kullanıcı "Lobiye Dön" butonuna basar,
+    // bu da disconnectGame + navigate çağırır — burada tekrar çağırmaya gerek yok.
     return () => {
-      disconnectGame();
+      // intentionally empty — disconnectGame is called by the "Lobiye Dön" button
+      // or when matchId becomes null (handled above).
     };
-  }, [matchId, connectGame, disconnectGame, navigate]);
+  }, [matchId, connectGame, navigate]);
 
   // Yeni mesaj geldiğinde sohbeti aşağı kaydır
   useEffect(() => {
@@ -53,15 +60,6 @@ export function GamePage(): React.JSX.Element {
   }
 
   const isMyTurn = currentPlayerId === currentUser.id;
-
-  console.log('DEBUG GamePage Render:', {
-    matchId,
-    currentPlayerId,
-    currentUserId: currentUser.id,
-    isMyTurn,
-    yourColor,
-    boardLength: board?.length,
-  });
 
   // Hazır (preset) mesajlar listesi
   const PRESET_MESSAGES = [
@@ -102,7 +100,6 @@ export function GamePage(): React.JSX.Element {
 
   // Kuyu tıklama işleyicisi
   const handlePitClick = (pitIndex: number): void => {
-    console.log('DEBUG handlePitClick called:', { pitIndex, isMyTurn, yourColor });
     if (!isMyTurn) return;
 
     // Sadece kendi kuyularımıza tıklayabiliriz
@@ -111,11 +108,9 @@ export function GamePage(): React.JSX.Element {
         ? pitIndex >= 0 && pitIndex <= 5
         : pitIndex >= 7 && pitIndex <= 12;
 
-    console.log('DEBUG handlePitClick validation:', { isMyPit, stonesInPit: board[pitIndex] });
     if (!isMyPit) return;
     if (board[pitIndex] === 0) return;
 
-    console.log('DEBUG handlePitClick executing makeMove:', pitIndex);
     makeMove(pitIndex);
   };
 

@@ -258,6 +258,7 @@ describe('GameGateway', () => {
         turnTimeLeft: 10,
         matchId: 'match-123',
         opponentUsername: 'user2',
+        yourColor: 0,
       });
     });
   });

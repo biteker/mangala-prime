@@ -81,6 +81,7 @@ export interface GameReconnectAckPayload {
   turnTimeLeft: number;
   matchId: string;
   opponentUsername: string;
+  yourColor: Player;
 }
 
 export interface GameChatTogglePayload {
