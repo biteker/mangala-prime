@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mangala Prime — Game Gateway WebSocket Test Arayüzü</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --panel-bg: #1e293b;
+      --accent-color: #38bdf8;
+      --text-color: #f1f5f9;
+      --text-muted: #94a3b8;
+      --success-color: #22c55e;
+      --danger-color: #ef4444;
+      --border-color: #334155;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+      color: var(--accent-color);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .panel {
+      background-color: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    }
+
+    .full-width {
+      grid-column: span 2;
+    }
+
+    button {
+      background-color: var(--accent-color);
+      color: #0f172a;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+    }
+
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    button.secondary {
+      background-color: transparent;
+      color: var(--accent-color);
+      border: 1px solid var(--accent-color);
+    }
+
+    input, select {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      width: calc(100% - 22px);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 9999px;
+      font-size: 0.85em;
+      font-weight: 600;
+    }
+
+    .status-connected { background-color: rgba(34, 197, 94, 0.2); color: var(--success-color); }
+    .status-disconnected { background-color: rgba(239, 68, 68, 0.2); color: var(--danger-color); }
+
+    .board-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      background: #273549;
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px dashed var(--border-color);
+      margin: 15px 0;
+    }
+
+    .mangala-board {
+      display: grid;
+      grid-template-columns: 100px repeat(6, 70px) 100px;
+      gap: 10px;
+      background-color: #382c20;
+      padding: 15px;
+      border-radius: 15px;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    .pit {
+      background-color: #5c4033;
+      border: 2px solid #7c5c43;
+      border-radius: 50%;
+      height: 70px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      color: #ffd700;
+      cursor: pointer;
+      position: relative;
+      user-select: none;
+    }
+
+    .pit:hover {
+      background-color: #7c5c43;
+    }
+
+    .pit.disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .pit span.index {
+      font-size: 0.7em;
+      color: var(--text-muted);
+      position: absolute;
+      bottom: 5px;
+    }
+
+    .treasury {
+      background-color: #4a3319;
+      border: 2px solid #63472c;
+      border-radius: 35px;
+      height: 150px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      color: #ffd700;
+      grid-row: span 2;
+    }
+
+    .treasury-p1 { grid-column: 8; grid-row: 1 / span 2; height: 160px; }
+    .treasury-p2 { grid-column: 1; grid-row: 1 / span 2; height: 160px; }
+
+    .row-p2 {
+      display: contents;
+    }
+    .row-p1 {
+      display: contents;
+    }
+
+    .console-logs {
+      background-color: #020617;
+      color: #38bdf8;
+      font-family: monospace;
+      padding: 15px;
+      border-radius: 8px;
+      height: 200px;
+      overflow-y: scroll;
+      font-size: 0.85em;
+      border: 1px solid var(--border-color);
+    }
+
+    .log-item {
+      margin-bottom: 5px;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 4px;
+    }
+
+    .log-time { color: var(--text-muted); }
+    .log-err { color: var(--danger-color); }
+    .log-ok { color: var(--success-color); }
+  </style>
+</head>
+<body>
+
+  <h1 style="text-align: center;">Mangala Prime — Game Gateway WebSocket Test Paneli</h1>
+  <p style="text-align: center; color: var(--text-muted);">Bu arayüz, monorepo backend'ine WebSocket üzerinden bağlanarak oyun hamlelerini, lobi sohbetlerini ve bağlantı kopma (reconnect) senaryolarını test etmenizi sağlar.</p>
+
+  <div class="container">
+
+    <!-- SETUP MATCH -->
+    <div class="panel full-width">
+      <h2>Aşama 1: Test Maçı Oluşturma (Seed & Token)</h2>
+      <p>Bu buton, backend'deki <code>POST /test-match</code> endpoint'ini çağırarak veritabanında otomatik 2 test kullanıcısı oluşturur, maç kaydı açar ve giriş token'larını üretir.</p>
+      <button id="btn-generate-match">Otomatik Test Maçı Oluştur ve Yükle</button>
+      <div style="margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;" id="match-details-container">
+        <div>
+          <strong>Match ID (Maç No):</strong>
+          <span id="label-match-id" style="color: var(--accent-color); font-family: monospace; display: block; margin-top: 5px;">-</span>
+        </div>
+        <div>
+          <strong>Oyuncu 1 (P1):</strong> <span style="color: #ffd700;">testplayer1</span>
+          <span id="label-p1-token" style="color: var(--text-muted); font-size: 0.8em; font-family: monospace; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 5px;">-</span>
+        </div>
+        <div>
+          <strong>Oyuncu 2 (P2):</strong> <span style="color: #ffd700;">testplayer2</span>
+          <span id="label-p2-token" style="color: var(--text-muted); font-size: 0.8em; font-family: monospace; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 5px;">-</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONNECTION SETUP -->
+    <div class="panel">
+      <h2>Aşama 2: Oyuncu Bağlantısı</h2>
+      <label for="select-role">Bu Tab'daki Rolünüz:</label>
+      <select id="select-role">
+        <option value="p1">Oyuncu 1 (P1 - testplayer1)</option>
+        <option value="p2">Oyuncu 2 (P2 - testplayer2)</option>
+      </select>
+
+      <label for="input-token">JWT Access Token:</label>
+      <input type="text" id="input-token" placeholder="Token buraya gelecek...">
+
+      <label for="input-match-id">Match ID:</label>
+      <input type="text" id="input-match-id" placeholder="Match ID buraya gelecek...">
+
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button id="btn-connect">Bağlan (Gateway Connect)</button>
+        <button id="btn-disconnect" class="secondary" style="border-color: var(--danger-color); color: var(--danger-color);">Bağlantıyı Kes</button>
+        <button id="btn-reconnect" class="secondary">Yeniden Bağlan (Reconnect)</button>
+      </div>
+
+      <div style="margin-top: 15px;">
+        Durum: <span id="label-status" class="status-badge status-disconnected">Birim Bağlantısı Yok</span>
+      </div>
+    </div>
+
+    <!-- GAMEPLAY PANEL -->
+    <div class="panel">
+      <h2>Aşama 3: Oyun Tahtası ve Kontroller</h2>
+      <div id="turn-indicator" style="font-weight: bold; margin-bottom: 10px; font-size: 1.1em;">
+        Sıra Durumu: <span style="color: var(--text-muted);">-</span>
+      </div>
+      
+      <div class="board-container">
+        <!-- MANGALA BOARD -->
+        <div class="mangala-board">
+          <!-- P2 Hazine (Kuyu 13) -->
+          <div class="treasury treasury-p2" id="pit-13">0<br><span style="font-size: 0.5em; color: var(--text-muted);">P2 Hazine (13)</span></div>
+          
+          <!-- P2 Kuyular (12-7) -->
+          <div class="row-p2">
+            <div class="pit" id="pit-12" onclick="makeMove(12)">4<span class="index">12</span></div>
+            <div class="pit" id="pit-11" onclick="makeMove(11)">4<span class="index">11</span></div>
+            <div class="pit" id="pit-10" onclick="makeMove(10)">4<span class="index">10</span></div>
+            <div class="pit" id="pit-9" onclick="makeMove(9)">4<span class="index">9</span></div>
+            <div class="pit" id="pit-8" onclick="makeMove(8)">4<span class="index">8</span></div>
+            <div class="pit" id="pit-7" onclick="makeMove(7)">4<span class="index">7</span></div>
+          </div>
+
+          <!-- P1 Kuyular (0-5) -->
+          <div class="row-p1">
+            <div class="pit" id="pit-0" onclick="makeMove(0)">4<span class="index">0</span></div>
+            <div class="pit" id="pit-1" onclick="makeMove(1)">4<span class="index">1</span></div>
+            <div class="pit" id="pit-2" onclick="makeMove(2)">4<span class="index">2</span></div>
+            <div class="pit" id="pit-3" onclick="makeMove(3)">4<span class="index">3</span></div>
+            <div class="pit" id="pit-4" onclick="makeMove(4)">4<span class="index">4</span></div>
+            <div class="pit" id="pit-5" onclick="makeMove(5)">4<span class="index">5</span></div>
+          </div>
+
+          <!-- P1 Hazine (Kuyu 6) -->
+          <div class="treasury treasury-p1" id="pit-6">0<br><span style="font-size: 0.5em; color: var(--text-muted);">P1 Hazine (6)</span></div>
+        </div>
+      </div>
+
+      <!-- CHAT INTERFACE -->
+      <h3>Sohbet Entegrasyonu (XSS Testi)</h3>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+        <label><input type="checkbox" id="check-chat" checked style="width: auto; margin-bottom: 0;"> Sohbet Açık</label>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <input type="text" id="input-msg" placeholder="Mesaj yazın (örn. <script>alert(1)</script>)" style="margin-bottom: 0;">
+        <button id="btn-send-msg">Gönder</button>
+      </div>
+    </div>
+
+    <!-- LOG PANEL -->
+    <div class="panel full-width">
+      <h2>Olay Günlüğü (Console Logs)</h2>
+      <div class="console-logs" id="console-output">
+        <div class="log-item"><span class="log-time">[Sistem]</span> Test arayüzü başlatıldı. Eşleşme oluşturarak başlayın.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script>
+    let socket = null;
+    let matchId = '';
+    let currentToken = '';
+    let role = 'p1';
+    let boardState = [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0];
+
+    const btnGenerate = document.getElementById('btn-generate-match');
+    const labelMatchId = document.getElementById('label-match-id');
+    const labelP1Token = document.getElementById('label-p1-token');
+    const labelP2Token = document.getElementById('label-p2-token');
+
+    const selectRole = document.getElementById('select-role');
+    const inputToken = document.getElementById('input-token');
+    const inputMatchId = document.getElementById('input-match-id');
+    const btnConnect = document.getElementById('btn-connect');
+    const btnDisconnect = document.getElementById('btn-disconnect');
+    const btnReconnect = document.getElementById('btn-reconnect');
+    const labelStatus = document.getElementById('label-status');
+    const turnIndicator = document.getElementById('turn-indicator');
+
+    const checkChat = document.getElementById('check-chat');
+    const inputMsg = document.getElementById('input-msg');
+    const btnSendMsg = document.getElementById('btn-send-msg');
+    const consoleOutput = document.getElementById('console-output');
+
+    // LOG YAZICI
+    function log(message, type = '') {
+      const div = document.createElement('div');
+      div.className = 'log-item';
+      const timeSpan = document.createElement('span');
+      timeSpan.className = 'log-time';
+      timeSpan.innerText = `[${new Date().toLocaleTimeString()}] `;
+      div.appendChild(timeSpan);
+
+      const contentSpan = document.createElement('span');
+      if (type === 'err') contentSpan.className = 'log-err';
+      if (type === 'ok') contentSpan.className = 'log-ok';
+      contentSpan.innerText = message;
+      div.appendChild(contentSpan);
+
+      consoleOutput.appendChild(div);
+      consoleOutput.scrollTop = consoleOutput.scrollHeight;
+    }
+
+    // MAÇ OLUŞTURMA API ÇAĞRISI
+    btnGenerate.addEventListener('click', async () => {
+      log('Test maçı oluşturma isteği gönderiliyor...');
+      try {
+        const response = await fetch('http://localhost:3000/test-match', { method: 'POST' });
+        const data = await response.json();
+
+        if (data.error) {
+          log(`Hata: ${data.error}`, 'err');
+          return;
+        }
+
+        matchId = data.matchId;
+        labelMatchId.innerText = matchId;
+        labelP1Token.innerText = data.player1.token;
+        labelP2Token.innerText = data.player2.token;
+
+        inputMatchId.value = matchId;
+        if (role === 'p1') {
+          inputToken.value = data.player1.token;
+        } else {
+          inputToken.value = data.player2.token;
+        }
+
+        log('Test maçı başarıyla oluşturuldu ve database tohumlandı!', 'ok');
+      } catch (err) {
+        log(`Hata: ${err.message}`, 'err');
+      }
+    });
+
+    // ROL DEĞİŞTİRME
+    selectRole.addEventListener('change', () => {
+      role = selectRole.value;
+      const p1Tok = labelP1Token.innerText;
+      const p2Tok = labelP2Token.innerText;
+      if (role === 'p1') {
+        inputToken.value = p1Tok !== '-' ? p1Tok : '';
+      } else {
+        inputToken.value = p2Tok !== '-' ? p2Tok : '';
+      }
+      log(`Rolünüz değiştirildi: ${role === 'p1' ? 'Player 1' : 'Player 2'}`);
+    });
+
+    // SOCKET.IO BAĞLANTI
+    btnConnect.addEventListener('click', () => {
+      const token = inputToken.value.trim();
+      matchId = inputMatchId.value.trim();
+
+      if (!token || !matchId) {
+        log('Hata: Token ve Match ID boş bırakılamaz.', 'err');
+        return;
+      }
+
+      if (socket) {
+        socket.disconnect();
+      }
+
+      log(`/game namespace'ine bağlanılıyor...`);
+      socket = io('http://localhost:3000/game', {
+        auth: { token: `Bearer ${token}` }
+      });
+
+      socket.on('connect', () => {
+        labelStatus.className = 'status-badge status-connected';
+        labelStatus.innerText = 'Bağlandı';
+        log('Ağ geçidine bağlantı kuruldu.', 'ok');
+      });
+
+      socket.on('disconnect', () => {
+        labelStatus.className = 'status-badge status-disconnected';
+        labelStatus.innerText = 'Bağlantı Kesildi';
+        log('Ağ geçidi bağlantısı kapandı.');
+      });
+
+      socket.on('connect_error', (error) => {
+        log(`Bağlantı hatası: ${error.message}`, 'err');
+      });
+
+      // EVENT ALICILAR
+      socket.on('game:state_update', (payload) => {
+        log(`State Güncellemesi alındı: Son hamle yapıldı.`);
+        updateBoard(payload.board);
+        updateTurn(payload.nextPlayerId, payload.turnTimeLeft);
+      });
+
+      socket.on('game:player_disconnected', (payload) => {
+        log(`UYARI: Rakip oyuncu koptu! (Kullanıcı: ${payload.playerId}). ${payload.reconnectWindowSecs} saniyelik reconnect süresi başladı. Oyun donduruldu.`, 'err');
+        turnIndicator.innerHTML = `Rakip koptu. Oyun KİLİTLİ.`;
+      });
+
+      socket.on('game:reconnect_ack', (payload) => {
+        log(`Yeniden bağlantı onaylandı! Durum kurtarıldı.`, 'ok');
+        updateBoard(payload.board);
+        updateTurn(payload.nextPlayerId, payload.turnTimeLeft);
+      });
+
+      socket.on('game:game_over', (payload) => {
+        log(`MAÇ BİTTİ! Sebep: ${payload.reason}. Kazanan ID: ${payload.winnerId}. ELO P1 Değişim: ${payload.p1EloChange}, P2 Değişim: ${payload.p2EloChange}`, 'ok');
+        updateBoard(payload.finalBoard);
+        turnIndicator.innerHTML = `OYUN BİTTİ. Kazanan: ${payload.winnerId || 'Beraberlik'}`;
+      });
+
+      socket.on('game:error', (payload) => {
+        log(`HATA: ${payload.error.message} (Kod: ${payload.error.code})`, 'err');
+        if (payload.board) {
+          updateBoard(payload.board);
+        }
+      });
+
+      socket.on('game:message', (payload) => {
+        log(`SOHBET [Rakip]: ${payload.message}`, 'ok');
+      });
+
+      socket.on('game:chat_toggle', (payload) => {
+        log(`Rakip sohbet durumunu değiştirdi: Sohbet ${payload.chatEnabled ? 'Açık' : 'Kapalı'}`);
+      });
+    });
+
+    // BAĞLANTIYI KES
+    btnDisconnect.addEventListener('click', () => {
+      if (socket) {
+        socket.disconnect();
+        log('Soket bağlantısı manuel olarak kapatıldı.');
+      } else {
+        log('Zaten bir soket bağlantısı yok.');
+      }
+    });
+
+    // RECONNECT EVENT
+    btnReconnect.addEventListener('click', () => {
+      if (!socket) {
+        log('Hata: Önce bağlantı kurmalısınız.', 'err');
+        return;
+      }
+      log(`reconnect isteği gönderiliyor... Match ID: ${matchId}`);
+      if (!socket.connected) {
+        socket.connect();
+      }
+      socket.emit('game:reconnect', { matchId });
+    });
+
+    // SOHBET GÖNDERME
+    btnSendMsg.addEventListener('click', () => {
+      const msg = inputMsg.value;
+      if (!msg || !socket) return;
+      
+      log(`SOHBET [Siz]: ${msg}`);
+      socket.emit('game:message', {
+        matchId,
+        message: msg,
+        type: 'text'
+      });
+      inputMsg.value = '';
+    });
+
+    // SOHBET KİLİTLEME
+    checkChat.addEventListener('change', () => {
+      if (!socket) return;
+      socket.emit('game:chat_toggle', {
+        matchId,
+        chatEnabled: checkChat.checked
+      });
+      log(`Sohbetinizi ${checkChat.checked ? 'açtınız' : 'kapatınız'}.`);
+    });
+
+    // TAHTAYI GÜNCELLE
+    function updateBoard(board) {
+      boardState = board;
+      for (let i = 0; i < 14; i++) {
+        const pitDiv = document.getElementById(`pit-${i}`);
+        if (pitDiv) {
+          if (i === 6) {
+            pitDiv.innerHTML = `${board[i]}<br><span style="font-size: 0.5em; color: var(--text-muted);">P1 Hazine (6)</span>`;
+          } else if (i === 13) {
+            pitDiv.innerHTML = `${board[i]}<br><span style="font-size: 0.5em; color: var(--text-muted);">P2 Hazine (13)</span>`;
+          } else {
+            pitDiv.innerHTML = `${board[i]}<span class="index">${i}</span>`;
+          }
+        }
+      }
+    }
+
+    // SIRA BİLGİSİ GÜNCELLE
+    function updateTurn(nextPlayerId, turnTimeLeft) {
+      turnIndicator.innerHTML = `Sıradaki Oyuncu ID: <span style="color: #ffd700;">${nextPlayerId}</span> | Kalan Süre: <span style="color: var(--accent-color);">${turnTimeLeft}s</span>`;
+    }
+
+    // HAMLE TETİKLEME (KUYU TIKLAMA)
+    function makeMove(pitIndex) {
+      if (!socket || !socket.connected) {
+        log('Hata: Önce bağlantı kurun!', 'err');
+        return;
+      }
+      log(`Hamle atılıyor... Kuyu: ${pitIndex}`);
+      socket.emit('game:move', {
+        matchId,
+        pitIndex
+      });
+    }
+  </script>
+
+</body>
+</html>
