@@ -141,20 +141,54 @@ main()
 
 ---
 
-## PrismaService (NestJS Entegrasyonu)
+## Prisma Yapılandırma ve Servis Entegrasyonu (Prisma 7+)
+
+### 1. `prisma.config.ts` Yapısı
+Prisma 7.x ve sonrasında `prisma.config.ts` dosyası sadece temel yolları ve veri kaynaklarını yönetir. Kesinlikle `earlyAccess` ve `client.adapter` alanlarını içermemelidir:
 
 ```typescript
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common'
-import { PrismaClient } from '@prisma/client'
+import 'dotenv/config';
+import path from 'node:path';
+import { defineConfig } from 'prisma/config';
+
+const dbAbsPath = path.resolve(__dirname, 'prisma', 'dev.db');
+const dbUrl = `file:${dbAbsPath}`;
+
+export default defineConfig({
+  schema: path.join(__dirname, 'prisma', 'schema.prisma'),
+  datasource: {
+    url: dbUrl,
+  },
+});
+```
+
+### 2. `PrismaService` (NestJS Entegrasyonu)
+Adaptörler (örneğin SQLite için LibSQL adaptörü) doğrudan servis başlatılırken `super` çağrısına iletilmelidir:
+
+```typescript
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
+import { PrismaLibSql } from '@prisma/adapter-libsql';
+import * as path from 'path';
+
+function createAdapter(): PrismaLibSql {
+  const dbAbsPath = path.resolve(process.cwd(), '..', 'prisma', 'dev.db');
+  const dbUrl = process.env['DATABASE_URL'] ?? `file:${dbAbsPath}`;
+  return new PrismaLibSql({ url: dbUrl });
+}
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  constructor() {
+    super({ adapter: createAdapter() });
+  }
+
   async onModuleInit(): Promise<void> {
-    await this.$connect()
+    await this.$connect();
   }
 
   async onModuleDestroy(): Promise<void> {
-    await this.$disconnect()
+    await this.$disconnect();
   }
 }
 ```
@@ -169,6 +203,7 @@ Bu servis `AppModule` providers'ına eklenir, diğer modüller inject eder.
 - `any` tipi ile Prisma sonucu cast etme yasak
 - `try-catch` olmadan Prisma çağrısı yasak
 - Migration dosyalarını elle düzenleme yasak
+- `prisma.config.ts` içinde `earlyAccess: true` veya `client: { adapter: ... }` kullanımı yasak (Prisma 7 standartlarına aykırıdır)
 
 ---
 
@@ -176,3 +211,4 @@ Bu servis `AppModule` providers'ına eklenir, diğer modüller inject eder.
 
 → Şema tasarımı için bkz. `docs/spec.md` Bölüm 5
 → Hata formatı için bkz. `docs/spec.md` Bölüm 13
+

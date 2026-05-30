@@ -25,6 +25,44 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-05-30] — Game Gateway (Aşama 7)
+
+**Tamamlanan Görev:** `/game` namespace'li WebSocket ağ geçidi (`GameGateway`) ve oda durum yönetimini, 15 saniyelik hamle zamanlayıcısını (turn timer) ve 60 saniyelik kopma tolerans penceresini (reconnection) yöneten `GameService` NestJS modülü geliştirildi, test kapsamı hedeflerine uyuldu.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `backend/src/game/game.gateway.ts` [YENİ] — WebSocket gateway (connection auth, move/reconnect events, chat sanitization)
+- `backend/src/game/game.service.ts` [YENİ] — Room state, timers, db logging, reconnect schedule
+- `backend/src/game/dto/move.dto.ts` [YENİ] — class-validator hamle DTO'su
+- `backend/src/game/types/game-room.types.ts` — GameRoom arayüzünün genişletilmesi
+- `backend/src/game/game.module.ts` — Gateway/Service providers kaydı ve bağımlılık modülleri importu
+- `backend/src/auth/auth.module.ts` — JwtModule exports listesine eklendi
+- `backend/src/game/game.service.spec.ts` [YENİ] — GameService için 12 unit testi
+- `backend/src/game/game.gateway.spec.ts` [YENİ] — GameGateway için 9 unit testi
+
+**Test Sonuçları:** 58/58 Jest testleri başarıyla geçti (`npm run test -w backend`).
+**Derleme:** ✅ Hatasız (NestJS backend ve tüm monorepo başarıyla derlendi).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Aşama 8 — Lobby Gateway (WebSocket Lobi ve Davet Yönetimi).
+**Commit:** `feat(game): implement game gateway, room management and turn timer`
+**PR:** `feature/game-gateway` → `develop`
+
+---
+
+### Oturum [2026-05-30] — Prisma 7 Standartlaştırma (Bugfix)
+
+**Tamamlanan Görev:** Prisma 7.x uyumsuzluğundan kaynaklanan `earlyAccess` ve `client.adapter` tip hataları tamamen giderildi. Standartlar `AGENTS.md` ve `.antigravity/skills/prisma.md` dosyalarına kalıcı kural olarak eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `prisma.config.ts` — Prisma 7 standardına göre sadeleştirildi (earlyAccess ve client.adapter kaldırıldı).
+- `AGENTS.md` — Prisma 7 kuralları "Kesin Kurallar" altına eklendi.
+- `.antigravity/skills/prisma.md` — `prisma.config.ts` yapılandırma standardı ve `PrismaService` kod şablonu Prisma 7+ uyumlu olarak güncellendi.
+
+**Test Sonuçları:** Proje başarıyla tsc derlemesinden geçiyor.
+**Derleme:** ✅ Hatasız
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Game Gateway (Aşama 7)
+**Commit:** `fix: resolve prisma 7 config deprecations and update developer standards`
+
+---
+
 ### Oturum [2026-05-30] — Prisma 7 Altyapı Düzeltmesi (Bugfix)
 
 **Tamamlanan Görev:** Prisma 7'nin kırıcı değişiklikleri (datasource.url kaldırıldı, prisma.config.ts zorunlu) düzeltildi. PrismaService libsql adapter ile güncellendi. Backend başarıyla çalışır hale getirildi.
