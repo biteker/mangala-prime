@@ -54,6 +54,15 @@ export function GamePage(): React.JSX.Element {
 
   const isMyTurn = currentPlayerId === currentUser.id;
 
+  console.log('DEBUG GamePage Render:', {
+    matchId,
+    currentPlayerId,
+    currentUserId: currentUser.id,
+    isMyTurn,
+    yourColor,
+    boardLength: board?.length,
+  });
+
   // Hazır (preset) mesajlar listesi
   const PRESET_MESSAGES = [
     'Kolay gelsin!',
@@ -93,6 +102,7 @@ export function GamePage(): React.JSX.Element {
 
   // Kuyu tıklama işleyicisi
   const handlePitClick = (pitIndex: number): void => {
+    console.log('DEBUG handlePitClick called:', { pitIndex, isMyTurn, yourColor });
     if (!isMyTurn) return;
 
     // Sadece kendi kuyularımıza tıklayabiliriz
@@ -101,9 +111,11 @@ export function GamePage(): React.JSX.Element {
         ? pitIndex >= 0 && pitIndex <= 5
         : pitIndex >= 7 && pitIndex <= 12;
 
+    console.log('DEBUG handlePitClick validation:', { isMyPit, stonesInPit: board[pitIndex] });
     if (!isMyPit) return;
     if (board[pitIndex] === 0) return;
 
+    console.log('DEBUG handlePitClick executing makeMove:', pitIndex);
     makeMove(pitIndex);
   };
 

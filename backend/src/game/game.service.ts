@@ -96,10 +96,12 @@ export class GameService {
   }
 
   async handlePlayerConnect(userId: string, socketId: string): Promise<void> {
+    console.log('DEBUG handlePlayerConnect:', { userId, socketId, roomsCount: this.rooms.size });
     // Kullanıcının içinde olduğu aktif odayı bul
     for (const room of this.rooms.values()) {
       if (room.player1Id === userId) {
         room.player1SocketId = socketId;
+        console.log('DEBUG handlePlayerConnect P1 matched:', { matchId: room.matchId, socketId });
         this.clearReconnectTimer(userId);
         
         // Sıra bu oyuncudaysa ve timer kilitliyse (yani socketId boştayken kilitlendiyse) timer'ı başlat
@@ -109,6 +111,7 @@ export class GameService {
         break;
       } else if (room.player2Id === userId) {
         room.player2SocketId = socketId;
+        console.log('DEBUG handlePlayerConnect P2 matched:', { matchId: room.matchId, socketId });
         this.clearReconnectTimer(userId);
 
         if (room.currentPlayer === 1 && !room.timer) {
@@ -205,6 +208,15 @@ export class GameService {
     } else {
       return { valid: false, reason: 'Bu maçta oyuncu değilsiniz.' };
     }
+
+    console.log('DEBUG validateMove:', {
+      socketId,
+      player1SocketId: room.player1SocketId,
+      player2SocketId: room.player2SocketId,
+      player1Id: room.player1Id,
+      player2Id: room.player2Id,
+      currentPlayer: room.currentPlayer,
+    });
 
     if (room.currentPlayer !== playerIndex) {
       return { valid: false, reason: 'Sıra sizde değil.', currentBoard: room.board };
