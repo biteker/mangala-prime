@@ -2,35 +2,37 @@
 
 ---
 
-## Görev: Frontend Lobi Sayfası ve Eşleşme Entegrasyonu (Aşama 11/14)
+## Görev: Frontend Oyun Tahtası ve Canlı Oynanış (Aşama 12/14)
 
 ### Ne Yapılacak?
-Kullanıcının çevrimiçi oyuncuları görebildiği, onlara oyun daveti gönderebildiği, gelen davetleri yanıtlayabildiği ve FIFO kuyruğuna katılarak otomatik eşleşme sırasına girebildiği modern ve premium **Lobi Sayfası** (`LobbyPage.tsx`) bileşenini geliştir. Bu ekranı `useLobbyStore` ve `useGameStore` entegrasyonuyla canlı soket olaylarına bağla.
+Kullanıcıların canlı olarak Mangala oynayabildiği, tahtadaki 14 kuyu ve hazne yapısını (dizi indeksleriyle eşleşecek şekilde) render eden, hamle yapma (`makeMove`), sıra/zamanlayıcı (15sn turn timer) ve oyun sonu (kazanma/ELO değişimi) durumlarını gösteren **Oyun Tahtası** (`GamePage.tsx`) bileşenini geliştir. Ayrıca oyuncuların birbirleriyle sohbet edebileceği (preset ve serbest metin) canlı chat panelini entegre et.
 
 ### Oluşturulacak/Değiştirilecek Dosyalar
 
 **Frontend:**
-- `frontend/src/components/LobbyPage.tsx` [YENİ] — Canlı lobi, oyuncu listesi, davetler ve eşleşme kuyruğu kontrol ekranı
-- `frontend/src/App.tsx` [MODIFY] — `LobbyPage` bileşeninin `#/lobby` rotasına bağlanması ve entegrasyonu
-- `frontend/src/index.css` [MODIFY] — Lobi kartları, kuyruk animasyonları ve davet modal stilleri
+- `frontend/src/components/GamePage.tsx` [YENİ] — Canlı oynanış, tahta, timer ve chat kontrol ekranı
+- `frontend/src/App.tsx` [MODIFY] — `GamePage` bileşeninin `#/game` rotasına bağlanması
+- `frontend/src/index.css` [MODIFY] — Mangala oyun tahtası, kuyular, taşlar, timer sayacı ve chat arayüz stilleri
 
 ### İçerik Gereksinimleri
-- **Matchmaking Arayüzü:**
-  - "Hızlı Maç Ara" butonuyla sıraya girme, bekleme süresini gösteren 120 saniyelik sayaç ve sıradan çıkabilme imkanı.
-  - Sıra bekleme ekranında premium, göz yormayan animasyonlu bir yüklenme (pulse/rotating) alanı.
-- **Çevrimiçi Kullanıcılar Listesi:**
-  - O anda lobiye bağlı diğer kullanıcıların listelenmesi (kendi profilimiz hariç).
-  - Kullanıcıların durumlarının (lobide, oyunda) ve ELO derecelerinin gösterilmesi.
-  - Uygun durumda olan oyuncular için "Oyna" (davet gönder) butonu.
-- **Davet Gönderme ve Karşılama Akışı:**
-  - Davet gönderildiğinde 30 saniyelik davet zaman aşımı sürecinin takibi.
-  - Gelen davetler için kabul/ret seçeneklerini içeren, ekranın ortasında açılan şık bir davet penceresi (modal veya alert banner).
-  - Başarılı eşleşme (`game:match_found`) durumunda otomatik olarak `#/game` rotasına yönlendirilmesi.
+- **14 Elemanlı Tahta Tasarımı:**
+  - 0-5 kuyuları alt tarafta (Oyuncu 1), 6 nolu hazne sağda.
+  - 7-12 kuyuları üst tarafta (Oyuncu 2 - ters yönde sıralı), 13 nolu hazne solda.
+  - Kendi kuyularına tıklanarak `makeMove(pitIndex)` tetiklenebilmelidir. Rakip kuyulara veya haznelere tıklama engellenmelidir.
+  - Sıra kendisinde değilse veya kuyu boşsa hamle yapılamamalıdır.
+- **Sıra ve Zamanlayıcı Gösterimi:**
+  - Sıranın kimde olduğu ("Sıra Sizde" / "Sıra Rakipte") belirgin bir görselle gösterilmeli.
+  - 15 saniyelik turn timer sayacı geriye doğru saymalı, 5 saniyenin altında sayaç kırmızı renge dönmelidir.
+- **Oyun Sonu Ekranı:**
+  - Oyun bittiğinde (`gameOverDetails` null olmadığında) kazanan oyuncuyu, kazanma sebebini (normal bitiş, süre aşımı, bağlantı kopması vb.) ve ELO değişimlerini (+/- ELO) gösteren şık bir modal açılmalıdır.
+- **Canlı Chat Modülü:**
+  - Preset mesajlar ("Güzel hamle!", "Tebrikler!", "Şans benden yana." vb.) ve serbest metin girişi ile rakibe mesaj gönderebilme.
+  - Rakip chat'i kapattıysa veya kendimiz kapattıysak bunu belirten durum göstergesi.
 
 ### Kabul Kriterleri
-- [ ] Lobi sayfası (`LobbyPage`) modern, premium tasarımla geliştirildi.
-- [ ] Çevrimiçi kullanıcılar listesi canlandırıldı, durumlar ve ELO'lar doğru görünüyor.
-- [ ] FIFO matchmaking kuyruğuna giriş/çıkış ve 120 saniyelik sayaç sorunsuz çalışıyor.
-- [ ] Oyuncu davet etme ve davet kabul/ret bildirim pencereleri test edildi.
-- [ ] Eşleşme sağlandığında `#/game` ekranına otomatik geçiş doğrulandı.
+- [ ] Oyun tahtası (`GamePage`) 14 kuyu ve hazne yapısıyla modern, premium tasarımla geliştirildi.
+- [ ] Kendi kuyularına tıklama ile `makeMove` aksiyonu çalışıyor, rakip kuyular kilitli.
+- [ ] Turn timer sayacı (15sn) ve sıra durumları canlı güncelleniyor.
+- [ ] Canlı chat paneli (serbest metin ve hazır mesajlar) çalışıyor.
+- [ ] Oyun bittiğinde kazananı ve ELO değişimlerini gösteren bitiş modalı açılıyor.
 - [ ] `npm run build` monorepo genelinde başarıyla tamamlanmalı.

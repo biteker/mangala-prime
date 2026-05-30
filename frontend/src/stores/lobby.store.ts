@@ -21,6 +21,7 @@ interface LobbyState {
   onlineUsers: OnlineUser[];
   isInQueue: boolean;
   incomingInvite: { inviterUserId: string } | null;
+  outgoingInviteTargetId: string | null;
   inviteError: LobbyErrorPayload['error'] | null;
   
   connectLobby: () => void;
@@ -36,6 +37,7 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
   onlineUsers: [],
   isInQueue: false,
   incomingInvite: null,
+  outgoingInviteTargetId: null,
   inviteError: null,
 
   connectLobby: () => {
@@ -95,7 +97,7 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
     newSocket.on('lobby:invite_response', (payload: unknown) => {
       const response = payload as { targetUserId: string; accepted: boolean };
       if (!response.accepted) {
-        // Reddedildiğinde belki arayüzde bir bildirim veya log basılabilir
+        set({ outgoingInviteTargetId: null });
       }
     });
 
@@ -111,11 +113,19 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
     });
 
     newSocket.on('lobby:error', (payload: LobbyErrorPayload) => {
-      set({ inviteError: payload.error });
+      set({ inviteError: payload.error, outgoingInviteTargetId: null });
     });
 
-    newSocket.on('game:match_found', (_payload: GameMatchFoundPayload) => {
-      set({ isInQueue: false, incomingInvite: null });
+    newSocket.on('game:match_found', async (payload: GameMatchFoundPayload) => {
+      set({ isInQueue: false, incomingInvite: null, outgoingInviteTargetId: null });
+      const { useGameStore } = await import('./game.store');
+      useGameStore.getState().setMatchDetails({
+        opponentUsername: payload.opponentUsername,
+        opponentElo: payload.opponentElo,
+        yourColor: payload.yourColor,
+      });
+      useGameStore.getState().connectGame(payload.matchId);
+      window.location.hash = '#/game';
     });
 
     set({ socket: newSocket });
@@ -131,6 +141,7 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
       onlineUsers: [],
       isInQueue: false,
       incomingInvite: null,
+      outgoingInviteTargetId: null,
       inviteError: null,
     });
   },
@@ -155,7 +166,7 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
     const { socket } = get();
     if (socket && socket.connected) {
       socket.emit('lobby:invite_send', { targetUserId });
-      set({ inviteError: null });
+      set({ outgoingInviteTargetId: targetUserId, inviteError: null });
     }
   },
 
