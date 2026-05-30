@@ -24,8 +24,8 @@ Faz 1 MVP: █████░░░░░ %50
 | Oyun Motoru | ✅ Onaylandı ve Merge Edildi | develop | Saf Mangala kural seti ve processMove mantığı tamamlandı, 8 zorunlu test geçti. |
 | Auth Modülü | ✅ Onaylandı ve Merge Edildi | develop | JWT kimlik doğrulama, cookie refresh rotasyonu, error/data sarmalayıcıları ve testleri tamamlandı. |
 | User Modülü | ✅ Onaylandı ve Merge Edildi | develop | Profil, liderboard ve maç geçmişi tamamlandı. |
-| Game Gateway | 🔍 İnsan İncelemesinde | feature/game-gateway | WebSocket gateway, reconnect penceresi ve turn timer tamamlandı. |
-| Lobby Gateway | ⬜ Başlanmadı | — | — |
+| Game Gateway | ✅ Onaylandı ve Merge Edildi | develop | WebSocket gateway, reconnect penceresi ve turn timer tamamlandı. |
+| Lobby Gateway | 🔍 İnsan İncelemesinde | feature/lobby-gateway | WebSocket lobi, FIFO matchmaking kuyruğu, davet sistemi ve hile engelleme tamamlandı. |
 
 ### Frontend
 | Modül | Durum | Branch | Notlar |
@@ -64,13 +64,13 @@ Faz 1 MVP: █████░░░░░ %50
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-05-30 — Game Gateway (Aşama 7)
+Oturum 2026-05-30 — Lobby Gateway (Aşama 8)
 
 ### Yapılanlar
-- `/game` namespace altında `GameGateway` WebSocket ağ geçidi kuruldu.
-- JWT handshake/query token doğrulaması yapıldı.
-- 15 saniyelik hamle süresi (turn timer) ve sırası olan oyuncu koptuğunda timer'ı dondurma mantığı sunucuda koşturuldu.
-- Oyuncu koptuğunda 60 saniyelik reconnect penceresi yönetildi; aşımında hükmen yenilgi ve ELO cezası (+15/-15) tetiklendi.
-- Hamlelerin `MoveHistory` tablosuna kaydedilmesi ve ELO güncellemeleri entegre edildi.
-- XSS korumalı sanitasyon ile sohbet (`game:message`) ve sohbet kilitleri (`game:chat_toggle`) geliştirildi.
-- Jest birim testleri (21 test) eklenerek gateway ve service için coverage hedefleri (>%70) aşıldı, tüm tsc derlemesi başarıyla tamamlandı.
+- `/lobby` namespace'i altında `LobbyGateway` WebSocket ağ geçidi kuruldu.
+- Çevrimiçi oyuncuların durum takibi (lobby, playing, offline) in-memory ve JWT doğrulama ile entegre edildi.
+- FIFO matchmaking kuyruk sistemi, 120 saniyelik kuyruk zaman aşımı (`lobby:queue_timeout`) ile geliştirildi.
+- Eşleşen oyuncuların IP adresleri karşılaştırılarak aynı IP'den gelenler için hilesiz dostluk maçı (`isFriendly: true`) ELO bypass'ı sağlandı.
+- Aynı cihaz hile koruması (duplicate device fingerprint) kuyruk girişlerinde engellendi.
+- 30 saniyelik davet zaman aşımı penceresi ile davet gönderme ve yanıtlama (kabul/red) mekanizmaları geliştirildi.
+- Jest birim testleri (12 test) eklenerek coverage limitleri (>%70) aşıldı ve tsc derlemesi yeşillendi.

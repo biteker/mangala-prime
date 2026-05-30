@@ -6,9 +6,10 @@ import { EloModule } from './elo/elo.module';
 import { GameModule } from './game/game.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { LobbyModule } from './lobby/lobby.module';
 
 @Module({
-  imports: [PrismaModule, EloModule, GameModule, AuthModule, UserModule],
+  imports: [PrismaModule, EloModule, GameModule, AuthModule, UserModule, LobbyModule],
   controllers: [AppController],
   providers: [AppService],
 })

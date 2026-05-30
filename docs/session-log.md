@@ -25,6 +25,28 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-05-30] — Lobby Gateway (Aşama 8)
+
+**Tamamlanan Görev:** `/lobby` namespace'li WebSocket ağ geçidi (`LobbyGateway`) ve çevrimiçi oyuncuları, FIFO matchmaking kuyruğunu, davetleri, lobi ve oda kilitlerini, IP bazlı dostluk maçlarını ve fingerprint hile korumasını yöneten `LobbyService` NestJS modülü geliştirildi, test kapsamı hedeflerine uyuldu.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `backend/src/lobby/lobby.gateway.ts` [YENİ] — WebSocket lobi ağ geçidi (connection, disconnect, queue join/leave, invite send/response)
+- `backend/src/lobby/lobby.service.ts` [YENİ] — Online kullanıcı durumları, FIFO queue eşleştirme, IP friendly match algılama, device fingerprint kontrolü ve invite zaman aşımları
+- `backend/src/lobby/dto/invite.dto.ts` [YENİ] — class-validator davet DTO'su
+- `backend/src/lobby/lobby.module.ts` [YENİ] — Lobi modülü NestJS kaydı
+- `backend/src/app.module.ts` — LobbyModule imports dizisine eklendi
+- `backend/src/app.controller.ts` & `app.controller.spec.ts` — Mock match init route'u test ve mock adaptasyonları
+- `backend/src/lobby/lobby.service.spec.ts` [YENİ] — LobbyService için 6 unit testi
+- `backend/src/lobby/lobby.gateway.spec.ts` [YENİ] — LobbyGateway için 6 unit testi
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test -w backend`).
+**Derleme:** ✅ Hatasız (NestJS backend ve tüm monorepo başarıyla derlendi).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Aşama 9 — Store'lar + API Katmanı (Frontend).
+**Commit:** `feat(lobby): implement lobby gateway, matchmaking queue, and invitation system`
+**PR:** `feature/lobby-gateway` → `develop`
+
+---
+
 ### Oturum [2026-05-30] — Game Gateway (Aşama 7)
 
 **Tamamlanan Görev:** `/game` namespace'li WebSocket ağ geçidi (`GameGateway`) ve oda durum yönetimini, 15 saniyelik hamle zamanlayıcısını (turn timer) ve 60 saniyelik kopma tolerans penceresini (reconnection) yöneten `GameService` NestJS modülü geliştirildi, test kapsamı hedeflerine uyuldu.
