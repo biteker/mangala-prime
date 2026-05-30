@@ -1,122 +1,110 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React, { useEffect } from 'react';
+import { useRouter } from './lib/router';
+import { AuthGuard } from './components/AuthGuard';
+import { LoginForm } from './components/LoginForm';
+import { RegisterForm } from './components/RegisterForm';
+import { useAuthStore } from './stores/auth.store';
+import { useThemeStore } from './stores/theme.store';
+import { useGameStore } from './stores/game.store';
 
-function App() {
-  const [count, setCount] = useState(0)
+function App(): React.JSX.Element {
+  const { route, navigate } = useRouter();
+  const { user, logout } = useAuthStore();
+  const { theme, setTheme } = useThemeStore();
+  const { matchId } = useGameStore();
+
+  // Tema sınıfının root elementine uygulanması
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove('theme-wood', 'theme-neon');
+    root.classList.add(theme);
+  }, [theme]);
+
+  const handleThemeToggle = (): void => {
+    setTheme(theme === 'theme-wood' ? 'theme-neon' : 'theme-wood');
+  };
+
+  const handleLogout = async (): Promise<void> => {
+    await logout();
+    navigate('#/login');
+  };
+
+  const renderContent = (): React.ReactNode => {
+    switch (route) {
+      case '#/login':
+        return <LoginForm />;
+      case '#/register':
+        return <RegisterForm />;
+      case '#/lobby':
+        return (
+          <div className="auth-card" style={{ maxWidth: '600px', margin: '40px auto', textAlign: 'center' }}>
+            <h2 className="auth-title">Oyun Lobisi</h2>
+            <p style={{ marginBottom: '24px' }}>
+              Hoş geldiniz, <strong>{user?.username}</strong>! ELO Dereceniz: <strong>{user?.elo}</strong>
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button 
+                type="button" 
+                className="auth-button" 
+                onClick={(): void => alert('Matchmaking bir sonraki aşamada entegre edilecektir.')}
+              >
+                Hızlı Maç Ara
+              </button>
+              <button 
+                type="button" 
+                className="auth-button" 
+                style={{ backgroundColor: 'var(--text-secondary)' }}
+                onClick={handleLogout}
+              >
+                Çıkış Yap
+              </button>
+            </div>
+          </div>
+        );
+      case '#/game':
+        return (
+          <div className="auth-card" style={{ maxWidth: '600px', margin: '40px auto', textAlign: 'center' }}>
+            <h2 className="auth-title">Oyun Ekranı</h2>
+            <p>Aktif Maç ID: {matchId || 'Yok'}</p>
+            <button 
+              type="button" 
+              className="auth-button" 
+              onClick={(): void => navigate('#/lobby')}
+            >
+              Lobiye Dön
+            </button>
+          </div>
+        );
+      default:
+        return <LoginForm />;
+    }
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <AuthGuard>
+      <header className="app-header">
+        <div className="brand">Mangala Prime</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {user && (
+            <span style={{ fontSize: '14px', fontWeight: 600 }}>
+              {user.username} ({user.elo} ELO)
+            </span>
+          )}
+          <button 
+            type="button" 
+            className="theme-toggle-btn" 
+            onClick={handleThemeToggle}
+          >
+            Tema: {theme === 'theme-wood' ? 'Ahşap' : 'Neon'}
+          </button>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      <main className="auth-container">
+        {renderContent()}
+      </main>
+    </AuthGuard>
+  );
 }
 
-export default App
+export default App;

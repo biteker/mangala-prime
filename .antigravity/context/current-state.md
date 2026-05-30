@@ -1,14 +1,14 @@
 # Projenin Anlık Durumu
 
 Son Güncelleme: 2026-05-30
-Aktif Branch: feature/frontend-store
+Aktif Branch: feature/auth-pages
 
 ---
 
 ## Genel İlerleme
 
 ```
-Faz 1 MVP: ██████░░░░ %60
+Faz 1 MVP: ███████░░░ %70
 ```
 
 ---
@@ -31,7 +31,7 @@ Faz 1 MVP: ██████░░░░ %60
 | Modül | Durum | Branch | Notlar |
 |-------|-------|--------|--------|
 | Store'lar + API katmanı | ✅ Onaylandı ve Merge Edildi | develop | Zustand store'ları ve Axios API istemcisi tamamlandı. |
-| Auth Sayfaları | ⬜ Başlanmadı | — | — |
+| Auth Sayfaları | 🔍 İnsan İncelemesinde | feature/auth-pages | Giriş, kayıt formları, AuthGuard ve tema entegrasyonu tamamlandı. |
 | Lobi Sayfası | ⬜ Başlanmadı | — | — |
 | Oyun Tahtası (statik) | ⬜ Başlanmadı | — | — |
 | Animasyon Katmanı | ⬜ Başlanmadı | — | — |
@@ -64,11 +64,10 @@ Faz 1 MVP: ██████░░░░ %60
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-05-30 — Store'lar ve API Katmanı (Aşama 9)
+Oturum 2026-05-30 — Frontend Auth Sayfaları (Aşama 10)
 
 ### Yapılanlar
-- `api-client.ts` ile Bearer token, sessiz refresh ve NestJS response unwrap/error formatlama yapısı kuruldu.
-- `auth.store.ts` ile kullanıcı giriş, kayıt, çıkış ve profil durum yönetimi Zustand üzerinde uygulandı.
-- `lobby.store.ts` ile WebSocket lobi bağlantısı, online listesi ve davet/kuyruk yönetimi geliştirildi.
-- `game.store.ts` ile WebSocket oyun bağlantısı, tahta durumu, turn timer ve chat yönetimi tamamlandı.
-- Backend `LobbyGateway` testlerindeki mock socket broadcast hataları giderilerek tüm testler yeşile döndürüldü.
+- Hash tabanlı router (`router.ts`) ve korumalı rota guard'ı (`AuthGuard.tsx`) yazıldı.
+- Giriş (`LoginForm.tsx`) ve Kayıt (`RegisterForm.tsx`) form bileşenleri geliştirildi, store'lara ve validasyonlara bağlandı.
+- CSS değişkenleri tabanlı Klasik Ahşap ve Modern Neon temaları `index.css` üzerinde form tasarımlarına uyarlandı.
+- `App.tsx` yerleşimi yenilendi, tema ve oturum yönetimi bağlantıları sağlandı, monorepo başarıyla build edildi.

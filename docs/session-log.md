@@ -25,6 +25,26 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-05-30] — Frontend Auth Sayfaları (Aşama 10)
+
+**Tamamlanan Görev:** Kullanıcı kayıt, giriş ekranları, URL hash tabanlı yönlendirici, çoklu tema görsel entegrasyonu ve oturum kontrolü sağlayan AuthGuard yapısı tamamlandı.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/src/lib/router.ts` [YENİ] — URL hash tabanlı hafif yönlendirici
+- `frontend/src/components/AuthGuard.tsx` [YENİ] — Oturum durumuna göre yönlendiren koruma sarmalı
+- `frontend/src/components/LoginForm.tsx` [YENİ] — Giriş ekranı formu
+- `frontend/src/components/RegisterForm.tsx` [YENİ] — Kayıt ekranı formu
+- `frontend/src/index.css` — Ahşap ve Neon temalarına uygun görsel stiller ve değişkenler
+- `frontend/src/App.tsx` — Sayfa yerleşimi, tema değiştirici, rota yönetimi ve guard entegrasyonları
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti.
+**Derleme:** ✅ Hatasız (Vite React frontend, NestJS backend, shared paket başarıyla build edildi).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Aşama 11 — Frontend Lobi (Lobi Ekranı, Çevrimiçi Kullanıcılar, Davet ve Eşleşme Arayüzü Entegrasyonu).
+**Commit:** `feat(frontend): implement auth views, lightweight router and route protection`
+**PR:** `feature/auth-pages` → `develop`
+
+---
+
 ### Oturum [2026-05-30] — Store'lar ve API Katmanı (Aşama 9)
 
 **Tamamlanan Görev:** Frontend tarafında API istekleri ve WebSocket bağlantılarını yönetecek API istemcisi (`api-client.ts`), lobi/matchmaking kuyruğunu yönetecek `LobbyStore` ve oyun/chat durumunu yönetecek `GameStore` Zustand kütüphanesi kullanılarak geliştirildi. Backend tarafında bulunan `LobbyGateway` birim testlerindeki mock socket hatası düzeltildi.
