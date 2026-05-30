@@ -357,7 +357,10 @@
       log('Test maçı oluşturma isteği gönderiliyor...');
       try {
         const response = await fetch('http://localhost:3000/test-match', { method: 'POST' });
-        const data = await response.json();
+        const json = await response.json();
+
+        // NestJS ResponseInterceptor wraps standard responses inside a "data" property
+        const data = json.data || json;
 
         if (data.error) {
           log(`Hata: ${data.error}`, 'err');
