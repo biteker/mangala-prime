@@ -8,7 +8,7 @@ Aktif Branch: feature/game-page
 ## Genel İlerleme
 
 ```
-Faz 1 MVP: ████████░░ %80
+Faz 1 MVP: █████████░ %90
 ```
 
 ---
@@ -33,7 +33,7 @@ Faz 1 MVP: ████████░░ %80
 | Store'lar + API katmanı | ✅ Onaylandı ve Merge Edildi | develop | Zustand store'ları ve Axios API istemcisi tamamlandı. |
 | Auth Sayfaları | ✅ Onaylandı ve Merge Edildi | develop | Giriş, kayıt formları, AuthGuard ve tema entegrasyonu tamamlandı. |
 | Lobi Sayfası | ✅ Onaylandı ve Merge Edildi | develop | Canlı lobi oyuncu listesi, meydan okuma modalları ve hızlı eşleşme sırası tamamlandı. |
-| Oyun Tahtası (statik) | ⬜ Başlanmadı | — | — |
+| Oyun Tahtası (canlı) | 🔍 İnsan İncelemesinde | feature/game-page | 14 kuyu/hazne yerleşimi, turn timer, chat modülü ve GameOverModal entegrasyonu tamamlandı. |
 | Animasyon Katmanı | ⬜ Başlanmadı | — | — |
 
 ### Altyapı
@@ -64,10 +64,12 @@ Faz 1 MVP: ████████░░ %80
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-05-30 — Frontend Lobi Sayfası ve Eşleşme Entegrasyonu (Aşama 11)
+Oturum 2026-05-31 — Frontend Oyun Tahtası ve Canlı Oynanış (Aşama 12)
 
 ### Yapılanlar
-- Canlı lobi bağlantısı (`LobbyPage.tsx`) ve online oyuncu listesi canlandırıldı.
-- FIFO bekleme kuyruğu arayüzü ve 120 saniyelik zamanlayıcı sayacı entegre edildi.
-- Giden meydan okumalar için 30 saniyelik geri sayımlı modal ve gelen meydan okumalar için kabul/ret onay pencereleri geliştirildi.
-- Eşleşme sağlandığında `game:match_found` olayıyla oyun store'unun doldurulması ve `/game` soketine otomatik bağlantı akışı kuruldu.
+- 14 elemanlı dizi board state'ini ahşap ve neon temalarıyla premium render eden Mangala tahtası geliştirildi.
+- Oyuncunun rengine göre tahta perspektifini alt sırada kendi kuyuları olacak şekilde otomatik ters-yüz (flip) eden mantık kuruldu.
+- Kendi kuyularına tıklama ile `makeMove` hamle tetiklemesi bağlandı, rakip kuyuları ve hazneler kilitlendi.
+- Sıradaki oyuncu göstergesi ve 15 saniyelik geriye sayan turn timer (5sn altında kırmızı uyarı) arayüzde canlandırıldı.
+- Karşılaşma bittiğinde kazananı, bitiş sebebini ve ELO değişimlerini (+/- ELO) gösteren GameOverModal eklendi.
+- Preset şablonlar ve serbest metin girişli canlı chat paneli entegre edildi.
