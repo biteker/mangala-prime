@@ -33,8 +33,8 @@ Faz 1 MVP: █████████░ %90
 | Store'lar + API katmanı | ✅ Onaylandı ve Merge Edildi | develop | Zustand store'ları ve Axios API istemcisi tamamlandı. |
 | Auth Sayfaları | ✅ Onaylandı ve Merge Edildi | develop | Giriş, kayıt formları, AuthGuard ve tema entegrasyonu tamamlandı. |
 | Lobi Sayfası | ✅ Onaylandı ve Merge Edildi | develop | Canlı lobi oyuncu listesi, meydan okuma modalları ve hızlı eşleşme sırası tamamlandı. |
-| Oyun Tahtası (canlı) | 🔍 İnsan İncelemesinde | feature/game-page | 14 kuyu/hazne yerleşimi, turn timer, chat modülü ve GameOverModal entegrasyonu tamamlandı. |
-| Animasyon Katmanı | ⬜ Başlanmadı | — | — |
+| Oyun Tahtası (canlı) | ✅ Onaylandı ve Merge Edildi | feature/game-page → develop | Hata düzeltmesi tamamlandı: yourColor/currentPlayerId null bug, StrictMode uyumluluğu, reconnect state sync. |
+| Animasyon ve Tema Katmanı | 🔍 İnsan İncelemesinde | feature/game-page | Ardışık taş dağıtım animasyonu, input-lock kilidi, premium ahşap tema ve mobil uyumluluklar tamamlandı. |
 
 ### Altyapı
 | Modül | Durum | Notlar |
@@ -64,12 +64,10 @@ Faz 1 MVP: █████████░ %90
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-05-31 — Frontend Oyun Tahtası ve Canlı Oynanış (Aşama 12)
+Oturum 2026-05-31 — 3. Tema (Rustik Ahşap) ve Mobil-Öncelikli İyileştirmeler (Tema & Responsive)
 
 ### Yapılanlar
-- 14 elemanlı dizi board state'ini ahşap ve neon temalarıyla premium render eden Mangala tahtası geliştirildi.
-- Oyuncunun rengine göre tahta perspektifini alt sırada kendi kuyuları olacak şekilde otomatik ters-yüz (flip) eden mantık kuruldu.
-- Kendi kuyularına tıklama ile `makeMove` hamle tetiklemesi bağlandı, rakip kuyuları ve hazneler kilitlendi.
-- Sıradaki oyuncu göstergesi ve 15 saniyelik geriye sayan turn timer (5sn altında kırmızı uyarı) arayüzde canlandırıldı.
-- Karşılaşma bittiğinde kazananı, bitiş sebebini ve ELO değişimlerini (+/- ELO) gösteren GameOverModal eklendi.
-- Preset şablonlar ve serbest metin girişli canlı chat paneli entegre edildi.
+- Referans görsele benzer şekilde gerçekçi ceviz dokusu, tahta içine oyulmuş dairesel kuyu/hazne gölgeleri, 6 farklı renkte cam bilye taş görünümleri içeren Premium Rustik Ahşap teması oluşturuldu.
+- Temalar arası döngüsel geçişi (Ahşap -> Neon -> Rustik -> Ahşap) sağlayan logic Zustand store ve App.tsx üzerinde kuruldu.
+- Mobil cihazlar (< 768px ve < 480px) için oyun tahtası, chat paneli, lobi listeleri, lobi bekleme spinner'ları ve header alanları esnek ve responsive hale getirildi.
+- Monorepo genelinde `npm run build` ve `npm run test` başarıyla çalıştırıldı ve doğrulandı.

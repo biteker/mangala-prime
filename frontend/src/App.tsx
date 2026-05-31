@@ -16,12 +16,24 @@ function App(): React.JSX.Element {
   // Tema sınıfının root elementine uygulanması
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove('theme-wood', 'theme-neon');
+    root.classList.remove('theme-wood', 'theme-neon', 'theme-rustic');
     root.classList.add(theme);
   }, [theme]);
 
   const handleThemeToggle = (): void => {
-    setTheme(theme === 'theme-wood' ? 'theme-neon' : 'theme-wood');
+    const order: Array<typeof theme> = ['theme-wood', 'theme-neon', 'theme-rustic'];
+    const currentIndex = order.indexOf(theme);
+    const nextIndex = (currentIndex + 1) % order.length;
+    setTheme(order[nextIndex]);
+  };
+
+  const getThemeLabel = (): string => {
+    switch (theme) {
+      case 'theme-wood': return 'Ahşap';
+      case 'theme-neon': return 'Neon';
+      case 'theme-rustic': return 'Rustik';
+      default: return 'Ahşap';
+    }
   };
 
   const handleLogout = async (): Promise<void> => {
@@ -68,7 +80,7 @@ function App(): React.JSX.Element {
             className="theme-toggle-btn" 
             onClick={handleThemeToggle}
           >
-            Tema: {theme === 'theme-wood' ? 'Ahşap' : 'Neon'}
+            Tema: {getThemeLabel()}
           </button>
         </div>
       </header>

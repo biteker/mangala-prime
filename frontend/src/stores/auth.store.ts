@@ -25,7 +25,7 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (username, password) => {
         const response = await axios.post(
-          'http://localhost:3000/auth/login',
+          'http://127.0.0.1:3000/auth/login',
           { username, password },
           { withCredentials: true },
         );
@@ -36,7 +36,7 @@ export const useAuthStore = create<AuthState>()(
 
       register: async (username, password) => {
         const response = await axios.post(
-          'http://localhost:3000/auth/register',
+          'http://127.0.0.1:3000/auth/register',
           { username, password },
         );
         return response.data.data || response.data;
@@ -45,7 +45,7 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         try {
           await axios.post(
-            'http://localhost:3000/auth/logout',
+            'http://127.0.0.1:3000/auth/logout',
             {},
             { withCredentials: true },
           );

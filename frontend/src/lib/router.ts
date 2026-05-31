@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export type RouteType = '#/login' | '#/register' | '#/lobby' | '#/game';
 
@@ -23,9 +23,9 @@ export function useRouter() {
     };
   }, []);
 
-  const navigate = (path: RouteType): void => {
+  const navigate = useCallback((path: RouteType): void => {
     window.location.hash = path;
-  };
+  }, []);
 
   return { route, navigate };
 }

@@ -25,6 +25,64 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-05-31] — 3. Tema (Rustik Ahşap) ve Mobil-Öncelikli İyileştirmeler (Tema & Responsive)
+
+**Tamamlanan Görev:** Referans tasarıma benzer şekilde koyu meşe/ceviz tonlarında gerçekçi ahşap tahta dokusu, tahta içine oyulmuş oval kuyu/hazne görünümleri ve cam bilye parlaklığına sahip 6 renkli taşlar ile Premium Rustik Ahşap teması oluşturuldu. 3 tema arasında (Ahşap, Neon, Rustik) döngüsel geçiş sağlayan durum mekanizması eklendi. Mobil cihazlar (< 768px ve < 480px) için oyun tahtası, chat ve lobi tasarımları uyumlu hale getirildi.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/src/stores/theme.store.ts` — `ThemeType` tipine ve classList.remove listesine `'theme-rustic'` eklenerek tema durum yönetim altyapısı genişletildi.
+- `frontend/src/App.tsx` — 3'lü döngüsel tema geçiş fonksiyonu (`handleThemeToggle`) ve tema etiket gösterimi eklendi.
+- `frontend/src/index.css` — Rustik Ahşap teması için özel CSS değişkenleri, ahşap tahta dokusu, kuyu/hazne oyuk efektleri, radial gradient cam bilye taş stilleri, "Mangala" yazısı efekti ve mobil duyarlılık kuralları (media query) eklendi.
+
+**Test Sonuçları:** 74/74 test başarıyla geçti.
+**Derleme:** ✅ Hatasız (Monorepo genelinde `npm run build` başarıyla tamamlandı).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Aşama 14 — GitHub Actions CI/CD Altyapısı ve Deploy Yapılandırması.
+**Commit:** `feat(theme): implement premium rustic wood theme and mobile-first responsive design`
+
+---
+
+### Oturum [2026-05-31] — Frontend Animasyon Katmanı ve Dinamik Zamanlayıcı Yapılandırması (Aşama 13)
+
+**Tamamlanan Görev:** Mangala canlı oynanışında ardışık animasyon (175ms aralıklarla taş düşüşü), input-lock kilidi ve kuyu parıldama efektleri tamamlandı. Ayrıca test süreçlerini kolaylaştırmak amacıyla 15 saniyelik turn limit süresi `.env` dosyası üzerinden yapılandırılabilir hale getirildi ve deneme amaçlı 59 saniyeye ayarlandı.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/src/components/GamePage.tsx` — Animasyon state'leri, kuyu geçiş hesaplayıcısı, tıklama kilidi ve modal geciktirme mekanizması entegre edildi.
+- `frontend/src/index.css` — `@keyframes drop-pulse`, `.animate-drop` ve `.input-locked` stilleri tanımlandı.
+- `backend/src/game/game.service.ts` — `getTurnTimeLimit()` metodu eklenerek sert kodlanmış 15 saniye sınırları `GAME_TURN_TIME_LIMIT_SECS` ortam değişkenine bağlandı. Saniye/Milisaniye dondurma-çözme mantığı limit bağımsız hale getirildi.
+- `backend/src/game/game.gateway.ts` — Gateway state update yayını dinamik zamanlayıcı limitiyle güncellendi.
+- `backend/src/game/game.gateway.spec.ts` — Test ortamında gateway zamanlayıcı mock değeri 15 saniyede sabitlenerek test doğruluğu korundu.
+- `backend/.env` & `backend/.env.example` — `GAME_TURN_TIME_LIMIT_SECS` değişkeni eklendi (lokal dev için 59 saniye set edildi).
+- `backend/src/main.ts` — NestJS uygulaması ayağa kalkarken `.env` değişkenlerini `process.env` içerisine atması için `dotenv` yüklemesi eklendi.
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (Monorepo genelinde `npm run build` başarıyla tamamlandı).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Aşama 14 — GitHub Actions CI/CD Altyapısı
+**Commit:** `feat(game): make turn timer limit configurable and set to 59s for dev`
+
+---
+
+### Oturum [2026-05-31] — Oyun Kuyu Tıklama ve Reconnect Düzeltmesi (Hata Giderme)
+
+**Tamamlanan Görev:** `yourColor` ve `currentPlayerId` null'a düşme hatası, React StrictMode uyumsuzluğu ve reconnect sonrası state senkronizasyon eksikliği giderildi. Oyuncular artık kuyulara tıklayabiliyor, hamle backend'e iletilebiliyor.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/src/stores/game.store.ts` — connectGame guard'dan `.connected` kontrolü kaldırıldı; `setMatchDetails`'de Player 2 için `currentPlayerId` hatası düzeltildi; socket'in `connect` olayında `game:reconnect` otomatik gönderilecek şekilde eklendi; `game:reconnect_ack` işleyicisine `yourColor` ataması eklendi
+- `frontend/src/components/GamePage.tsx` — `useEffect` cleanup'ta `disconnectGame` çağrısı kaldırıldı (StrictMode çift tetiklemesini engeller); debug console.log'ları temizlendi
+- `shared/types/socket-events.types.ts` — `GameReconnectAckPayload`'a `yourColor: Player` alanı eklendi
+- `backend/src/game/game.gateway.ts` — `game:reconnect_ack` event payload'ına `yourColor` alanı eklendi
+- `backend/src/game/game.service.ts` — Debug console.log'ları temizlendi
+- `backend/src/game/game.gateway.spec.ts` — `yourColor: 0` beklentisi test'e eklendi
+
+**Test Sonuçları:** 74/74 test geçti
+**Derleme:** ✅ Hatasız (TSC strict + Vite build)
+**Açık Sorunlar:** —
+**Bir Sonraki Görev:** Aşama 13 — Frontend Animasyon Katmanı (taş dağılım animasyonu, input-lock)
+**Commit:** `fix(game): fix yourColor/currentPlayerId null bug, add reconnect state sync`
+
+---
+
 ### Oturum [2026-05-31] — Frontend Oyun Tahtası ve Canlı Oynanış (Aşama 12)
 
 **Tamamlanan Görev:** Kullanıcıların canlı olarak Mangala oynayabildiği, 14 kuyu/hazneli, perspektif destekli premium tahta (`GamePage.tsx`), 15 saniyelik turn timer sayacı, GameOverModal oyun sonu bitiş ekranı ve canlı chat modülü geliştirildi.

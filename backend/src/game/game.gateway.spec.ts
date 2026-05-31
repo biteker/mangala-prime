@@ -20,6 +20,7 @@ describe('GameGateway', () => {
     toggleChat: jest.fn(),
     getRoom: jest.fn(),
     getRoomForUser: jest.fn(),
+    getTurnTimeLimit: jest.fn().mockReturnValue(15),
   };
 
   const mockJwtService = {
@@ -258,6 +259,7 @@ describe('GameGateway', () => {
         turnTimeLeft: 10,
         matchId: 'match-123',
         opponentUsername: 'user2',
+        yourColor: 0,
       });
     });
   });

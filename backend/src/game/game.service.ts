@@ -34,6 +34,10 @@ export class GameService {
     private readonly eloService: EloService,
   ) {}
 
+  getTurnTimeLimit(): number {
+    return parseInt(process.env.GAME_TURN_TIME_LIMIT_SECS || '15', 10);
+  }
+
   setServer(server: Server): void {
     this.server = server;
   }
@@ -77,7 +81,7 @@ export class GameService {
         board,
         currentPlayer: 0,
         timer: null,
-        turnTimeLeft: 15,
+        turnTimeLeft: this.getTurnTimeLimit(),
         p1ChatEnabled: true,
         p2ChatEnabled: true,
       };
@@ -295,7 +299,7 @@ export class GameService {
         this.startTurnTimer(room.matchId);
       } else {
         // Oyuncu koptuysa turn timer'ı kilitli tut
-        room.turnTimeLeft = 15;
+        room.turnTimeLeft = this.getTurnTimeLimit();
       }
     }
 
@@ -412,13 +416,13 @@ export class GameService {
       clearTimeout(room.timer);
     }
 
-    room.turnTimeLeft = 15;
-    room.turnExpiresAt = Date.now() + 15000;
+    room.turnTimeLeft = this.getTurnTimeLimit();
+    room.turnExpiresAt = Date.now() + this.getTurnTimeLimit() * 1000;
 
     room.timer = setTimeout(async () => {
       const timedOutPlayerId = room.currentPlayer === 0 ? room.player1Id : room.player2Id;
       await this.handleTimeout(matchId, timedOutPlayerId);
-    }, 15000);
+    }, this.getTurnTimeLimit() * 1000);
   }
 
   private freezeTurnTimer(room: GameRoom): void {
@@ -436,7 +440,8 @@ export class GameService {
       clearTimeout(room.timer);
     }
 
-    const msLeft = Math.max(100, room.turnTimeLeft * (room.turnTimeLeft <= 15 ? 1000 : 1));
+    const limit = this.getTurnTimeLimit();
+    const msLeft = Math.max(100, room.turnTimeLeft * (room.turnTimeLeft <= limit ? 1000 : 1));
     room.turnExpiresAt = Date.now() + msLeft;
 
     room.timer = setTimeout(async () => {

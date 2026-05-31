@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useAuthStore } from '../stores/auth.store';
 
 export const apiClient = axios.create({
-  baseURL: 'http://localhost:3000',
+  baseURL: 'http://127.0.0.1:3000',
   withCredentials: true,
 });
 
@@ -64,7 +64,7 @@ apiClient.interceptors.response.use(
       try {
         // Sonsuz döngüden kaçınmak için sade axios instance'ı ile refresh çağrılır
         const response = await axios.post(
-          'http://localhost:3000/auth/refresh',
+          'http://127.0.0.1:3000/auth/refresh',
           {},
           { withCredentials: true },
         );

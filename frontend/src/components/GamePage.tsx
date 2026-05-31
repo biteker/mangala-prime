@@ -3,6 +3,37 @@ import { useGameStore } from '../stores/game.store';
 import { useAuthStore } from '../stores/auth.store';
 import { useRouter } from '../lib/router';
 
+// Saat yönünün tersine taş dağıtım rotasını hesaplar (Rakip haznesini atlar)
+function calculateAnimationSteps(startPit: number, stoneCount: number): number[] {
+  const steps: number[] = [];
+  if (stoneCount <= 0) return steps;
+
+  const movingPlayer = startPit >= 0 && startPit <= 5 ? 0 : 1;
+  const opponentTreasury = movingPlayer === 0 ? 13 : 6;
+
+  if (stoneCount === 1) {
+    let next = (startPit + 1) % 14;
+    if (next === opponentTreasury) {
+      next = (next + 1) % 14;
+    }
+    steps.push(next);
+  } else {
+    // Çoklu taş kuralında ilk taş kendi kuyusuna bırakılır
+    steps.push(startPit);
+    let current = startPit;
+    let stonesLeft = stoneCount - 1;
+    while (stonesLeft > 0) {
+      current = (current + 1) % 14;
+      if (current === opponentTreasury) {
+        continue;
+      }
+      steps.push(current);
+      stonesLeft--;
+    }
+  }
+  return steps;
+}
+
 export function GamePage(): React.JSX.Element {
   const { navigate } = useRouter();
   const currentUser = useAuthStore((state) => state.user);
@@ -31,17 +62,113 @@ export function GamePage(): React.JSX.Element {
   const [chatInput, setChatInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
+  // Animasyon için yerel state tanımları
+  const [visualBoard, setVisualBoard] = useState<number[]>(board);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [activePit, setActivePit] = useState<number | null>(null);
+  const [showGameOverModal, setShowGameOverModal] = useState(false);
+  const prevBoardRef = useRef<number[]>(board);
+
+  // Store'daki board güncellemelerini yakalayıp animasyonu tetikler
+  useEffect(() => {
+    const prevBoard = prevBoardRef.current;
+    prevBoardRef.current = board;
+
+    const prevTotal = prevBoard.reduce((a, b) => a + b, 0);
+    const nextTotal = board.reduce((a, b) => a + b, 0);
+
+    // Eşleşme başlangıcı, reconnect veya geçersiz durumlarda animasyon oynatmadan direkt eşitle
+    if (prevTotal !== nextTotal || prevTotal === 0) {
+      setVisualBoard(board);
+      return;
+    }
+
+    // Taş kaybeden kuyu başlangıç kuyusudur
+    let lastMovePit = -1;
+    for (let i = 0; i < 14; i++) {
+      if (i === 6 || i === 13) continue;
+      if (board[i] < prevBoard[i]) {
+        lastMovePit = i;
+        break;
+      }
+    }
+
+    if (lastMovePit === -1) {
+      setVisualBoard(board);
+      return;
+    }
+
+    const startStones = prevBoard[lastMovePit];
+    const steps = calculateAnimationSteps(lastMovePit, startStones);
+
+    if (steps.length === 0) {
+      setVisualBoard(board);
+      return;
+    }
+
+    setIsAnimating(true);
+    setActivePit(lastMovePit);
+
+    let currentBoard = [...prevBoard];
+    if (startStones === 1) {
+      currentBoard[lastMovePit] = 0;
+    } else {
+      currentBoard[lastMovePit] = 1;
+    }
+    setVisualBoard([...currentBoard]);
+
+    let stepIdx = 0;
+    const stepDelay = 175; // 175ms kuyu geçiş gecikmesi
+
+    const playNextStep = () => {
+      if (stepIdx >= steps.length) {
+        // Animasyon tamamlandığında sunucunun nihai durumunu tahtaya bas ve kilidi aç
+        setVisualBoard(board);
+        setIsAnimating(false);
+        setActivePit(null);
+        return;
+      }
+
+      const targetPit = steps[stepIdx];
+      currentBoard[targetPit] += 1;
+      setVisualBoard([...currentBoard]);
+      setActivePit(targetPit);
+      stepIdx++;
+
+      setTimeout(playNextStep, stepDelay);
+    };
+
+    setTimeout(playNextStep, stepDelay);
+  }, [board]);
+
+  // Oyun sonu modalını animasyon tamamlanana kadar erteleyen mekanizma
+  useEffect(() => {
+    if (gameOverDetails && !isAnimating) {
+      setShowGameOverModal(true);
+    } else if (!gameOverDetails) {
+      setShowGameOverModal(false);
+    }
+  }, [gameOverDetails, isAnimating]);
+
+
   // Otomatik sayfa yönlendirme ve bağlantı yönetimi
+  // Not: React StrictMode geliştirme modunda effect'i iki kez çalıştırır.
+  // connectGame guard'ı (socket && matchId === matchId) sayesinde çift soket oluşmaz.
+  // disconnectGame ise ancak matchId gerçekten null olduğunda lobiye döner.
   useEffect(() => {
     if (!matchId) {
       navigate('#/lobby');
       return;
     }
     connectGame(matchId);
+    // Cleanup: sadece bileşen gerçekten unmount edildiğinde çalışır.
+    // game:game_over alındığında kullanıcı "Lobiye Dön" butonuna basar,
+    // bu da disconnectGame + navigate çağırır — burada tekrar çağırmaya gerek yok.
     return () => {
-      disconnectGame();
+      // intentionally empty — disconnectGame is called by the "Lobiye Dön" button
+      // or when matchId becomes null (handled above).
     };
-  }, [matchId, connectGame, disconnectGame, navigate]);
+  }, [matchId, connectGame, navigate]);
 
   // Yeni mesaj geldiğinde sohbeti aşağı kaydır
   useEffect(() => {
@@ -93,7 +220,7 @@ export function GamePage(): React.JSX.Element {
 
   // Kuyu tıklama işleyicisi
   const handlePitClick = (pitIndex: number): void => {
-    if (!isMyTurn) return;
+    if (isAnimating || !isMyTurn) return;
 
     // Sadece kendi kuyularımıza tıklayabiliriz
     const isMyPit =
@@ -102,7 +229,7 @@ export function GamePage(): React.JSX.Element {
         : pitIndex >= 7 && pitIndex <= 12;
 
     if (!isMyPit) return;
-    if (board[pitIndex] === 0) return;
+    if (visualBoard[pitIndex] === 0) return;
 
     makeMove(pitIndex);
   };
@@ -245,12 +372,12 @@ export function GamePage(): React.JSX.Element {
 
         {/* ORTA PANEL: MANGALA TAHTASI */}
         <div className="board-panel-container">
-          <div className="mangala-board">
+          <div className={`mangala-board ${isAnimating ? 'input-locked' : ''}`}>
             {/* SOL HAZNE (Rakip Haznesi) */}
-            <div className="treasury left-treasury">
+            <div className={`treasury left-treasury ${activePit === leftTreasuryIndex ? 'animate-drop' : ''}`}>
               <span className="treasury-label">P{yourColor === 1 ? '1' : '2'}</span>
-              <span className="stone-count">{board[leftTreasuryIndex]}</span>
-              {renderStones(board[leftTreasuryIndex])}
+              <span className="stone-count">{visualBoard[leftTreasuryIndex]}</span>
+              {renderStones(visualBoard[leftTreasuryIndex])}
             </div>
 
             {/* ORTA 12 KUYU BÖLGESİ */}
@@ -258,11 +385,15 @@ export function GamePage(): React.JSX.Element {
               {/* ÜST SIRA (Rakip Kuyuları - Ters Perspektif) */}
               <div className="pits-row top-row">
                 {topPits.map((pitIdx) => {
+                  const isActive = activePit === pitIdx;
                   return (
-                    <div key={pitIdx} className="pit top-pit disabled">
+                    <div
+                      key={pitIdx}
+                      className={`pit top-pit disabled ${isActive ? 'animate-drop' : ''}`}
+                    >
                       <span className="pit-index-label">{pitIdx}</span>
-                      <span className="stone-count">{board[pitIdx]}</span>
-                      {renderStones(board[pitIdx])}
+                      <span className="stone-count">{visualBoard[pitIdx]}</span>
+                      {renderStones(visualBoard[pitIdx])}
                     </div>
                   );
                 })}
@@ -271,17 +402,20 @@ export function GamePage(): React.JSX.Element {
               {/* ALT SIRA (Kendi Kuyularımız - Tıklanabilir) */}
               <div className="pits-row bottom-row">
                 {bottomPits.map((pitIdx) => {
-                  const hasStones = board[pitIdx] > 0;
-                  const canClick = isMyTurn && hasStones;
+                  const hasStones = visualBoard[pitIdx] > 0;
+                  const canClick = isMyTurn && hasStones && !isAnimating;
+                  const isActive = activePit === pitIdx;
                   return (
                     <div
                       key={pitIdx}
-                      className={`pit bottom-pit ${canClick ? 'active' : 'disabled'}`}
+                      className={`pit bottom-pit ${canClick ? 'active' : 'disabled'} ${
+                        isActive ? 'animate-drop' : ''
+                      }`}
                       onClick={(): void => handlePitClick(pitIdx)}
                     >
                       <span className="pit-index-label">{pitIdx}</span>
-                      <span className="stone-count">{board[pitIdx]}</span>
-                      {renderStones(board[pitIdx])}
+                      <span className="stone-count">{visualBoard[pitIdx]}</span>
+                      {renderStones(visualBoard[pitIdx])}
                     </div>
                   );
                 })}
@@ -289,17 +423,17 @@ export function GamePage(): React.JSX.Element {
             </div>
 
             {/* SAĞ HAZNE (Bizim Haznemiz) */}
-            <div className="treasury right-treasury">
+            <div className={`treasury right-treasury ${activePit === rightTreasuryIndex ? 'animate-drop' : ''}`}>
               <span className="treasury-label">P{yourColor === 0 ? '1' : '2'} (Siz)</span>
-              <span className="stone-count">{board[rightTreasuryIndex]}</span>
-              {renderStones(board[rightTreasuryIndex])}
+              <span className="stone-count">{visualBoard[rightTreasuryIndex]}</span>
+              {renderStones(visualBoard[rightTreasuryIndex])}
             </div>
           </div>
         </div>
       </div>
 
       {/* OYUN SONU MODALI */}
-      {gameOverDetails && (
+      {showGameOverModal && gameOverDetails && (
         <div className="modal-backdrop">
           <div className="auth-card game-over-modal">
             <h2 className="auth-title">Oyun Bitti</h2>

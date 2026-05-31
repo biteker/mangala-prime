@@ -129,7 +129,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         this.server.to(payload.matchId).emit('game:state_update', {
           board: result.newBoard,
           nextPlayerId: result.nextPlayerId,
-          turnTimeLeft: 15,
+          turnTimeLeft: this.gameService.getTurnTimeLimit(),
         });
       }
     } catch (error) {
@@ -164,6 +164,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
       const opponentUsername = userId === room.player1Id ? room.player2Username : room.player1Username;
       const nextPlayerId = room.currentPlayer === 0 ? room.player1Id : room.player2Id;
+      const yourColor: 0 | 1 = userId === room.player1Id ? 0 : 1;
 
       client.emit('game:reconnect_ack', {
         board: room.board,
@@ -171,6 +172,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         turnTimeLeft: room.turnTimeLeft,
         matchId: room.matchId,
         opponentUsername,
+        yourColor,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Yeniden bağlanma başarısız oldu.';
