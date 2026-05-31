@@ -1149,4 +1149,41 @@ html.theme-neon .stone-dot {
   width: 100%;
 }
 
+/* Animasyon ve Giriş Kilidi Stilleri (Aşama 13) */
+@keyframes drop-pulse {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.16);
+    border-color: var(--accent-color);
+  }
+  70% {
+    transform: scale(1.16);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 15px var(--accent-color);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-drop {
+  animation: drop-pulse 0.25s ease-out;
+  z-index: 10;
+}
+
+.mangala-board.input-locked {
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+.mangala-board.input-locked .pit.bottom-pit.active {
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+  border-color: var(--border-color) !important;
+}
+
+
 
