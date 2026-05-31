@@ -34,7 +34,7 @@ Faz 1 MVP: █████████░ %90
 | Auth Sayfaları | ✅ Onaylandı ve Merge Edildi | develop | Giriş, kayıt formları, AuthGuard ve tema entegrasyonu tamamlandı. |
 | Lobi Sayfası | ✅ Onaylandı ve Merge Edildi | develop | Canlı lobi oyuncu listesi, meydan okuma modalları ve hızlı eşleşme sırası tamamlandı. |
 | Oyun Tahtası (canlı) | ✅ Onaylandı ve Merge Edildi | feature/game-page → develop | Hata düzeltmesi tamamlandı: yourColor/currentPlayerId null bug, StrictMode uyumluluğu, reconnect state sync. |
-| Animasyon Katmanı | 🔍 İnsan İncelemesinde | feature/game-page | Kuyu bazlı ardışık dağıtım animasyonu, tıklama kilidi (input-lock) ve kuyu büyüme efektleri tamamlandı. |
+| Animasyon ve Tema Katmanı | 🔍 İnsan İncelemesinde | feature/game-page | Ardışık taş dağıtım animasyonu, input-lock kilidi, premium ahşap tema ve mobil uyumluluklar tamamlandı. |
 
 ### Altyapı
 | Modül | Durum | Notlar |
@@ -64,11 +64,10 @@ Faz 1 MVP: █████████░ %90
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-05-31 — Frontend Animasyon Katmanı (Aşama 13)
+Oturum 2026-05-31 — 3. Tema (Rustik Ahşap) ve Mobil-Öncelikli İyileştirmeler (Tema & Responsive)
 
 ### Yapılanlar
-- Taşların sırayla saat yönünün tersine 175ms aralıklarla dağıtılmasını sağlayan ardışık animasyon mekanizması (`GamePage.tsx` local state ile) kodlandı.
-- Animasyon esnasında tıklamaları ve imleçleri engelleyen kilit yapısı (`isAnimating` + `.input-locked`) uygulandı.
-- Taşın düştüğü aktif kuyu ve haznelere hafif büyüme/parıldama kazandıran `@keyframes drop-pulse` ve `.animate-drop` CSS kuralları eklendi.
-- Oyun sonu modalının, animasyonlar bitene kadar açılmasını erteleyen `showGameOverModal` yapısı entegre edildi.
-- Monorepo genelinde `npm run build` ve `npm run test` başarıyla koşturulup doğrulandı.
+- Referans görsele benzer şekilde gerçekçi ceviz dokusu, tahta içine oyulmuş dairesel kuyu/hazne gölgeleri, 6 farklı renkte cam bilye taş görünümleri içeren Premium Rustik Ahşap teması oluşturuldu.
+- Temalar arası döngüsel geçişi (Ahşap -> Neon -> Rustik -> Ahşap) sağlayan logic Zustand store ve App.tsx üzerinde kuruldu.
+- Mobil cihazlar (< 768px ve < 480px) için oyun tahtası, chat paneli, lobi listeleri, lobi bekleme spinner'ları ve header alanları esnek ve responsive hale getirildi.
+- Monorepo genelinde `npm run build` ve `npm run test` başarıyla çalıştırıldı ve doğrulandı.

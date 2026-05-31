@@ -1185,5 +1185,464 @@ html.theme-neon .stone-dot {
   border-color: var(--border-color) !important;
 }
 
+/* ================================================
+   TEMA 3: RUSTİK AHŞAP (theme-rustic)
+   Referans: Gerçekçi ceviz tahta, renkli cam bilyeler,
+   koyu mavi dokulu arka plan
+   ================================================ */
 
+html.theme-rustic {
+  --bg-primary: #1a2744;
+  --bg-card: #5a3318;
+  --text-primary: #f5e6d0;
+  --text-secondary: #c9a87c;
+  --border-color: #3d2415;
+  --accent-color: #d4a055;
+  --accent-hover: #e8b96a;
+  --shadow-color: rgba(30, 15, 5, 0.5);
+  --input-bg: rgba(40, 25, 15, 0.7);
+  --alert-error-bg: rgba(180, 50, 50, 0.3);
+  --alert-error-text: #ff9a9a;
+  --alert-success-bg: rgba(50, 160, 80, 0.3);
+  --alert-success-text: #7ddd9a;
+  --sans: 'Georgia', 'Times New Roman', serif;
+  --mono: ui-monospace, Consolas, monospace;
+}
+
+/* Rustik — Arka Plan Dokusu */
+html.theme-rustic body {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(30, 50, 80, 0.4) 0%, transparent 70%),
+    radial-gradient(ellipse at 80% 50%, rgba(20, 40, 70, 0.3) 0%, transparent 70%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(255, 255, 255, 0.01) 2px,
+      rgba(255, 255, 255, 0.01) 4px
+    ),
+    #1a2744;
+}
+
+/* Rustik — Auth Kart */
+html.theme-rustic .auth-card {
+  background:
+    linear-gradient(135deg, #6b4226 0%, #5a3318 40%, #4a2810 100%);
+  border: 2px solid #3d2415;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 200, 140, 0.1);
+}
+
+/* Rustik — Header */
+html.theme-rustic .app-header {
+  background:
+    linear-gradient(180deg, #4a2810 0%, #3d2415 100%);
+  border-bottom: 2px solid #2a1508;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Rustik — Dashboard ve Sidebar Kartlar */
+html.theme-rustic .dashboard-card,
+html.theme-rustic .sidebar-card,
+html.theme-rustic .info-card {
+  background:
+    linear-gradient(145deg, #5a3318 0%, #4a2810 100%);
+  border: 2px solid #3d2415;
+  box-shadow:
+    0 6px 24px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 200, 140, 0.08);
+}
+
+/* Rustik — Chat Paneli */
+html.theme-rustic .chat-panel-container {
+  background:
+    linear-gradient(180deg, #4a2810 0%, #3d2010 100%);
+  border: 2px solid #2a1508;
+}
+
+/* Rustik — Board Panel */
+html.theme-rustic .board-panel-container {
+  background:
+    radial-gradient(ellipse at center, rgba(30, 50, 80, 0.3) 0%, transparent 70%),
+    #1a2744;
+  border: none;
+  box-shadow: none;
+  padding: 16px;
+}
+
+/* Rustik — Mangala Tahta (Gerçekçi Ahşap Doku) */
+html.theme-rustic .mangala-board {
+  background:
+    linear-gradient(160deg,
+      #7a4a2a 0%,
+      #6b3e20 15%,
+      #7a4a2a 30%,
+      #5e3318 45%,
+      #6b3e20 55%,
+      #7a4a2a 70%,
+      #5e3318 85%,
+      #6b3e20 100%
+    );
+  border: 6px solid #3d2415;
+  border-radius: 24px;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.6),
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    inset 0 2px 4px rgba(255, 200, 140, 0.15),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  position: relative;
+}
+
+/* Rustik — Mangala yazısı efekti */
+html.theme-rustic .mangala-board::after {
+  content: 'Mangala';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Georgia', serif;
+  font-size: 28px;
+  font-weight: bold;
+  color: rgba(100, 60, 30, 0.25);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Rustik — Kuyular (Oyulmuş Efekti) */
+html.theme-rustic .pit {
+  background:
+    radial-gradient(ellipse at center, #2a1508 0%, #1e0f04 60%, #150a02 100%);
+  border: 2px solid #1a0d03;
+  box-shadow:
+    inset 0 4px 12px rgba(0, 0, 0, 0.7),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(255, 200, 140, 0.1);
+  z-index: 1;
+}
+
+html.theme-rustic .pit .stone-count {
+  background: rgba(60, 35, 15, 0.9);
+  border: 1px solid #2a1508;
+  color: #f5e6d0;
+}
+
+/* Rustik — Tıklanabilir Kuyular Hover */
+html.theme-rustic .pit.bottom-pit.active:hover {
+  border-color: #d4a055;
+  box-shadow:
+    inset 0 4px 12px rgba(0, 0, 0, 0.7),
+    0 0 16px rgba(212, 160, 85, 0.4),
+    0 0 8px rgba(212, 160, 85, 0.2);
+}
+
+/* Rustik — Hazneler (Uzun Oval Oyulmuş) */
+html.theme-rustic .treasury {
+  background:
+    radial-gradient(ellipse at center, #2a1508 0%, #1e0f04 60%, #150a02 100%);
+  border: 2px solid #1a0d03;
+  box-shadow:
+    inset 0 6px 16px rgba(0, 0, 0, 0.7),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(255, 200, 140, 0.1);
+}
+
+html.theme-rustic .treasury .stone-count {
+  color: #f5e6d0;
+}
+
+/* Rustik — Renkli Cam Bilye Taşlar */
+html.theme-rustic .stone-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  box-shadow:
+    inset -1px -1px 2px rgba(0, 0, 0, 0.3),
+    inset 2px 2px 3px rgba(255, 255, 255, 0.4),
+    0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+html.theme-rustic .stone-dot:nth-child(6n+1) {
+  background: radial-gradient(circle at 35% 35%, #ff7777 0%, #cc2222 70%, #991111 100%);
+}
+html.theme-rustic .stone-dot:nth-child(6n+2) {
+  background: radial-gradient(circle at 35% 35%, #77aaff 0%, #2266cc 70%, #114499 100%);
+}
+html.theme-rustic .stone-dot:nth-child(6n+3) {
+  background: radial-gradient(circle at 35% 35%, #77dd77 0%, #22aa44 70%, #117733 100%);
+}
+html.theme-rustic .stone-dot:nth-child(6n+4) {
+  background: radial-gradient(circle at 35% 35%, #ffdd55 0%, #ccaa22 70%, #997711 100%);
+}
+html.theme-rustic .stone-dot:nth-child(6n+5) {
+  background: radial-gradient(circle at 35% 35%, #ff99cc 0%, #dd4488 70%, #aa2266 100%);
+}
+html.theme-rustic .stone-dot:nth-child(6n+6) {
+  background: radial-gradient(circle at 35% 35%, #bb88ff 0%, #7744cc 70%, #552299 100%);
+}
+
+/* Rustik — Oyuncu Badge */
+html.theme-rustic .player-role-indicator {
+  color: #d4a055;
+}
+
+/* Rustik — Timer Tehlike */
+html.theme-rustic .timer-seconds.danger {
+  color: #ff6b4a;
+  text-shadow: 0 0 8px rgba(255, 107, 74, 0.5);
+}
+
+/* Rustik — Oyun Sonu Modal */
+html.theme-rustic .game-over-modal {
+  background:
+    linear-gradient(145deg, #5a3318 0%, #4a2810 100%);
+  border: 3px solid #3d2415;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
+}
+
+/* Rustik — Modal Backdrop */
+html.theme-rustic .modal-backdrop {
+  background: rgba(10, 15, 30, 0.7);
+}
+
+/* Rustik — Animasyonlar */
+html.theme-rustic .animate-drop {
+  box-shadow:
+    inset 0 4px 12px rgba(0, 0, 0, 0.7),
+    0 0 20px rgba(212, 160, 85, 0.5) !important;
+}
+
+/* Rustik — Butonlar */
+html.theme-rustic .auth-button {
+  background: linear-gradient(180deg, #d4a055 0%, #b8843d 100%);
+  color: #2a1508;
+  font-weight: 700;
+  border: 1px solid #a07030;
+}
+
+html.theme-rustic .auth-button:hover:not(:disabled) {
+  background: linear-gradient(180deg, #e8b96a 0%, #d4a055 100%);
+}
+
+/* Rustik — Form Inputs */
+html.theme-rustic .form-input {
+  background: rgba(30, 18, 8, 0.8);
+  border: 1px solid #4a2810;
+  color: #f5e6d0;
+}
+
+html.theme-rustic .form-input:focus {
+  border-color: #d4a055;
+  box-shadow: 0 0 0 3px rgba(212, 160, 85, 0.2);
+}
+
+/* Rustik — Online Listesi */
+html.theme-rustic .online-user-item {
+  background: rgba(40, 25, 15, 0.6);
+  border: 1px solid #3d2415;
+}
+
+/* Rustik — Preset Mesaj Butonları */
+html.theme-rustic .preset-msg-btn {
+  background: rgba(40, 25, 15, 0.6);
+  border: 1px solid #4a2810;
+  color: #c9a87c;
+}
+
+html.theme-rustic .preset-msg-btn:hover:not(:disabled) {
+  border-color: #d4a055;
+  color: #f5e6d0;
+}
+
+/* Rustik — Sıra Bekleme Spinner */
+html.theme-rustic .queue-spinner-ring {
+  border-color: #3d2415;
+}
+
+html.theme-rustic .ring-pulse {
+  border-color: #d4a055;
+  border-top-color: transparent;
+}
+
+/* ================================================
+   MOBİL-ÖNCELİKLİ DÜZENLEMELERİ
+   ================================================ */
+
+@media (max-width: 768px) {
+  /* Header mobilde stack */
+  .game-header-panel {
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+
+  .player-badge {
+    width: 100%;
+    text-align: center;
+  }
+
+  .player-badge.opponent {
+    text-align: center;
+  }
+
+  .player-username {
+    font-size: 15px;
+  }
+
+  .player-elo-info {
+    font-size: 12px;
+  }
+
+  .timer-panel {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .timer-seconds {
+    font-size: 22px;
+  }
+
+  /* Oyun İçerik: tek sütun, tahta üstte chat altta */
+  .game-content-container {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+
+  /* Mobilde chat paneli tahtanın altına */
+  .chat-panel-container {
+    order: 2;
+    height: 280px;
+  }
+
+  .board-panel-container {
+    order: 1;
+    padding: 12px;
+  }
+
+  /* Tahta küçültme */
+  .mangala-board {
+    grid-template-columns: 70px 1fr 70px;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .pit {
+    width: 52px;
+    height: 52px;
+  }
+
+  .pit .stone-count {
+    font-size: 12px;
+    padding: 0 4px;
+    transform: translateY(-6px);
+  }
+
+  .pit-index-label {
+    font-size: 8px;
+  }
+
+  .pits-row {
+    gap: 6px;
+  }
+
+  .pits-grid {
+    gap: 24px;
+  }
+
+  /* Hazneler */
+  .treasury {
+    min-height: 180px;
+    padding: 10px 6px;
+    border-radius: 30px;
+  }
+
+  .treasury .stone-count {
+    font-size: 16px;
+  }
+
+  .treasury-label {
+    font-size: 9px;
+  }
+
+  /* Stone dots mobilde küçük */
+  .stone-dots-container {
+    width: 36px;
+    height: 24px;
+    bottom: 4px;
+  }
+
+  .stone-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .stone-more-text {
+    font-size: 8px;
+  }
+
+  /* Lobi düzeni */
+  .lobby-layout {
+    padding: 12px;
+    gap: 16px;
+  }
+
+  /* Auth düzeni */
+  .auth-container {
+    padding: 20px 12px;
+  }
+
+  .auth-card {
+    padding: 24px;
+  }
+
+  /* App Header mobil */
+  .app-header {
+    padding: 10px 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .brand {
+    font-size: 18px;
+  }
+
+  .theme-toggle-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mangala-board {
+    grid-template-columns: 56px 1fr 56px;
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .pit {
+    width: 44px;
+    height: 44px;
+  }
+
+  .pit .stone-count {
+    font-size: 11px;
+    transform: translateY(-5px);
+  }
+
+  .pits-row {
+    gap: 4px;
+  }
+
+  .treasury {
+    min-height: 140px;
+    border-radius: 24px;
+  }
+
+  .chat-panel-container {
+    height: 240px;
+  }
+}
 

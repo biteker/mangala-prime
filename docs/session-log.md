@@ -25,6 +25,23 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-05-31] — 3. Tema (Rustik Ahşap) ve Mobil-Öncelikli İyileştirmeler (Tema & Responsive)
+
+**Tamamlanan Görev:** Referans tasarıma benzer şekilde koyu meşe/ceviz tonlarında gerçekçi ahşap tahta dokusu, tahta içine oyulmuş oval kuyu/hazne görünümleri ve cam bilye parlaklığına sahip 6 renkli taşlar ile Premium Rustik Ahşap teması oluşturuldu. 3 tema arasında (Ahşap, Neon, Rustik) döngüsel geçiş sağlayan durum mekanizması eklendi. Mobil cihazlar (< 768px ve < 480px) için oyun tahtası, chat ve lobi tasarımları uyumlu hale getirildi.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/src/stores/theme.store.ts` — `ThemeType` tipine ve classList.remove listesine `'theme-rustic'` eklenerek tema durum yönetim altyapısı genişletildi.
+- `frontend/src/App.tsx` — 3'lü döngüsel tema geçiş fonksiyonu (`handleThemeToggle`) ve tema etiket gösterimi eklendi.
+- `frontend/src/index.css` — Rustik Ahşap teması için özel CSS değişkenleri, ahşap tahta dokusu, kuyu/hazne oyuk efektleri, radial gradient cam bilye taş stilleri, "Mangala" yazısı efekti ve mobil duyarlılık kuralları (media query) eklendi.
+
+**Test Sonuçları:** 74/74 test başarıyla geçti.
+**Derleme:** ✅ Hatasız (Monorepo genelinde `npm run build` başarıyla tamamlandı).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Aşama 14 — GitHub Actions CI/CD Altyapısı ve Deploy Yapılandırması.
+**Commit:** `feat(theme): implement premium rustic wood theme and mobile-first responsive design`
+
+---
+
 ### Oturum [2026-05-31] — Frontend Animasyon Katmanı ve Dinamik Zamanlayıcı Yapılandırması (Aşama 13)
 
 **Tamamlanan Görev:** Mangala canlı oynanışında ardışık animasyon (175ms aralıklarla taş düşüşü), input-lock kilidi ve kuyu parıldama efektleri tamamlandı. Ayrıca test süreçlerini kolaylaştırmak amacıyla 15 saniyelik turn limit süresi `.env` dosyası üzerinden yapılandırılabilir hale getirildi ve deneme amaçlı 59 saniyeye ayarlandı.
