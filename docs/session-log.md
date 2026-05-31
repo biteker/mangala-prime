@@ -25,6 +25,22 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-05-31] — Frontend Animasyon Katmanı (Aşama 13)
+
+**Tamamlanan Görev:** Mangala oyununun canlı oynanışı sırasında taşların sırayla saat yönünün tersine 175ms aralıklarla kuyulara dağıtılması (ardışık animasyon) ve bu esnada tahtanın tıklamalara kilitlenmesi (input-lock) sağlandı. Taşın düştüğü kuyu ve haznelere hafifçe büyüme ve parıldama (micro-animations) efektleri kazandırıldı. Oyun bittiğinde "Oyun Bitti" modalının açılışı animasyon tamamlanana kadar ertelendi.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/src/components/GamePage.tsx` — `visualBoard`, `isAnimating` ve `activePit` yerel state'leri ile animasyon sürecinin yönetimi eklendi; `calculateAnimationSteps` rota dağıtım algoritması entegre edildi; `handlePitClick` tıklama kilidi uygulandı; kuyu render'ları `visualBoard` ve aktif kuyu sınıfları ile güncellendi; `showGameOverModal` geciktirme mekanizması eklendi.
+- `frontend/src/index.css` — Kuyular ve hazneler için `@keyframes drop-pulse` ve `.animate-drop` animasyon sınıfları eklendi; animasyon esnasında tahtayı ve kuyuları tıklanamaz hale getiren `.input-locked` stilleri tanımlandı.
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (Monorepo genelinde `npm run build` tsc + vite build başarıyla tamamlandı).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Aşama 14 — GitHub Actions CI/CD Altyapısı
+**Commit:** `feat(frontend): implement game move animation layer and input lock`
+
+---
+
 ### Oturum [2026-05-31] — Oyun Kuyu Tıklama ve Reconnect Düzeltmesi (Hata Giderme)
 
 **Tamamlanan Görev:** `yourColor` ve `currentPlayerId` null'a düşme hatası, React StrictMode uyumsuzluğu ve reconnect sonrası state senkronizasyon eksikliği giderildi. Oyuncular artık kuyulara tıklayabiliyor, hamle backend'e iletilebiliyor.

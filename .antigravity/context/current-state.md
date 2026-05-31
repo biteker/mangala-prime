@@ -34,7 +34,7 @@ Faz 1 MVP: █████████░ %90
 | Auth Sayfaları | ✅ Onaylandı ve Merge Edildi | develop | Giriş, kayıt formları, AuthGuard ve tema entegrasyonu tamamlandı. |
 | Lobi Sayfası | ✅ Onaylandı ve Merge Edildi | develop | Canlı lobi oyuncu listesi, meydan okuma modalları ve hızlı eşleşme sırası tamamlandı. |
 | Oyun Tahtası (canlı) | ✅ Onaylandı ve Merge Edildi | feature/game-page → develop | Hata düzeltmesi tamamlandı: yourColor/currentPlayerId null bug, StrictMode uyumluluğu, reconnect state sync. |
-| Animasyon Katmanı | ⬜ Başlanmadı | — | — |
+| Animasyon Katmanı | 🔍 İnsan İncelemesinde | feature/game-page | Kuyu bazlı ardışık dağıtım animasyonu, tıklama kilidi (input-lock) ve kuyu büyüme efektleri tamamlandı. |
 
 ### Altyapı
 | Modül | Durum | Notlar |
@@ -64,13 +64,11 @@ Faz 1 MVP: █████████░ %90
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-05-31 — Oyun Kuyu Tıklama ve Reconnect Düzeltmesi (Hata Giderme)
+Oturum 2026-05-31 — Frontend Animasyon Katmanı (Aşama 13)
 
 ### Yapılanlar
-- `yourColor` ve `currentPlayerId`'nin null'a düşmesine yol açan React StrictMode uyumsuzluğu giderildi.
-- `connectGame` guard'dan `.connected` kontrolü kaldırıldı; aynı matchId için socket varsa yeni socket oluşturulmuyor.
-- Player 2 için `setMatchDetails`'de yanlış `'opponent'` stringi yerine `null` atanıyor (sunucunun ilk `state_update`'i doğru değeri gönderecek).
-- Socket `connect` olayında otomatik `game:reconnect` gönderilerek server'dan tam state (board + yourColor) çekiliyor.
-- `GameReconnectAckPayload`'a `yourColor` alanı eklendi; backend `game:reconnect_ack` emit'i güncellendi.
-- `GamePage.useEffect` cleanup'tan `disconnectGame` çağrısı kaldırıldı — artık yalnızca kullanıcı "Lobiye Dön" butonuna bastığında çağrılıyor.
-- Tüm DEBUG console.log satırları temizlendi.
+- Taşların sırayla saat yönünün tersine 175ms aralıklarla dağıtılmasını sağlayan ardışık animasyon mekanizması (`GamePage.tsx` local state ile) kodlandı.
+- Animasyon esnasında tıklamaları ve imleçleri engelleyen kilit yapısı (`isAnimating` + `.input-locked`) uygulandı.
+- Taşın düştüğü aktif kuyu ve haznelere hafif büyüme/parıldama kazandıran `@keyframes drop-pulse` ve `.animate-drop` CSS kuralları eklendi.
+- Oyun sonu modalının, animasyonlar bitene kadar açılmasını erteleyen `showGameOverModal` yapısı entegre edildi.
+- Monorepo genelinde `npm run build` ve `npm run test` başarıyla koşturulup doğrulandı.
