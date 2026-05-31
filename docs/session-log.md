@@ -25,19 +25,23 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
-### Oturum [2026-05-31] — Frontend Animasyon Katmanı (Aşama 13)
+### Oturum [2026-05-31] — Frontend Animasyon Katmanı ve Dinamik Zamanlayıcı Yapılandırması (Aşama 13)
 
-**Tamamlanan Görev:** Mangala oyununun canlı oynanışı sırasında taşların sırayla saat yönünün tersine 175ms aralıklarla kuyulara dağıtılması (ardışık animasyon) ve bu esnada tahtanın tıklamalara kilitlenmesi (input-lock) sağlandı. Taşın düştüğü kuyu ve haznelere hafifçe büyüme ve parıldama (micro-animations) efektleri kazandırıldı. Oyun bittiğinde "Oyun Bitti" modalının açılışı animasyon tamamlanana kadar ertelendi.
+**Tamamlanan Görev:** Mangala canlı oynanışında ardışık animasyon (175ms aralıklarla taş düşüşü), input-lock kilidi ve kuyu parıldama efektleri tamamlandı. Ayrıca test süreçlerini kolaylaştırmak amacıyla 15 saniyelik turn limit süresi `.env` dosyası üzerinden yapılandırılabilir hale getirildi ve deneme amaçlı 59 saniyeye ayarlandı.
 
 **Oluşturulan/Değiştirilen Dosyalar:**
-- `frontend/src/components/GamePage.tsx` — `visualBoard`, `isAnimating` ve `activePit` yerel state'leri ile animasyon sürecinin yönetimi eklendi; `calculateAnimationSteps` rota dağıtım algoritması entegre edildi; `handlePitClick` tıklama kilidi uygulandı; kuyu render'ları `visualBoard` ve aktif kuyu sınıfları ile güncellendi; `showGameOverModal` geciktirme mekanizması eklendi.
-- `frontend/src/index.css` — Kuyular ve hazneler için `@keyframes drop-pulse` ve `.animate-drop` animasyon sınıfları eklendi; animasyon esnasında tahtayı ve kuyuları tıklanamaz hale getiren `.input-locked` stilleri tanımlandı.
+- `frontend/src/components/GamePage.tsx` — Animasyon state'leri, kuyu geçiş hesaplayıcısı, tıklama kilidi ve modal geciktirme mekanizması entegre edildi.
+- `frontend/src/index.css` — `@keyframes drop-pulse`, `.animate-drop` ve `.input-locked` stilleri tanımlandı.
+- `backend/src/game/game.service.ts` — `getTurnTimeLimit()` metodu eklenerek sert kodlanmış 15 saniye sınırları `GAME_TURN_TIME_LIMIT_SECS` ortam değişkenine bağlandı. Saniye/Milisaniye dondurma-çözme mantığı limit bağımsız hale getirildi.
+- `backend/src/game/game.gateway.ts` — Gateway state update yayını dinamik zamanlayıcı limitiyle güncellendi.
+- `backend/src/game/game.gateway.spec.ts` — Test ortamında gateway zamanlayıcı mock değeri 15 saniyede sabitlenerek test doğruluğu korundu.
+- `backend/.env` & `backend/.env.example` — `GAME_TURN_TIME_LIMIT_SECS` değişkeni eklendi (lokal dev için 59 saniye set edildi).
 
 **Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
-**Derleme:** ✅ Hatasız (Monorepo genelinde `npm run build` tsc + vite build başarıyla tamamlandı).
+**Derleme:** ✅ Hatasız (Monorepo genelinde `npm run build` başarıyla tamamlandı).
 **Açık Sorunlar:** Yok.
 **Bir Sonraki Görev:** Aşama 14 — GitHub Actions CI/CD Altyapısı
-**Commit:** `feat(frontend): implement game move animation layer and input lock`
+**Commit:** `feat(game): make turn timer limit configurable and set to 59s for dev`
 
 ---
 

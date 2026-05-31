@@ -20,6 +20,7 @@ describe('GameGateway', () => {
     toggleChat: jest.fn(),
     getRoom: jest.fn(),
     getRoomForUser: jest.fn(),
+    getTurnTimeLimit: jest.fn().mockReturnValue(15),
   };
 
   const mockJwtService = {

@@ -129,7 +129,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         this.server.to(payload.matchId).emit('game:state_update', {
           board: result.newBoard,
           nextPlayerId: result.nextPlayerId,
-          turnTimeLeft: 15,
+          turnTimeLeft: this.gameService.getTurnTimeLimit(),
         });
       }
     } catch (error) {
