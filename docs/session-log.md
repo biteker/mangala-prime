@@ -36,6 +36,7 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 - `backend/src/game/game.gateway.ts` — Gateway state update yayını dinamik zamanlayıcı limitiyle güncellendi.
 - `backend/src/game/game.gateway.spec.ts` — Test ortamında gateway zamanlayıcı mock değeri 15 saniyede sabitlenerek test doğruluğu korundu.
 - `backend/.env` & `backend/.env.example` — `GAME_TURN_TIME_LIMIT_SECS` değişkeni eklendi (lokal dev için 59 saniye set edildi).
+- `backend/src/main.ts` — NestJS uygulaması ayağa kalkarken `.env` değişkenlerini `process.env` içerisine atması için `dotenv` yüklemesi eklendi.
 
 **Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
 **Derleme:** ✅ Hatasız (Monorepo genelinde `npm run build` başarıyla tamamlandı).
