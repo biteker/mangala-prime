@@ -47,8 +47,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: actions/差別/setup-buildx-action@v3
-        # setup-buildx-action hata almaması için standart topluluk eylemini kullanalım
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to GitHub Container Registry
