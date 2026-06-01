@@ -25,6 +25,26 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-06-01] — Docker Altyapısı ve GitHub Actions CI/CD (Aşama 14/14)
+
+**Tamamlanan Görev:** Proje, portfolyo sunucusu hedeflerine uyum sağlamak üzere izole Docker yapısına geçirildi. Frontend kodları backend içine statik olarak gömülerek tek porttan (3000) yönlendirme karmaşası olmadan çalışması sağlandı. `mangala-prime.egitimhaber.gen.tr` alt alan adına yönelik GitHub Actions CI/CD entegrasyonu tamamlandı. Hetzner sunucusu kurulum scripti ve docker-compose yapıları hazırlandı.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `Dockerfile` [YENİ] — Shared paketi, frontend ve backend'i derleyip paketleyen çok aşamalı Docker dosyası.
+- `docker-compose.yml` [YENİ] — SQLite veritabanı kalıcılığı sağlayan, harici docker ağı (`web-network`) ile çakışmaları önleyen docker-compose yapılandırması.
+- `.github/workflows/ci-cd.yml` [YENİ] — testleri çalıştıran, imajı GHCR'a atan ve sunucuya SSH deploy tetikleyen GitHub Actions workflow'u.
+- `scratch/setup-server.sh` [YENİ] — Hetzner sunucusunda Docker ve Nginx Proxy Manager'ı kuran otomatik bash betiği.
+- `backend/src/app.module.ts` — Derlenmiş statik frontend dosyalarını sunmak üzere ServeStaticModule entegrasyonu yapıldı.
+- `frontend/src/lib/api-client.ts`, `lobby.store.ts`, `game.store.ts` — API ve WebSocket bağlantıları sunucu ve yerel ortamlarda dinamik olarak çalışacak şekilde (`window.location.origin`) uyarlandı.
+
+**Test Sonuçları:** 74/74 test başarıyla geçti.
+**Derleme:** ✅ Hatasız (Monorepo genelinde `npm run build` başarıyla tamamlandı).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Proje tamamlandı. Sunucu kurulumu ve domain canlıya alma işlemlerinin doğrulanması.
+**Commit:** `feat(deploy): implement docker infrastructure and github actions ci-cd pipeline`
+
+---
+
 ### Oturum [2026-05-31] — 3. Tema (Rustik Ahşap) ve Mobil-Öncelikli İyileştirmeler (Tema & Responsive)
 
 **Tamamlanan Görev:** Referans tasarıma benzer şekilde koyu meşe/ceviz tonlarında gerçekçi ahşap tahta dokusu, tahta içine oyulmuş oval kuyu/hazne görünümleri ve cam bilye parlaklığına sahip 6 renkli taşlar ile Premium Rustik Ahşap teması oluşturuldu. 3 tema arasında (Ahşap, Neon, Rustik) döngüsel geçiş sağlayan durum mekanizması eklendi. Mobil cihazlar (< 768px ve < 480px) için oyun tahtası, chat ve lobi tasarımları uyumlu hale getirildi.

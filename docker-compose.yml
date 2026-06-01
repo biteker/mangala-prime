@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  mangala-app:
+    image: ghcr.io/biteker/mangala-prime:latest
+    container_name: mangala-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      # SQLite veritabanı dosyasının sunucuda kalıcı olmasını sağlar
+      - ./prisma:/app/prisma
+    networks:
+      - web-network
+
+networks:
+  web-network:
+    external: true

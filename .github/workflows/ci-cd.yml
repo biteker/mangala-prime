@@ -1,0 +1,118 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ develop, main ]
+  pull_request:
+    branches: [ develop, main ]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  test-and-build:
+    name: Test and Build Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run Tests
+        run: npm run test
+
+      - name: Verify Build
+        run: npm run build
+
+  deploy:
+    name: Build Docker & Deploy to VPS
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    # Sadece push (merge dahil) işlemlerinde ve develop veya main branşına yapıldığında çalıştır
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: actions/差別/setup-buildx-action@v3
+        # setup-buildx-action hata almaması için standart topluluk eylemini kullanalım
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Downcase Repo Name
+        run: |
+          echo "REPO_NAME=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ env.REPO_NAME }}:latest
+            ghcr.io/${{ env.REPO_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to Hetzner VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Uygulama dizinine git
+            mkdir -p /var/www/mangala-prime
+            cd /var/www/mangala-prime
+
+            # docker-compose.yml dosyasını oluştur veya güncelle (GitHub'dan çekmek yerine direkt buraya yazabiliriz)
+            cat << 'EOF' > docker-compose.yml
+            version: '3.8'
+            services:
+              mangala-app:
+                image: ghcr.io/${{ env.REPO_NAME }}:latest
+                container_name: mangala-backend
+                restart: unless-stopped
+                env_file:
+                  - .env
+                volumes:
+                  - ./prisma:/app/prisma
+                networks:
+                  - web-network
+
+            networks:
+              web-network:
+                external: true
+            EOF
+
+            # GitHub Container Registry'ye giriş yap (imajı çekebilmek için)
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # En güncel imajı çek ve konteyneri güncelle
+            docker compose pull
+            docker compose up -d
+
+            # Veritabanı şema güncellemelerini konteyner içinde koştur
+            docker exec mangala-backend npx prisma db push --accept-data-loss-and-force-postinstall
+            
+            # Docker atık temizliği yap (kullanılmayan eski imajları siler)
+            docker image prune -f
