@@ -39,8 +39,8 @@ Faz 1 MVP: █████████░ %90
 ### Altyapı
 | Modül | Durum | Notlar |
 |-------|-------|--------|
-| GitHub Actions CI/CD | ⬜ Başlanmadı | — |
-| Hetzner Deploy | ⬜ Başlanmadı | — |
+| GitHub Actions CI/CD | 🔍 İnsan İncelemesinde | GitHub Actions test, build, docker build ve SSH VPS deploy workflow'u yazıldı. |
+| Hetzner Deploy | 🔍 İnsan İncelemesinde | Docker, Compose ve Nginx Proxy Manager kurulum scripti ile compose konfigürasyonu tamamlandı. |
 
 ---
 

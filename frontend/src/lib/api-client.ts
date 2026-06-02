@@ -1,8 +1,18 @@
 import axios from 'axios';
 import { useAuthStore } from '../stores/auth.store';
 
+const getApiBaseUrl = (): string => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return window.location.origin;
+    }
+  }
+  return 'http://127.0.0.1:3000';
+};
+
 export const apiClient = axios.create({
-  baseURL: 'http://127.0.0.1:3000',
+  baseURL: getApiBaseUrl(),
   withCredentials: true,
 });
 
@@ -64,7 +74,7 @@ apiClient.interceptors.response.use(
       try {
         // Sonsuz döngüden kaçınmak için sade axios instance'ı ile refresh çağrılır
         const response = await axios.post(
-          'http://127.0.0.1:3000/auth/refresh',
+          `${getApiBaseUrl()}/auth/refresh`,
           {},
           { withCredentials: true },
         );
