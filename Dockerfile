@@ -44,7 +44,7 @@ RUN npx prisma generate
 RUN npm run build -w backend
 
 # Sadece üretim bağımlılıklarını tutmak için temizlik yapacağız
-RUN rm -rf node_modules && npm ci --omit=dev
+RUN rm -rf node_modules && npm ci --omit=dev && npx prisma generate
 
 # ==============================================================================
 # STAGE 5: Production Runner
