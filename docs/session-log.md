@@ -25,6 +25,23 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-06-03] — Prisma Docker Dağıtım Düzeltmeleri (CI/CD Düzeltmesi)
+
+**Tamamlanan Görev:** Docker container ortamında `npx prisma db push` çalıştırılırken `prisma.config.ts` dosyasının bulunamaması ve `DATABASE_URL` okuma hatası giderildi. Konfigürasyon dosyaları konteynere kopyalandı ve deployment başarıyla tamamlanarak veritabanı şeması VPS üzerinde senkronize edildi.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [Dockerfile](file:///home/biteker/Documents/mangala-prime/Dockerfile) [MODIFY] — `prisma.config.ts` dosyası build-backend ve runner aşamalarında `/app` çalışma dizinine kopyalanacak şekilde güncellendi.
+- [prisma.config.ts](file:///home/biteker/Documents/mangala-prime/prisma.config.ts) [MODIFY] — `DATABASE_URL` çevre değişkeni fallbacks ve env desteği ile uyumlu hale getirildi.
+
+**Test Sonuçları:** 74/74 test başarıyla geçti.
+**Derleme:** ✅ Hatasız (Monorepo genelinde `npm run build` başarıyla tamamlandı).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Uygulamanın VPS üzerinde son kabul testleri ve kullanıcı kayıt işlemlerinin doğrulanması.
+**Commit:** `fix(deploy): copy prisma.config.ts in Dockerfile to enable database schema push`
+**PR:** #15
+
+---
+
 ### Oturum [2026-06-01] — Docker Altyapısı ve GitHub Actions CI/CD (Aşama 14/14)
 
 **Tamamlanan Görev:** Proje, portfolyo sunucusu hedeflerine uyum sağlamak üzere izole Docker yapısına geçirildi. Frontend kodları backend içine statik olarak gömülerek tek porttan (3000) yönlendirme karmaşası olmadan çalışması sağlandı. `mangala-prime.egitimhaber.gen.tr` alt alan adına yönelik GitHub Actions CI/CD entegrasyonu tamamlandı. Hetzner sunucusu kurulum scripti ve docker-compose yapıları hazırlandı.

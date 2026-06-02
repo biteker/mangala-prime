@@ -2,17 +2,18 @@
 
 ---
 
-## Görev: GitHub Actions CI/CD Altyapısı ve Deploy Yapılandırması (Aşama 14/14)
+## Görev: Canlı Ortam Kabul Testleri ve Projenin Teslim Edilmesi (Final UAT)
 
 ### Ne Yapılacak?
-Projenin GitHub Actions pipeline entegrasyonunu ve Hetzner bulut sunucusuna deploy yapılandırmasını gerçekleştir. Pipeline; Node.js ortamını kurmalı, bağımlılıkları yüklemeli, monorepo TSC ve Vite derlemesini doğrulamalı, unit testleri (`npm run test`) koşturmalı ve başarılı olan testlerin ardından SSH + rsync aracılığıyla Hetzner sunucusuna dağıtımı (deploy) sağlamalı, Prisma veritabanı şema güncellemelerini (`npx prisma db push`) yapmalı ve PM2 servisini sıfır kesintiyle (zero-downtime) yeniden başlatmalıdır.
+Tüm deploy işlemlerinin tamamlanması ve veritabanı şema senkronizasyonunun ardından uygulamanın canlı sunucu ortamında (`mangala-prime.egitimhaber.gen.tr`) uçtan uca kabul testlerini gerçekleştir.
+1. Canlı web arayüzüne tarayıcıdan girip kullanıcı kaydı oluşturmayı dene (Sorunsuz çalışması gerekmektedir).
+2. Lobi gateway ve websocket bağlantılarının stabil olduğunu doğrula.
+3. Hızlı eşleşme ve canlı oynanış mekaniklerinin çalıştığını test et.
 
 ### Oluşturulacak/Değiştirilecek Dosyalar
-
-- `.github/workflows/ci-cd.yml` [NEW] — GitHub Actions workflow yaml dosyası (Build, Test ve Deploy adımları).
-- `backend/ecosystem.config.js` veya `ecosystem.config.js` [NEW] — Zero-downtime PM2 başlatma/restart ayarlarını barındıran konfigürasyon dosyası.
+- Yok (Sadece canlı sistem doğrulama ve manuel testler yapılacak).
 
 ### Kabul Kriterleri
-- [ ] GitHub workflow; PR açıldığında veya develop'a push yapıldığında tetiklenerek monorepo genelinde `npm ci`, `npm run build` ve `npm run test` adımlarını hatasız tamamlıyor.
-- [ ] Dağıtım adımı (deploy); başarılı testlerin ardından SSH anahtarları ve sırları (secrets) kullanarak Hetzner sunucusuna kodları aktarıyor ve Prisma migration'larını koşturuyor.
-- [ ] PM2 zero-downtime restart adımları başarıyla yapılandırıldı.
+- [ ] Yeni kullanıcı kayıt adımı `201 Created` veya `200 OK` dönüyor, DB'ye kullanıcı kaydı ekleniyor.
+- [ ] Lobiye sorunsuz bağlanılıyor, WebSocket hata fırlatmıyor.
+- [ ] Maç eşleşmesi ve karşılıklı hamle iletimi canlı ortamda çalışıyor.
