@@ -24,31 +24,21 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user) => set({ user }),
 
       login: async (username, password) => {
-        const response = await axios.post(
-          'http://127.0.0.1:3000/auth/login',
-          { username, password },
-          { withCredentials: true },
-        );
-        const data = response.data.data || response.data;
+        const { apiClient } = await import('../lib/api-client');
+        const data = await apiClient.post('/auth/login', { username, password });
         set({ accessToken: data.accessToken });
         await get().fetchMe();
       },
 
       register: async (username, password) => {
-        const response = await axios.post(
-          'http://127.0.0.1:3000/auth/register',
-          { username, password },
-        );
-        return response.data.data || response.data;
+        const { apiClient } = await import('../lib/api-client');
+        return apiClient.post('/auth/register', { username, password });
       },
 
       logout: async () => {
         try {
-          await axios.post(
-            'http://127.0.0.1:3000/auth/logout',
-            {},
-            { withCredentials: true },
-          );
+          const { apiClient } = await import('../lib/api-client');
+          await apiClient.post('/auth/logout', {});
         } catch (e) {
           // Fail silently
         } finally {
