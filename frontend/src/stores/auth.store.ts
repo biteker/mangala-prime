@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import axios from 'axios';
-import type { AuthRegisterResponse, UserProfileResponse } from '@mangala/shared';
+import type { AuthRegisterResponse, UserProfileResponse, AuthLoginResponse } from '@mangala/shared';
 
 interface AuthState {
   accessToken: string | null;
@@ -25,14 +24,14 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (username, password) => {
         const { apiClient } = await import('../lib/api-client');
-        const data = await apiClient.post('/auth/login', { username, password });
+        const data = (await apiClient.post('/auth/login', { username, password })) as unknown as AuthLoginResponse;
         set({ accessToken: data.accessToken });
         await get().fetchMe();
       },
 
       register: async (username, password) => {
         const { apiClient } = await import('../lib/api-client');
-        return apiClient.post('/auth/register', { username, password });
+        return (await apiClient.post('/auth/register', { username, password })) as unknown as AuthRegisterResponse;
       },
 
       logout: async () => {
