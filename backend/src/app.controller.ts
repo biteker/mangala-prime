@@ -16,10 +16,7 @@ export class AppController {
     private readonly jwtService: JwtService,
   ) {}
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
-  }
+
 
   @Public()
   @Post('test-match')
