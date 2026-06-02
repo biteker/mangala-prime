@@ -1,14 +1,14 @@
 # Projenin Anlık Durumu
 
-Son Güncelleme: 2026-05-30
-Aktif Branch: feature/game-page
+Son Güncelleme: 2026-06-03
+Aktif Branch: develop
 
 ---
 
 ## Genel İlerleme
 
 ```
-Faz 1 MVP: █████████░ %90
+Faz 1 MVP: ██████████ %100
 ```
 
 ---
@@ -34,13 +34,13 @@ Faz 1 MVP: █████████░ %90
 | Auth Sayfaları | ✅ Onaylandı ve Merge Edildi | develop | Giriş, kayıt formları, AuthGuard ve tema entegrasyonu tamamlandı. |
 | Lobi Sayfası | ✅ Onaylandı ve Merge Edildi | develop | Canlı lobi oyuncu listesi, meydan okuma modalları ve hızlı eşleşme sırası tamamlandı. |
 | Oyun Tahtası (canlı) | ✅ Onaylandı ve Merge Edildi | feature/game-page → develop | Hata düzeltmesi tamamlandı: yourColor/currentPlayerId null bug, StrictMode uyumluluğu, reconnect state sync. |
-| Animasyon ve Tema Katmanı | 🔍 İnsan İncelemesinde | feature/game-page | Ardışık taş dağıtım animasyonu, input-lock kilidi, premium ahşap tema ve mobil uyumluluklar tamamlandı. |
+| Animasyon ve Tema Katmanı | ✅ Onaylandı ve Merge Edildi | develop | Ardışık taş dağıtım animasyonu, input-lock kilidi, premium ahşap tema ve mobil uyumluluklar tamamlandı. |
 
 ### Altyapı
 | Modül | Durum | Notlar |
 |-------|-------|--------|
-| GitHub Actions CI/CD | 🔍 İnsan İncelemesinde | GitHub Actions test, build, docker build ve SSH VPS deploy workflow'u yazıldı. |
-| Hetzner Deploy | 🔍 İnsan İncelemesinde | Docker, Compose ve Nginx Proxy Manager kurulum scripti ile compose konfigürasyonu tamamlandı. |
+| GitHub Actions CI/CD | ✅ Onaylandı ve Merge Edildi | GitHub Actions test, build, docker build ve SSH VPS deploy workflow'u kuruldu ve çalıştırıldı. |
+| Hetzner Deploy | ✅ Onaylandı ve Merge Edildi | Docker, Compose ve Nginx Proxy Manager ile VPS üzerinde otomatik deploy ve prisma db push işlemleri doğrulandı. |
 
 ---
 
@@ -64,10 +64,10 @@ Faz 1 MVP: █████████░ %90
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-05-31 — 3. Tema (Rustik Ahşap) ve Mobil-Öncelikli İyileştirmeler (Tema & Responsive)
+Oturum 2026-06-03 — Prisma Docker Dağıtım Düzeltmeleri (CI/CD Düzeltmesi)
 
 ### Yapılanlar
-- Referans görsele benzer şekilde gerçekçi ceviz dokusu, tahta içine oyulmuş dairesel kuyu/hazne gölgeleri, 6 farklı renkte cam bilye taş görünümleri içeren Premium Rustik Ahşap teması oluşturuldu.
-- Temalar arası döngüsel geçişi (Ahşap -> Neon -> Rustik -> Ahşap) sağlayan logic Zustand store ve App.tsx üzerinde kuruldu.
-- Mobil cihazlar (< 768px ve < 480px) için oyun tahtası, chat paneli, lobi listeleri, lobi bekleme spinner'ları ve header alanları esnek ve responsive hale getirildi.
-- Monorepo genelinde `npm run build` ve `npm run test` başarıyla çalıştırıldı ve doğrulandı.
+- `Dockerfile` build-backend ve runner aşamalarında `/app/prisma.config.ts` kopyalayacak şekilde güncellendi.
+- Kök `prisma.config.ts` dosyasında `DATABASE_URL` env fallback desteği iyileştirildi.
+- Otomatik deployment pipeline'ı üzerinden SQLite veritabanının Hetzner VPS üzerinde başarıyla senkronize edildiği doğrulandı.
+- Tüm unit testleri ve derlemeler monorepo genelinde başarıyla kontrol edildi.
