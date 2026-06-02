@@ -96,9 +96,9 @@ jobs:
                 env_file:
                   - .env
                 environment:
-                  - DATABASE_URL=file:/app/prisma/dev.db
+                  - DATABASE_URL=file:/app/db/dev.db
                 volumes:
-                  - ./prisma:/app/prisma
+                  - ./db:/app/db
                 networks:
                   - web-network
 

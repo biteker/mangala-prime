@@ -8,10 +8,10 @@ services:
     env_file:
       - .env
     environment:
-      - DATABASE_URL=file:/app/prisma/dev.db
+      - DATABASE_URL=file:/app/db/dev.db
     volumes:
-      # SQLite veritabanı dosyasının sunucuda kalıcı olmasını sağlar
-      - ./prisma:/app/prisma
+      # SQLite veritabanını bağımsız db klasöründe saklayarak şema maskelenmesini önler
+      - ./db:/app/db
     networks:
       - web-network
 
