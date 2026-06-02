@@ -95,6 +95,8 @@ jobs:
                 restart: unless-stopped
                 env_file:
                   - .env
+                environment:
+                  - DATABASE_URL=file:/app/prisma/dev.db
                 volumes:
                   - ./prisma:/app/prisma
                 networks:
