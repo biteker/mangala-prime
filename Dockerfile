@@ -36,6 +36,7 @@ FROM build-shared AS build-backend
 WORKDIR /app
 COPY backend/ ./backend/
 COPY prisma/ ./prisma/
+COPY prisma.config.ts ./
 
 # Prisma Client'ı oluştur
 RUN npx prisma generate
@@ -62,6 +63,7 @@ COPY --from=build-backend /app/shared/dist ./shared/dist
 COPY --from=build-backend /app/backend/package*.json ./backend/
 COPY --from=build-backend /app/backend/dist ./backend/dist
 COPY --from=build-backend /app/prisma ./prisma
+COPY --from=build-backend /app/prisma.config.ts ./
 
 # Derlenen React frontend'i NestJS'in public statik klasörüne kopyala
 COPY --from=build-frontend /app/frontend/dist ./backend/public
