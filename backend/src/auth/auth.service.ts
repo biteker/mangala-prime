@@ -45,6 +45,7 @@ export class AuthService {
         username: user.username,
       };
     } catch (error) {
+      console.error('Registration Error:', error);
       if (error instanceof ConflictException) throw error;
       throw new ConflictException({
         code: 'CONFLICT',
