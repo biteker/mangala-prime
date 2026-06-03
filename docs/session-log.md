@@ -25,6 +25,21 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ---
 
+### Oturum [2026-06-03] — Proje Hata Analizi ve Öğrenilen Dersler Dokümantasyonu (Post-Mortem)
+
+**Tamamlanan Görev:** Projede karşılaşılan kritik hataların (Prisma 7 & Docker deployment, React StrictMode WebSocket lifecycles, Reconnection state sync, ve WebSocket mock test altyapısı) analizleri gerçekleştirildi ve gelecek projeler için önlem kontrol listesi ile birlikte `docs/lessons-learned.md` dosyası oluşturuldu.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [lessons-learned.md](file:///home/biteker/Documents/mangala-prime/docs/lessons-learned.md) [YENİ] — Karşılaşılan hatalar, nedenleri, çözümleri ve checklist dokümantasyonu
+
+**Test Sonuçları:** Test gerekmiyor (Dokümantasyon).
+**Derleme:** ✅ Hatasız
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Uygulamanın VPS üzerinde son kabul testleri ve kullanıcı kayıt işlemlerinin doğrulanması (UAT).
+**Commit:** `docs: document lessons learned and post-mortem error analysis`
+**PR:** Yok (Doğrudan geliştirme notları)
+
+---
+
 ### Oturum [2026-06-03] — Prisma Docker Dağıtım Düzeltmeleri (CI/CD Düzeltmesi)
 
 **Tamamlanan Görev:** Docker container ortamında `npx prisma db push` çalıştırılırken `prisma.config.ts` dosyasının bulunamaması ve `DATABASE_URL` okuma hatası giderildi. Konfigürasyon dosyaları konteynere kopyalandı ve deployment başarıyla tamamlanarak veritabanı şeması VPS üzerinde senkronize edildi.

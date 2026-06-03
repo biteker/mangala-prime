@@ -64,10 +64,9 @@ Faz 1 MVP: ██████████ %100
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-06-03 — Prisma Docker Dağıtım Düzeltmeleri (CI/CD Düzeltmesi)
+Oturum 2026-06-03 — Proje Hata Analizi ve Öğrenilen Dersler Dokümantasyonu (Post-Mortem)
 
 ### Yapılanlar
-- `Dockerfile` build-backend ve runner aşamalarında `/app/prisma.config.ts` kopyalayacak şekilde güncellendi.
-- Kök `prisma.config.ts` dosyasında `DATABASE_URL` env fallback desteği iyileştirildi.
-- Otomatik deployment pipeline'ı üzerinden SQLite veritabanının Hetzner VPS üzerinde başarıyla senkronize edildiği doğrulandı.
-- Tüm unit testleri ve derlemeler monorepo genelinde başarıyla kontrol edildi.
+- Projede karşılaşılan 4 ana gruptaki kritik hatalar (Prisma 7 & Docker, React StrictMode & WS, Reconnection & State Sync, WS Unit Test Mocking) analiz edildi.
+- Gelecekteki projelerde bu hatalardan kaçınmak için bir önlem kontrol listesi çıkarıldı ve `docs/lessons-learned.md` dosyası oluşturuldu.
+- `docs/session-log.md` güncellendi.
