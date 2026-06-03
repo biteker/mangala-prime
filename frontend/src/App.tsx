@@ -20,6 +20,14 @@ function App(): React.JSX.Element {
     root.classList.add(theme);
   }, [theme]);
 
+  // Sayfa yüklendiğinde kullanıcı bilgilerini tazelemek için
+  useEffect(() => {
+    const { accessToken, fetchMe } = useAuthStore.getState();
+    if (accessToken) {
+      fetchMe().catch(() => {});
+    }
+  }, []);
+
   const handleThemeToggle = (): void => {
     const order: Array<typeof theme> = ['theme-wood', 'theme-neon', 'theme-rustic'];
     const currentIndex = order.indexOf(theme);
