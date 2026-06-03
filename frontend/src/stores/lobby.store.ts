@@ -80,14 +80,16 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
             users[existingIndex] = {
               ...users[existingIndex],
               status: payload.status,
+              username: payload.username || users[existingIndex].username,
+              elo: payload.elo !== undefined ? payload.elo : users[existingIndex].elo,
             };
           }
         } else if (payload.status !== 'offline') {
           users.push({
             userId: payload.userId,
-            username: `User_${payload.userId.substring(0, 4)}`,
+            username: payload.username || `User_${payload.userId.substring(0, 4)}`,
             status: payload.status,
-            elo: 1000,
+            elo: payload.elo || 1000,
           });
         }
         return { onlineUsers: users };

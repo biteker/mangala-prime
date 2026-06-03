@@ -64,9 +64,10 @@ Faz 1 MVP: ██████████ %100
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-06-03 — Proje Hata Analizi ve Öğrenilen Dersler Dokümantasyonu (Post-Mortem)
+Oturum 2026-06-03 — Lobi Kullanıcı Listesi Senkronizasyon ve Proxy IP Düzeltmesi (Bugfix)
 
 ### Yapılanlar
-- Projede karşılaşılan 4 ana gruptaki kritik hatalar (Prisma 7 & Docker, React StrictMode & WS, Reconnection & State Sync, WS Unit Test Mocking) analiz edildi.
-- Gelecekteki projelerde bu hatalardan kaçınmak için bir önlem kontrol listesi çıkarıldı ve `docs/lessons-learned.md` dosyası oluşturuldu.
-- `docs/session-log.md` güncellendi.
+- Lobi sayfasında diğer kullanıcıların adlarının "User_xxxx" şeklinde görünmesi ve sayfa yenilendiğinde isim senkronizasyonunun kaybolması hatası çözüldü.
+- `lobby:user_status` WebSocket olayı güncellenerek kullanıcı adı ve ELO skorlarının yayına dahil edilmesi sağlandı.
+- Nginx Proxy Manager gibi ters proxy (reverse proxy) arkasında çalışan ortamlarda istemci IP adreslerinin doğru elde edilebilmesi için `x-forwarded-for` ve `x-real-ip` başlıklarını okuma desteği ile IPv6 `::ffff:` önekini temizleme mantığı eklendi. Böylece aynı local ağdan oynanan maçların "isFriendly = true" olarak doğru tespit edilmesi ve ELO kazanımının engellenmesi sağlandı.
+- Testler ve build doğrulandı. `docs/session-log.md` güncellendi.

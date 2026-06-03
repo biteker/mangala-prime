@@ -4,6 +4,8 @@ import { Player, GameEndReason } from './game.types';
 export interface LobbyUserStatusPayload {
   userId: string;
   status: 'lobby' | 'playing' | 'offline';
+  username?: string;
+  elo?: number;
 }
 
 export interface LobbyInviteSendPayload {
