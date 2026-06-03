@@ -49,7 +49,15 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, O
 
       const userId = payload.sub;
       const username = payload.username;
-      const ip = client.handshake.address || client.conn.remoteAddress || '127.0.0.1';
+      
+      const forwardedFor = client.handshake.headers?.['x-forwarded-for'];
+      let ip = typeof forwardedFor === 'string'
+        ? forwardedFor.split(',')[0].trim()
+        : (client.handshake.headers?.['x-real-ip'] as string) || client.handshake.address || client.conn.remoteAddress || '127.0.0.1';
+
+      if (ip.startsWith('::ffff:')) {
+        ip = ip.substring(7);
+      }
 
       client.data = { userId, username, ip };
 
@@ -65,9 +73,12 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, O
       client.emit('lobby:init_users', onlineUsers);
 
       // Diğer herkese lobiye girdiğini duyur
+      const elo = await this.getPlayerElo(userId);
       client.broadcast.emit('lobby:user_status', {
         userId,
         status: 'lobby',
+        username,
+        elo,
       });
     } catch (error) {
       client.disconnect(true);

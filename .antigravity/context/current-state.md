@@ -64,10 +64,10 @@ Faz 1 MVP: ██████████ %100
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-06-03 — Prisma Docker Dağıtım Düzeltmeleri (CI/CD Düzeltmesi)
+Oturum 2026-06-03 — Lobi Kullanıcı Listesi Senkronizasyon ve Proxy IP Düzeltmesi (Bugfix)
 
 ### Yapılanlar
-- `Dockerfile` build-backend ve runner aşamalarında `/app/prisma.config.ts` kopyalayacak şekilde güncellendi.
-- Kök `prisma.config.ts` dosyasında `DATABASE_URL` env fallback desteği iyileştirildi.
-- Otomatik deployment pipeline'ı üzerinden SQLite veritabanının Hetzner VPS üzerinde başarıyla senkronize edildiği doğrulandı.
-- Tüm unit testleri ve derlemeler monorepo genelinde başarıyla kontrol edildi.
+- Lobi sayfasında diğer kullanıcıların adlarının "User_xxxx" şeklinde görünmesi ve sayfa yenilendiğinde isim senkronizasyonunun kaybolması hatası çözüldü.
+- `lobby:user_status` WebSocket olayı güncellenerek kullanıcı adı ve ELO skorlarının yayına dahil edilmesi sağlandı.
+- Nginx Proxy Manager gibi ters proxy (reverse proxy) arkasında çalışan ortamlarda istemci IP adreslerinin doğru elde edilebilmesi için `x-forwarded-for` ve `x-real-ip` başlıklarını okuma desteği ile IPv6 `::ffff:` önekini temizleme mantığı eklendi. Böylece aynı local ağdan oynanan maçların "isFriendly = true" olarak doğru tespit edilmesi ve ELO kazanımının engellenmesi sağlandı.
+- Testler ve build doğrulandı. `docs/session-log.md` güncellendi.

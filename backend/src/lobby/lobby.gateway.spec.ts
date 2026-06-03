@@ -70,6 +70,7 @@ describe('LobbyGateway', () => {
     it('should_authorize_and_connect_successfully_with_valid_token', async () => {
       // Arrange
       mockJwtService.verifyAsync.mockResolvedValue({ sub: 'user-1', username: 'user1' });
+      mockLobbyService.getPlayerElo.mockResolvedValue(1050);
 
       // Act
       await gateway.handleConnection(mockSocket as unknown as Socket);
@@ -78,7 +79,12 @@ describe('LobbyGateway', () => {
       expect(jwtService.verifyAsync).toHaveBeenCalledWith('valid-token', expect.any(Object));
       expect(mockSocket.data).toEqual({ userId: 'user-1', username: 'user1', ip: '192.168.1.100' });
       expect(lobbyService.addUser).toHaveBeenCalledWith('user-1', 'user1', 'socket-p1', '192.168.1.100');
-      expect(mockSocket.broadcast.emit).toHaveBeenCalledWith('lobby:user_status', { userId: 'user-1', status: 'lobby' });
+      expect(mockSocket.broadcast.emit).toHaveBeenCalledWith('lobby:user_status', {
+        userId: 'user-1',
+        status: 'lobby',
+        username: 'user1',
+        elo: 1050,
+      });
       expect(mockSocket.disconnect).not.toHaveBeenCalled();
     });
 

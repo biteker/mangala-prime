@@ -23,6 +23,37 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-06-03] — Lobi Kullanıcı Listesi Senkronizasyon ve Proxy IP Düzeltmesi (Bugfix)
+
+**Tamamlanan Görev:** Lobi sayfasında diğer kullanıcıların adlarının "User_xxxx" şeklinde görünmesi ve sayfa yenilendiğinde isim senkronizasyonunun kaybolması hatası çözüldü. Ayrıca, Nginx Proxy Manager gibi ters proxy (reverse proxy) arkasında çalışan ortamlarda istemci IP adreslerinin doğru şekilde elde edilebilmesi için `x-forwarded-for` ve `x-real-ip` başlıklarını okuma desteği ile IPv6 `::ffff:` önekini temizleme mantığı eklendi; böylece aynı local ağdan (örneğin aynı ev Wi-Fi) oynanan maçların "isFriendly = true" olarak doğru tespit edilmesi ve ELO istismarının önlenmesi garanti altına alındı.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [socket-events.types.ts](file:///home/biteker/Documents/mangala-prime/shared/types/socket-events.types.ts) [MODIFY] — `LobbyUserStatusPayload` tipine `username` ve `elo` opsiyonel alanları eklendi.
+- [lobby.gateway.ts](file:///home/biteker/Documents/mangala-prime/backend/src/lobby/lobby.gateway.ts) [MODIFY] — Bağlantı sırasında `lobby:user_status` event'i ile birlikte kullanıcının adı ve ELO bilgisi de yayınlanacak şekilde güncellendi. Ayrıca proxy başlıklarından IP okuma ve normalleştirme adımı eklendi.
+- [lobby.gateway.spec.ts](file:///home/biteker/Documents/mangala-prime/backend/src/lobby/lobby.gateway.spec.ts) [MODIFY] — Yeni payload yapısına ve `getPlayerElo` mock fonksiyonuna uygun unit test güncellemesi yapıldı.
+- [lobby.store.ts](file:///home/biteker/Documents/mangala-prime/frontend/src/stores/lobby.store.ts) [MODIFY] — İstemci tarafında `lobby:user_status` olayı alındığında gelen kullanıcı adı ve ELO bilgisi listeye eklenecek şekilde store mantığı güncellendi.
+
+**Test Sonuçları:** 74/74 test başarıyla geçti.
+**Derleme:** ✅ Hatasız
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Uygulamanın VPS üzerinde son kabul testleri ve kullanıcı kayıt işlemlerinin doğrulanması (UAT).
+**Commit:** `fix(lobby): include username, elo and extract real proxy IP to handle friendly match detection`
+**PR:** Yok
+
+---
+
+### Oturum [2026-06-03] — Proje Hata Analizi ve Öğrenilen Dersler Dokümantasyonu (Post-Mortem)
+
+**Tamamlanan Görev:** Projede karşılaşılan kritik hataların (Prisma 7 & Docker deployment, React StrictMode WebSocket lifecycles, Reconnection state sync, ve WebSocket mock test altyapısı) analizleri gerçekleştirildi ve gelecek projeler için önlem kontrol listesi ile birlikte `docs/lessons-learned.md` dosyası oluşturuldu.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [lessons-learned.md](file:///home/biteker/Documents/mangala-prime/docs/lessons-learned.md) [YENİ] — Karşılaşılan hatalar, nedenleri, çözümleri ve checklist dokümantasyonu
+
+**Test Sonuçları:** Test gerekmiyor (Dokümantasyon).
+**Derleme:** ✅ Hatasız
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Uygulamanın VPS üzerinde son kabul testleri ve kullanıcı kayıt işlemlerinin doğrulanması (UAT).
+**Commit:** `docs: document lessons learned and post-mortem error analysis`
+**PR:** Yok (Doğrudan geliştirme notları)
+
 ---
 
 ### Oturum [2026-06-03] — Prisma Docker Dağıtım Düzeltmeleri (CI/CD Düzeltmesi)
