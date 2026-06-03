@@ -23,6 +23,21 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-06-03] — Mobil Oyun Tahtası Taşıma ve Responsive Tasarım İyileştirmesi (Bugfix)
+
+**Tamamlanan Görev:** Canlı kabul testlerinde tespit edilen mobil dikey (portrait) ekranlarda oyun tahtasının ve haznelerin sağdan taşması (horizontal overflow) sorunu giderildi. Kuyu boyutları, hazneler ve gaps oranları `<480px` ve `<375px` genişlikler için optimize edildi. Ayrıca mobil dikey düzeninde timer paneli ve oyuncu badge'lerindeki text-align specificity çakışmaları düzeltilerek ortalama hatası giderildi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [index.css](file:///home/biteker/Documents/mangala-prime/frontend/src/index.css) [MODIFY] — `@media (max-width: 768px)`, `@media (max-width: 480px)` ve yeni `@media (max-width: 375px)` sorguları güncellendi/eklendi.
+
+**Test Sonuçları:** 74/74 test başarıyla geçti.
+**Derleme:** ✅ Hatasız
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Canlı kabul testlerinin devamı ve projenin teslimi (UAT).
+**Commit:** `fix(frontend): adjust mobile-first responsive board layout and fix player badge alignment`
+**PR:** Yok
+
+---
+
 ### Oturum [2026-06-03] — Lobi Kullanıcı Listesi Senkronizasyon, Proxy IP ve Profil ELO Güncellemesi (Bugfix)
 
 **Tamamlanan Görev:** Lobi sayfasında diğer kullanıcıların adlarının "User_xxxx" şeklinde görünmesi hatası, proxy arkasındaki IP'lerin doğru çözümlenememesi sonucu ELO istismarı açığı ve lobi sayfasına dönüldüğünde veya sayfa yenilendiğinde üst menüdeki (header) kullanıcı ELO puanının güncellenmeyip 1000'de sabit kalması sorunları çözüldü. Lobi sayfası yüklendiğinde ve uygulama ilk yüklendiğinde `fetchMe` fonksiyonu tetiklenerek en güncel kullanıcı profil verisi (ve ELO puanı) API üzerinden tazelemeye başlandı.
