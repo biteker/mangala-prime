@@ -23,20 +23,22 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
-### Oturum [2026-06-03] — Lobi Kullanıcı Listesi Senkronizasyon ve Proxy IP Düzeltmesi (Bugfix)
+### Oturum [2026-06-03] — Lobi Kullanıcı Listesi Senkronizasyon, Proxy IP ve Profil ELO Güncellemesi (Bugfix)
 
-**Tamamlanan Görev:** Lobi sayfasında diğer kullanıcıların adlarının "User_xxxx" şeklinde görünmesi ve sayfa yenilendiğinde isim senkronizasyonunun kaybolması hatası çözüldü. Ayrıca, Nginx Proxy Manager gibi ters proxy (reverse proxy) arkasında çalışan ortamlarda istemci IP adreslerinin doğru şekilde elde edilebilmesi için `x-forwarded-for` ve `x-real-ip` başlıklarını okuma desteği ile IPv6 `::ffff:` önekini temizleme mantığı eklendi; böylece aynı local ağdan (örneğin aynı ev Wi-Fi) oynanan maçların "isFriendly = true" olarak doğru tespit edilmesi ve ELO istismarının önlenmesi garanti altına alındı.
+**Tamamlanan Görev:** Lobi sayfasında diğer kullanıcıların adlarının "User_xxxx" şeklinde görünmesi hatası, proxy arkasındaki IP'lerin doğru çözümlenememesi sonucu ELO istismarı açığı ve lobi sayfasına dönüldüğünde veya sayfa yenilendiğinde üst menüdeki (header) kullanıcı ELO puanının güncellenmeyip 1000'de sabit kalması sorunları çözüldü. Lobi sayfası yüklendiğinde ve uygulama ilk yüklendiğinde `fetchMe` fonksiyonu tetiklenerek en güncel kullanıcı profil verisi (ve ELO puanı) API üzerinden tazelemeye başlandı.
 **Oluşturulan/Değiştirilen Dosyalar:**
 - [socket-events.types.ts](file:///home/biteker/Documents/mangala-prime/shared/types/socket-events.types.ts) [MODIFY] — `LobbyUserStatusPayload` tipine `username` ve `elo` opsiyonel alanları eklendi.
 - [lobby.gateway.ts](file:///home/biteker/Documents/mangala-prime/backend/src/lobby/lobby.gateway.ts) [MODIFY] — Bağlantı sırasında `lobby:user_status` event'i ile birlikte kullanıcının adı ve ELO bilgisi de yayınlanacak şekilde güncellendi. Ayrıca proxy başlıklarından IP okuma ve normalleştirme adımı eklendi.
 - [lobby.gateway.spec.ts](file:///home/biteker/Documents/mangala-prime/backend/src/lobby/lobby.gateway.spec.ts) [MODIFY] — Yeni payload yapısına ve `getPlayerElo` mock fonksiyonuna uygun unit test güncellemesi yapıldı.
 - [lobby.store.ts](file:///home/biteker/Documents/mangala-prime/frontend/src/stores/lobby.store.ts) [MODIFY] — İstemci tarafında `lobby:user_status` olayı alındığında gelen kullanıcı adı ve ELO bilgisi listeye eklenecek şekilde store mantığı güncellendi.
+- [LobbyPage.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/LobbyPage.tsx) [MODIFY] — Lobi sayfası monte edildiğinde (mount) güncel ELO puanını çekmek için `fetchMe()` tetiklendi.
+- [App.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/App.tsx) [MODIFY] — Sayfa ilk yüklendiğinde veya yenilendiğinde (eğer oturum varsa) kullanıcının güncel ELO puanını API'den çekmek için `fetchMe()` tetiklendi.
 
 **Test Sonuçları:** 74/74 test başarıyla geçti.
 **Derleme:** ✅ Hatasız
 **Açık Sorunlar:** Yok.
 **Bir Sonraki Görev:** Uygulamanın VPS üzerinde son kabul testleri ve kullanıcı kayıt işlemlerinin doğrulanması (UAT).
-**Commit:** `fix(lobby): include username, elo and extract real proxy IP to handle friendly match detection`
+**Commit:** `fix(lobby): include username, elo, handle friendly match detection and fix header elo refresh`
 **PR:** Yok
 
 ---
