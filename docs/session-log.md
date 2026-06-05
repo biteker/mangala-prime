@@ -25,10 +25,10 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ### Oturum [2026-06-05] — Prisma Client v7 Yükseltmesi ve Ajan Yeteneği Güncellemesi
 
-**Tamamlanan Görev:** Prisma ORM generator istemcisi `"prisma-client-js"`'ten modern ve Rust-free `"prisma-client"` (Prisma v7) sürümüne yükseltildi. İstemci çıktı dizini zorunlu olarak backend projesi içine (`backend/src/generated/client`) alındı. `PrismaService` ve veritabanı tohumlama (`seed.ts`) import yolları relative olarak güncellendi. Jest testlerinde Wasm/ESM `import.meta` kullanımının yarattığı derleme hatasını çözmek için `moduleNameMapper` ile mock client entegre edildi. `prisma/seed.ts` dosyası hem root hem backend dizinlerinden çalışabilecek şekilde dinamik yol çözümüyle revize edildi. Geçici v7 yetenek dokümanı silindi ve kuralları kalıcı olarak `.antigravity/skills/prisma.md` içine aktarıldı.
+**Tamamlanan Görev:** Prisma ORM generator istemcisi `"prisma-client-js"`'ten modern ve Rust-free `"prisma-client"` (Prisma v7) sürümüne yükseltildi. İstemci çıktı dizini zorunlu olarak backend projesi içine (`backend/src/generated/client`) alındı. `PrismaService` ve veritabanı tohumlama (`seed.ts`) import yolları relative olarak güncellendi. NestJS ve Jest'in CommonJS yapısına uyum sağlaması için `prisma/schema.prisma` dosyasında generator bloğuna `moduleFormat = "cjs"` parametresi eklenerek CommonJS çıktı formatı zorunlu kılındı. Jest testlerinde Wasm/ESM `import.meta` kullanımının yarattığı derleme hatasını çözmek için `moduleNameMapper` ile mock client entegre edildi. `prisma/seed.ts` dosyası hem root hem backend dizinlerinden çalışabilecek şekilde dinamik yol çözümüyle revize edildi. Geçici v7 yetenek dokümanı silindi ve kuralları kalıcı olarak `.antigravity/skills/prisma.md` içine aktarıldı. Son olarak, test işlemleri için backend ve frontend geliştirme sunucuları arka planda ayağa kaldırıldı.
 
 **Oluşturulan/Değiştirilen Dosyalar:**
-- [schema.prisma](file:///home/biteker/Documents/mangala-prime/prisma/schema.prisma) [MODIFY] — `generator client` bloğunda `provider = "prisma-client"`, `output = "../backend/src/generated/client"` yapıldı ve `previewFeatures` kaldırıldı.
+- [schema.prisma](file:///home/biteker/Documents/mangala-prime/prisma/schema.prisma) [MODIFY] — `generator client` bloğunda `provider = "prisma-client"`, `output = "../backend/src/generated/client"`, `moduleFormat = "cjs"` yapıldı ve `previewFeatures` kaldırıldı.
 - [prisma.service.ts](file:///home/biteker/Documents/mangala-prime/backend/src/common/prisma/prisma.service.ts) [MODIFY] — `PrismaClient` relative import'u `../../generated/client/client.js` olarak NodeNext uyumlu yapıldı.
 - [seed.ts](file:///home/biteker/Documents/mangala-prime/prisma/seed.ts) [MODIFY] — `PrismaClient` relative import'u `../backend/src/generated/client/client.js` olarak NodeNext uyumlu yapıldı. SQLite veritabanı yolu `process.cwd()`'ye göre dinamik yapıldı.
 - [prisma.config.ts](file:///home/biteker/Documents/mangala-prime/prisma.config.ts) [MODIFY] — `migrations.seed` bölümü `npx -y tsx prisma/seed.ts` ile Prisma 7 standardına göre yapılandırıldı.
@@ -42,7 +42,7 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **Derleme:** ✅ Hatasız (Monorepo `npm run build` başarıyla tamamlandı).
 **Açık Sorunlar:** Yok.
 **Bir Sonraki Görev:** Canlı ortam kabul testleri ve projenin teslim edilmesi (Final UAT).
-**Commit:** `feat(prisma): upgrade generator to prisma-client v7, merge agent skills, and fix test mock`
+**Commit:** `fix(prisma): enforce moduleFormat = cjs in schema generator to ensure CommonJS compatibility`
 **PR:** Yok (Doğrudan feature branch geliştirme commit'i)
 
 ---
