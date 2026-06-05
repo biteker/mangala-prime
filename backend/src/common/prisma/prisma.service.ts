@@ -1,21 +1,24 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '../../generated/client/client.js';
-import { PrismaLibSql } from '@prisma/adapter-libsql';
-import * as path from 'path';
-
-function createAdapter(): PrismaLibSql {
-  const dbAbsPath = path.resolve(process.cwd(), '..', 'prisma', 'dev.db');
-  const dbUrl = process.env['DATABASE_URL'] ?? `file:${dbAbsPath}`;
-  return new PrismaLibSql({ url: dbUrl });
-}
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
 
 @Injectable()
 export class PrismaService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy
 {
+  private pool: pg.Pool;
+
   constructor() {
-    super({ adapter: createAdapter() });
+    const dbUrl = process.env.DATABASE_URL;
+    if (!dbUrl) {
+      throw new Error('DATABASE_URL environment variable is not defined!');
+    }
+    const pool = new pg.Pool({ connectionString: dbUrl });
+    const adapter = new PrismaPg(pool);
+    super({ adapter });
+    this.pool = pool;
   }
 
   async onModuleInit(): Promise<void> {
@@ -24,5 +27,6 @@ export class PrismaService
 
   async onModuleDestroy(): Promise<void> {
     await this.$disconnect();
+    await this.pool.end();
   }
 }

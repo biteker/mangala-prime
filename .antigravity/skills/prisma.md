@@ -276,6 +276,14 @@ main()
 
 ---
 
+## 11. PostgreSQL 18 Mimari Yönergeleri (PostgreSQL 18 Architectural Directives)
+
+1. **JSONB Sorguları:** JSON verileri üzerinde işlem yaparken PostgreSQL 18 uyumlu `JSON_TABLE` ve modern JSON standartlarını kullan.
+2. **B-Tree Index Hızlandırması:** Sık güncellenen (Oyun odaları, aktif hamleler vb.) tablolarda B-Tree indeks performans optimizasyonlarını göz önünde bulundur. `VACUUM` dostu şemalar tasarla.
+3. **Müşterek Bağlantı Yönetimi:** PostgreSQL 18'in yüksek eşzamanlı bağlantı (High-Concurrency) geliştirmelerinden faydalanmak için ham SQL yazarken connection pooling mimarisine sadık kal.
+
+---
+
 ## Referans
 
 → Şema tasarımı için bkz. `docs/spec.md` Bölüm 5  
