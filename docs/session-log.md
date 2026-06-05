@@ -23,6 +23,30 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-06-05] — Prisma Client v7 Yükseltmesi ve Ajan Yeteneği Güncellemesi
+
+**Tamamlanan Görev:** Prisma ORM generator istemcisi `"prisma-client-js"`'ten modern ve Rust-free `"prisma-client"` (Prisma v7) sürümüne yükseltildi. İstemci çıktı dizini zorunlu olarak backend projesi içine (`backend/src/generated/client`) alındı. `PrismaService` ve veritabanı tohumlama (`seed.ts`) import yolları relative olarak güncellendi. Jest testlerinde Wasm/ESM `import.meta` kullanımının yarattığı derleme hatasını çözmek için `moduleNameMapper` ile mock client entegre edildi. `prisma/seed.ts` dosyası hem root hem backend dizinlerinden çalışabilecek şekilde dinamik yol çözümüyle revize edildi. Geçici v7 yetenek dokümanı silindi ve kuralları kalıcı olarak `.antigravity/skills/prisma.md` içine aktarıldı.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [schema.prisma](file:///home/biteker/Documents/mangala-prime/prisma/schema.prisma) [MODIFY] — `generator client` bloğunda `provider = "prisma-client"`, `output = "../backend/src/generated/client"` yapıldı ve `previewFeatures` kaldırıldı.
+- [prisma.service.ts](file:///home/biteker/Documents/mangala-prime/backend/src/common/prisma/prisma.service.ts) [MODIFY] — `PrismaClient` relative import'u `../../generated/client/client.js` olarak NodeNext uyumlu yapıldı.
+- [seed.ts](file:///home/biteker/Documents/mangala-prime/prisma/seed.ts) [MODIFY] — `PrismaClient` relative import'u `../backend/src/generated/client/client.js` olarak NodeNext uyumlu yapıldı. SQLite veritabanı yolu `process.cwd()`'ye göre dinamik yapıldı.
+- [prisma.config.ts](file:///home/biteker/Documents/mangala-prime/prisma.config.ts) [MODIFY] — `migrations.seed` bölümü `npx -y tsx prisma/seed.ts` ile Prisma 7 standardına göre yapılandırıldı.
+- [prisma.config.ts (nested)](file:///home/biteker/Documents/mangala-prime/prisma/prisma.config.ts) [MODIFY] — Seed çalıştırıcı komutu `npx -y tsx seed.ts` olarak güncellendi.
+- [package.json](file:///home/biteker/Documents/mangala-prime/backend/package.json) [MODIFY] — Jest `moduleNameMapper` alanına `client.js` mock eşleşmesi (`test/prisma-client.mock.ts`) eklendi.
+- [prisma-client.mock.ts](file:///home/biteker/Documents/mangala-prime/backend/test/prisma-client.mock.ts) [YENİ] — Testler için `PrismaClient` mock nesnesi oluşturuldu.
+- [prisma.md](file:///home/biteker/Documents/mangala-prime/.antigravity/skills/prisma.md) [MODIFY] — `docs/PRISMA ORM v7 AGENT SKILLS.md` kuralları ve v7 en iyi pratikleri bu standarda aktarıldı.
+- [PRISMA ORM v7 AGENT SKILLS.md](file:///home/biteker/Documents/mangala-prime/docs/PRISMA%20ORM%20v7%20AGENT%20SKILLS.md) [DELETE] — Geçici yetenek belgesi silindi.
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (Monorepo `npm run build` başarıyla tamamlandı).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Canlı ortam kabul testleri ve projenin teslim edilmesi (Final UAT).
+**Commit:** `feat(prisma): upgrade generator to prisma-client v7, merge agent skills, and fix test mock`
+**PR:** Yok (Doğrudan feature branch geliştirme commit'i)
+
+---
+
 ### Oturum [2026-06-03] — Lobi Kullanıcı Listesi Senkronizasyon, Proxy IP ve Profil ELO Güncellemesi (Bugfix)
 
 **Tamamlanan Görev:** Lobi sayfasında diğer kullanıcıların adlarının "User_xxxx" şeklinde görünmesi hatası, proxy arkasındaki IP'lerin doğru çözümlenememesi sonucu ELO istismarı açığı ve lobi sayfasına dönüldüğünde veya sayfa yenilendiğinde üst menüdeki (header) kullanıcı ELO puanının güncellenmeyip 1000'de sabit kalması sorunları çözüldü. Lobi sayfası yüklendiğinde ve uygulama ilk yüklendiğinde `fetchMe` fonksiyonu tetiklenerek en güncel kullanıcı profil verisi (ve ELO puanı) API üzerinden tazelemeye başlandı.

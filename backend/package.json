@@ -81,6 +81,12 @@
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
+    "moduleNameMapper": {
+      "\\.\\./\\.\\./generated/client/client\\.js$": "<rootDir>/../test/prisma-client.mock.ts",
+      "^(\\.\\.?/.*)\\.js$": "$1",
+      "^@/(.*)$": "<rootDir>/$1",
+      "^@shared/(.*)$": "<rootDir>/../shared/types/$1"
+    },
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],

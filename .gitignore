@@ -5,6 +5,7 @@ node_modules/
 dist/
 build/
 .next/
+backend/src/generated/
 
 # Environment variables
 .env

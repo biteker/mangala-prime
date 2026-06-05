@@ -1,12 +1,26 @@
-# SKILL: Prisma Veritabanı Yazma Standardı
+# SKILL: Prisma Veritabanı Yazma Standardı (Prisma 7+)
 
-Bu skill'i Prisma şeması, migration ve veritabanı işlemleri yazarken oku.
+Bu skill'i Prisma şeması, migration, veritabanı işlemleri ve yapılandırması yazarken oku.
 
 ---
 
-## Migration Stratejisi
+## 1. Prisma v5 ve v7 Karşılaştırma Matrisi
 
-**MVP (SQLite):** `prisma db push` kullan — hızlı prototipleme için.
+| Özellik / Yapı | Prisma v5 (Eski Yaklaşım) | Prisma v7 (Modern Yaklaşım) |
+|---|---|---|
+| **İstemci Motoru (Engine)** | Rust tabanlı Query Engine ikilisi (binary). Serverless ortamlarında soğuk başlatma gecikmesine yol açar. | **Rust-Free (Wasm)**. TypeScript + WebAssembly çalışma zamanı. %90 daha küçük bundle, 3 kat hızlı sorgular. |
+| **Bağlantı Ayarları** | `schema.prisma` içinde doğrudan `url = env("DATABASE_URL")` ile. | **`prisma.config.ts`** dosyası içinde. Schema içinden URL tanımı kaldırılmıştır. |
+| **Generator Tanımı** | `provider = "prisma-client-js"` | **`provider = "prisma-client"`** |
+| **İstemci Çıktı Dizini** | Varsayılan olarak `node_modules/@prisma/client` içine üretilir. | **`output = "../src/generated/client"` (Zorunlu)**. İstemci artık node_modules dışına özel bir dizine yazılır. |
+| **TypeScript Performansı** | Aksırma/yavaşlama yaratan aşırı yüklü tip tanımları (büyük şemalarda IDE yavaşlaması). | ArkType entegrasyonu ile %98 daha az tip değerlendirmesi, %70 daha hızlı tip kontrolü (Type-checking). |
+| **Veritabanı Seeding** | `prisma migrate dev` veya reset sonrası otomatik çalışırdı. | Otomatik tetikleme kaldırıldı. Seeding **`npx prisma db seed`** ile manuel çalıştırılmalıdır. |
+| **Engine Type** | `engineType = "library" / "binary"` | **Tamamen kaldırıldı**. Bu konfigürasyon artık geçersizdir. |
+
+---
+
+## 2. Migration Stratejisi
+
+**MVP (SQLite):** `prisma db push` kullan — hızlı prototipleme için.  
 **Faz 2 (PostgreSQL):** `prisma migrate dev` kullan — versiyon kontrollü migration.
 
 ```bash
@@ -14,7 +28,7 @@ Bu skill'i Prisma şeması, migration ve veritabanı işlemleri yazarken oku.
 npx prisma db push
 
 # Migration oluştur (Faz 2)
-npx prisma migrate dev --name açıklayıcı_isim
+npx prisma migrate dev --name aciklayici_isim
 
 # Client'ı yeniden üret
 npx prisma generate
@@ -22,7 +36,7 @@ npx prisma generate
 
 ---
 
-## Sorgu Sarmalama Kuralı (İstisna Yok)
+## 3. Sorgu Sarmalama Kuralı (İstisna Yok)
 
 Tüm Prisma sorguları try-catch ile sarılmalıdır:
 
@@ -51,7 +65,7 @@ async findByUsername(username: string): Promise<User> {
 
 ---
 
-## Transaction Kullanımı
+## 4. Transaction Kullanımı
 
 Birden fazla tabloya yazan işlemler tek transaction'da sarılmalı:
 
@@ -94,57 +108,14 @@ async finishMatch(matchId: string, winnerId: string, eloChanges: EloChange): Pro
 
 ---
 
-## Seed Data (Geliştirme Ortamı)
+## 5. `prisma.config.ts` Yapılandırması
 
-`prisma/seed.ts` dosyası oluşturulmalı:
+Prisma v7 ile gelen bağlantı dizgileri (Connection Strings) ve migrasyon yolları artık bir TypeScript dosyası olan `prisma.config.ts` ile yönetilmelidir.
 
-```typescript
-import { PrismaClient } from '@prisma/client'
-import * as bcrypt from 'bcrypt'
-
-const prisma = new PrismaClient()
-
-async function main(): Promise<void> {
-  const hash = await bcrypt.hash('test1234', 12)
-
-  await prisma.user.createMany({
-    data: [
-      { username: 'player1', passwordHash: hash, eloScore: 1000 },
-      { username: 'player2', passwordHash: hash, eloScore: 1200 },
-      { username: 'player3', passwordHash: hash, eloScore: 800 },
-    ],
-  })
-
-  console.log('Seed tamamlandı.')
-}
-
-main()
-  .catch((e) => {
-    console.error(e)
-    process.exit(1)
-  })
-  .finally(async () => {
-    await prisma.$disconnect()
-  })
-```
-
-Çalıştırma: `npx prisma db seed`
-
-`package.json`'a ekle:
-```json
-{
-  "prisma": {
-    "seed": "ts-node prisma/seed.ts"
-  }
-}
-```
-
----
-
-## Prisma Yapılandırma ve Servis Entegrasyonu (Prisma 7+)
-
-### 1. `prisma.config.ts` Yapısı
-Prisma 7.x ve sonrasında `prisma.config.ts` dosyası sadece temel yolları ve veri kaynaklarını yönetir. Kesinlikle `earlyAccess` ve `client.adapter` alanlarını içermemelidir:
+- `schema.prisma` dosyasındaki datasource bloğunda `url` tanımı yapılmaz.
+- Projenin kök dizininde (root) `prisma.config.ts` dosyası bulunmalıdır.
+- Çevre değişkenleri (environment variables), Prisma'nın kendi `prisma/config` paketinden gelen `env()` veya doğrudan süreçten okunabilir.
+- `prisma.config.ts` içinde `earlyAccess` veya `client: { adapter: ... }` kullanımı **yasaktır**.
 
 ```typescript
 import 'dotenv/config';
@@ -152,22 +123,58 @@ import path from 'node:path';
 import { defineConfig } from 'prisma/config';
 
 const dbAbsPath = path.resolve(__dirname, 'prisma', 'dev.db');
-const dbUrl = `file:${dbAbsPath}`;
+const dbUrl = process.env.DATABASE_URL || `file:${dbAbsPath}`;
 
 export default defineConfig({
   schema: path.join(__dirname, 'prisma', 'schema.prisma'),
+  migrations: {
+    seed: 'npx -y tsx prisma/seed.ts',
+  },
   datasource: {
     url: dbUrl,
   },
 });
 ```
 
-### 2. `PrismaService` (NestJS Entegrasyonu)
-Adaptörler (örneğin SQLite için LibSQL adaptörü) doğrudan servis başlatılırken `super` çağrısına iletilmelidir:
+---
+
+## 6. Yeni `prisma-client` Generator ve Şema Tasarımı
+
+v7'de şema yazarken `prisma-client-js` yerine yeni nesil `prisma-client` kullanılmalıdır. Bu generator kullanılırken `output` parametresinin verilmesi zorunludur, çünkü yeni motor dosyaları doğrudan `node_modules` içine yazmaz.
+
+```prisma
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../backend/src/generated/client" // Çıktı klasörünü zorunlu olarak belirtiyoruz
+}
+```
+
+### Kod İçinde Kullanım (İthal Etme)
+Yeni generator şemayı belirtilen özel dizine yazdığı için, istemciyi projemize dahil ederken relative yol kullanılmalıdır:
+
+```typescript
+// ESKİ YÖNTEM (v5 - GEÇERSİZ/YAVAŞ):
+// import { PrismaClient } from '@prisma/client'
+
+// YENİ YÖNTEM (v7 - DOĞRU VE HIZLI):
+import { PrismaClient } from '../../generated/client/client.js';
+
+export const prisma = new PrismaClient();
+```
+
+---
+
+## 7. `PrismaService` (NestJS Entegrasyonu)
+
+Adaptörler (örneğin SQLite için LibSQL adaptörü) doğrudan servis başlatılırken `super` çağrısına iletilmelidir. İthalat yolu yeni oluşturulan istemci dizinindeki `client.js` dosyasını hedeflemelidir.
 
 ```typescript
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../../generated/client/client.js'; // Özel üretilen client konumu
 import { PrismaLibSql } from '@prisma/adapter-libsql';
 import * as path from 'path';
 
@@ -193,22 +200,83 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 }
 ```
 
-Bu servis `AppModule` providers'ına eklenir, diğer modüller inject eder.
+---
+
+## 8. Veritabanı Tohumlama (Seeding)
+
+Prisma v7, migrate işlemlerinden sonra otomatik seed özelliğini kaldırmıştır. Seeding işlemleri **manuel** olarak tetiklenmelidir:
+```bash
+npx prisma db seed
+```
+
+### Örnek Seed Dosyası (`prisma/seed.ts`):
+```typescript
+import { PrismaClient } from '../backend/src/generated/client/client.js'; // Özel üretilen client konumu
+import { PrismaLibSql } from '@prisma/adapter-libsql';
+import * as bcrypt from 'bcrypt';
+import * as path from 'path';
+
+const dbAbsPath = path.resolve(
+  process.cwd(),
+  process.cwd().endsWith('backend') ? '../prisma/dev.db' : 'prisma/dev.db'
+);
+
+const config = {
+  url: process.env.DATABASE_URL || `file:${dbAbsPath}`,
+};
+const adapter = new PrismaLibSql(config);
+const prisma = new PrismaClient({ adapter });
+
+async function main(): Promise<void> {
+  const hash = await bcrypt.hash('test1234', 12);
+
+  await prisma.user.createMany({
+    data: [
+      { username: 'player1', passwordHash: hash, eloScore: 1000 },
+      { username: 'player2', passwordHash: hash, eloScore: 1200 },
+      { username: 'player3', passwordHash: hash, eloScore: 800 },
+    ],
+  });
+
+  console.log('Seed tamamlandı.');
+}
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+```
 
 ---
 
-## Yasaklar
+## 9. Sorun Giderme (Troubleshooting)
 
-- Raw SQL sorgusu yasak (Prisma query API kullan)
-- `any` tipi ile Prisma sonucu cast etme yasak
-- `try-catch` olmadan Prisma çağrısı yasak
-- Migration dosyalarını elle düzenleme yasak
-- `prisma.config.ts` içinde `earlyAccess: true` veya `client: { adapter: ... }` kullanımı yasak (Prisma 7 standartlarına aykırıdır)
+### SSL / Bağlantı Hataları (P1010)
+- **Neden:** v7 ile Rust motorları yerine yerel Node.js `node-pg` sürücüleri kullanılır. Bu, SSL doğrulamasını daha katı hale getirir.
+- **Çözüm:** `prisma.config.ts` veya `.env` içerisindeki veritabanı bağlantı dizesinin (PostgreSQL vb.) sonuna `?sslmode=no-verify` veya `?sslaccept=accept_invalid_certs` parametresi ekleyin.
+
+### `Cannot find module './generated/client'` Hatası
+- **Neden:** Prisma Client henüz generate edilmemiş veya import yolu şemadaki `output` ile uyuşmuyor.
+- **Çözüm:** Önce `npx prisma generate` komutunu çalıştırın. Dosya import yollarının tam olarak eşleştiğinden emin olun.
+
+---
+
+## 10. Yasaklar
+
+- Raw SQL sorgusu yasak (Prisma query API kullan).
+- `any` tipi ile Prisma sonucu cast etme yasak.
+- `try-catch` olmadan Prisma çağrısı yasak (Sorgu Sarmalama Kuralı).
+- Migration dosyalarını elle düzenleme yasak.
+- `prisma.config.ts` içinde `earlyAccess: true` veya `client: { adapter: ... }` kullanımı yasak.
+- `@prisma/client` üzerinden doğrudan import yapmak yasak. Her zaman şemada belirtilen çıktı dizinindeki yerel import (`.../generated/client/client.js`) kullanılmalıdır.
 
 ---
 
 ## Referans
 
-→ Şema tasarımı için bkz. `docs/spec.md` Bölüm 5
+→ Şema tasarımı için bkz. `docs/spec.md` Bölüm 5  
 → Hata formatı için bkz. `docs/spec.md` Bölüm 13
-

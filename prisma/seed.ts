@@ -1,9 +1,15 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../backend/src/generated/client/client.js';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
 import * as bcrypt from 'bcrypt';
+import * as path from 'path';
+
+const dbAbsPath = path.resolve(
+  process.cwd(),
+  process.cwd().endsWith('backend') ? '../prisma/dev.db' : 'prisma/dev.db'
+);
 
 const config = {
-  url: process.env.DATABASE_URL || 'file:../prisma/dev.db',
+  url: process.env.DATABASE_URL || `file:${dbAbsPath}`,
 };
 const adapter = new PrismaLibSql(config);
 const prisma = new PrismaClient({ adapter });

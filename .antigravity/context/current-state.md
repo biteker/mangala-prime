@@ -1,7 +1,7 @@
 # Projenin Anlık Durumu
 
-Son Güncelleme: 2026-06-03
-Aktif Branch: develop
+Son Güncelleme: 2026-06-05
+Aktif Branch: feature/prisma7-client-upgrade
 
 ---
 
@@ -64,11 +64,12 @@ Faz 1 MVP: ██████████ %100
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-06-03 — Lobi Kullanıcı Listesi Senkronizasyon, Proxy IP ve Profil ELO Güncellemesi (Bugfix)
+Oturum 2026-06-05 — Prisma Client v7 Yükseltmesi ve Ajan Yeteneği Güncellemesi
 
 ### Yapılanlar
-- Lobi sayfasında diğer kullanıcıların adlarının "User_xxxx" şeklinde görünmesi ve sayfa yenilendiğinde isim senkronizasyonunun kaybolması hatası çözüldü.
-- `lobby:user_status` WebSocket olayı güncellenerek kullanıcı adı ve ELO skorlarının yayına dahil edilmesi sağlandı.
-- Nginx Proxy Manager gibi ters proxy (reverse proxy) arkasında çalışan ortamlarda istemci IP adreslerinin doğru elde edilebilmesi için `x-forwarded-for` ve `x-real-ip` başlıklarını okuma desteği ile IPv6 `::ffff:` önekini temizleme mantığı eklendi. Böylece aynı local ağdan oynanan maçların "isFriendly = true" olarak doğru tespit edilmesi ve ELO kazanımının engellenmesi sağlandı.
-- Lobi sayfası monte edildiğinde ve uygulama ilk yüklendiğinde, üst menüdeki (header) kullanıcı ELO değerinin güncellenmemesi (1000'de sabit kalması) sorununu gidermek amacıyla API `/users/me` (`fetchMe`) isteğiyle profil verilerini tazeleme mantığı eklendi.
+- Prisma generator "prisma-client-js" yerine modern "prisma-client" (v7) sürümüne güncellendi.
+- Client çıktı dizini `backend/src/generated/client` olarak ayarlanıp absolute/relative import yolları buna göre güncellendi.
+- Jest testlerinin `import.meta` ESM syntax'ı sebebiyle patlamasını önlemek amacıyla `backend/package.json`'da Jest config'e mock client eşlemesi yapıldı ve `test/prisma-client.mock.ts` dosyası oluşturuldu.
+- `prisma/seed.ts` dosyasında veritabanı url'i dynamic relative path olarak revize edilip, `npx prisma db seed` için `npx -y tsx prisma/seed.ts` komutu hem root hem local `prisma.config.ts` dosyalarına eklendi.
+- `docs/PRISMA ORM v7 AGENT SKILLS.md` içeriği `.antigravity/skills/prisma.md` standardıyla birleştirilip geçici dosya silindi.
 - Testler ve build doğrulandı. `docs/session-log.md` güncellendi.
