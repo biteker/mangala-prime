@@ -1,7 +1,7 @@
 # Projenin Anlık Durumu
 
 Son Güncelleme: 2026-06-05
-Aktif Branch: feature/prisma7-client-upgrade
+Aktif Branch: feature/postgres-migration
 
 ---
 
@@ -64,12 +64,11 @@ Faz 1 MVP: ██████████ %100
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-06-05 — Prisma Client v7 Yükseltmesi ve Ajan Yeteneği Güncellemesi
+Oturum 2026-06-05 — PostgreSQL 18 Göçü ve Çoklu DB Altyapısı
 
 ### Yapılanlar
-- Prisma generator "prisma-client-js" yerine modern "prisma-client" (v7) sürümüne güncellendi.
-- Client çıktı dizini `backend/src/generated/client` olarak ayarlanıp absolute/relative import yolları buna göre güncellendi.
-- Jest testlerinin `import.meta` ESM syntax'ı sebebiyle patlamasını önlemek amacıyla `backend/package.json`'da Jest config'e mock client eşlemesi yapıldı ve `test/prisma-client.mock.ts` dosyası oluşturuldu.
-- `prisma/seed.ts` dosyasında veritabanı url'i dynamic relative path olarak revize edilip, `npx prisma db seed` için `npx -y tsx prisma/seed.ts` komutu hem root hem local `prisma.config.ts` dosyalarına eklendi.
-- `docs/PRISMA ORM v7 AGENT SKILLS.md` içeriği `.antigravity/skills/prisma.md` standardıyla birleştirilip geçici dosya silindi.
+- Veritabanı SQLite'tan PostgreSQL 18'e yükseltildi. Ayrı izole local ve VPS PostgreSQL 18 Docker compose altyapıları kuruldu.
+- `@prisma/adapter-pg` ve `pg.Pool` entegrasyonu hem `PrismaService` hem `seed.ts` dosyalarına uygulandı.
+- Local PostgreSQL portu `127.0.0.1:5432` localhost loopback adresine güvenli bir şekilde bağlandı. VPS postgres portu ise internete kapatıldı.
+- Bağlantı sınırı 4GB RAM verimliliği için `connection_limit=3` yapıldı ve PostgreSQL 18 mimari yönergeleri (JSONB `JSON_TABLE`, B-Tree index, connection pooling) `.antigravity/skills/prisma.md` standardına kalıcı olarak eklendi.
 - Testler ve build doğrulandı. `docs/session-log.md` güncellendi.
