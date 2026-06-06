@@ -23,6 +23,66 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-06-06] — PostgreSQL Şifre Güncellemesi, Temizlik ve VPS Kurulum Paketlemesi
+
+**Tamamlanan Görev:** Yerel ve VPS PostgreSQL konteyner şifresi `400B1teker` olarak güncellendi. Eski SQLite veritabanı dosyaları (`prisma/dev.db`) yerelden ve sunucudan tamamen silindi. Kullanılmayan `@libsql/client` ve `@prisma/adapter-libsql` bağımlılıkları `backend/package.json` dosyasından kaldırılarak temizlendi. Canlı VPS sunucusuna elle PostgreSQL 18 kurulumu yapılabilmesi için port mapping içermeyen güvenli `docker-compose-vps.yml` yapılandırması hazırlandı ve kurulum kılavuzu adımları güncellendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [docker-compose-vps.yml](file:///home/biteker/Documents/mangala-prime/docker/postgres/docker-compose-vps.yml) [YENİ] — VPS için port mapping içermeyen PostgreSQL compose dosyası.
+- [docker-compose.yml](file:///home/biteker/Documents/mangala-prime/docker/postgres/docker-compose.yml) [MODIFY] — Local postgres şifresi `400B1teker` yapıldı.
+- [package.json](file:///home/biteker/Documents/mangala-prime/backend/package.json) [MODIFY] — SQLite ve LibSQL bağımlılıkları kaldırıldı.
+- [package-lock.json](file:///home/biteker/Documents/mangala-prime/package-lock.json) [MODIFY] — Kaldırılan paketler lock dosyasından temizlendi.
+- [.env](file:///home/biteker/Documents/mangala-prime/backend/.env) [MODIFY] — `DATABASE_URL` yeni şifreye güncellendi (Git'e eklenmez).
+- [.env.example](file:///home/biteker/Documents/mangala-prime/backend/.env.example) [MODIFY] — `DATABASE_URL` şablonu yeni şifreye güncellendi.
+- [global-postgres-setup.md](file:///home/biteker/Documents/mangala-prime/docs/global-postgres-setup.md) [MODIFY] — Kılavuzdaki şifre ve bağlantı örnekleri güncellendi.
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (Monorepo başarıyla build edildi).
+**Açık Sorunlar:** Yok (VPS kurulumu kullanıcı tarafından elle yapılacak).
+**Bir Sonraki Görev:** Canlı ortam kabul testleri ve projenin teslim edilmesi (Final UAT).
+**Commit:** `feat(database): update postgresql password to 400B1teker and add vps compose setup`
+**PR:** Yok
+
+---
+
+### Oturum [2026-06-06] — Küresel PostgreSQL Kurulum Dokümantasyonu
+
+**Tamamlanan Görev:** Diğer projelerde ve gelecekteki çalışmalarda tekrar kullanılabilmesi amacıyla, PostgreSQL 18 çoklu veritabanı Docker Compose yapılandırmasını, otomatik DB oluşturan `init-db.sh` betiğini, güvenlik ve connection limit (bağlantı havuzu) ayarlarını içeren kapsamlı bir kılavuz `docs/global-postgres-setup.md` dosyası altında oluşturuldu.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [global-postgres-setup.md](file:///home/biteker/Documents/mangala-prime/docs/global-postgres-setup.md) [YENİ] — Küresel PostgreSQL 18 Çoklu Veritabanı Kurulum Kılavuzu.
+
+**Test Sonuçları:** Test gerekmiyor (Dokümantasyon).
+**Derleme:** ✅ Hatasız (Sadece markdown belgesi).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Canlı ortam kabul testleri ve projenin teslim edilmesi (Final UAT).
+**Commit:** `docs: document global postgresql 18 multi-db setup and guidelines`
+**PR:** Yok
+
+---
+
+### Oturum [2026-06-05] — PostgreSQL 18 Göçü ve Çoklu DB Altyapısı
+
+**Tamamlanan Görev:** Uygulama veritabanı altyapısı SQLite'tan PostgreSQL 18 sürümüne geçirildi. Hem yerel geliştirme hem de Hetzner VPS sunucularında 10+ projeyi barındırabilecek ortak/global PostgreSQL 18 Docker compose kurulumu ve başlangıçta `POSTGRES_MULTIPLE_DATABASES` çevre değişkenindeki tüm veritabanlarını otomatik oluşturan `init-db.sh` betiği hazırlandı. NestJS backend uygulaması ve tohumlama (`seed.ts`) scripti `@prisma/adapter-pg` ve `pg.Pool` (connection pooling) kullanılarak PostgreSQL 18 ile yerel bağlantı kuracak şekilde güncellendi. Düşük kaynaklı VPS (4GB RAM) ortamını korumak için `connection_limit=3` sınırı uygulandı. PostgreSQL 18 JSONB (`JSON_TABLE`), B-Tree index optimizasyonu ve connection pooling kuralları `.antigravity/skills/prisma.md` yetenek dosyasına kalıcı olarak eklendi.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [docker-compose.yml](file:///home/biteker/Documents/mangala-prime/docker/postgres/docker-compose.yml) [YENİ] — Global PostgreSQL 18 Docker Compose dosyası (Yerel ortamda `127.0.0.1:5432:5432` localhost loopback port eşlemesi yapıldı, VPS'te ise port mapping iptal edilerek internete kapatıldı).
+- [init-db.sh](file:///home/biteker/Documents/mangala-prime/docker/postgres/init-db.sh) [YENİ] — PostgreSQL başlangıcında çoklu veritabanı oluşturan betik.
+- [schema.prisma](file:///home/biteker/Documents/mangala-prime/prisma/schema.prisma) [MODIFY] — `provider = "postgresql"` olarak güncellendi.
+- [prisma.service.ts](file:///home/biteker/Documents/mangala-prime/backend/src/common/prisma/prisma.service.ts) [MODIFY] — LibSQL adaptörü kaldırılarak `@prisma/adapter-pg` ve `pg.Pool` bağlantı entegrasyonu sağlandı.
+- [seed.ts](file:///home/biteker/Documents/mangala-prime/prisma/seed.ts) [MODIFY] — LibSQL adaptörü kaldırılarak native `PrismaPg` ve `pg.Pool` entegrasyonu sağlandı.
+- [prisma.config.ts](file:///home/biteker/Documents/mangala-prime/prisma.config.ts) [MODIFY] — Geliştirici görevlerinde `backend/.env`'yi otomatik yükleyecek şekilde revize edildi.
+- [docker-compose.yml](file:///home/biteker/Documents/mangala-prime/docker-compose.yml) [MODIFY] — SQLite volume mapping ve SQLite DATABASE_URL ayarları kaldırıldı.
+- [ci-cd.yml](file:///home/biteker/Documents/mangala-prime/.github/workflows/ci-cd.yml) [MODIFY] — SSH deploy adımında SQLite yerine production PostgreSQL bağlantı değişkenlerinin kullanılmasını sağlayacak şekilde güncellendi.
+- [prisma.md](file:///home/biteker/Documents/mangala-prime/.antigravity/skills/prisma.md) [MODIFY] — PostgreSQL 18 Mimari Yönergeleri (JSONB, B-Tree, Connection Pooling) eklendi.
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (Monorepo `npm run build` başarıyla tamamlandı).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Canlı ortam kabul testleri ve projenin teslim edilmesi (Final UAT).
+**Commit:** `feat(database): migrate to postgresql 18 and configure multi-db docker setups`
+**PR:** Yok (Doğrudan feature branch geliştirme commit'i)
+
+---
+
 ### Oturum [2026-06-05] — Prisma Client v7 Yükseltmesi ve Ajan Yeteneği Güncellemesi
 
 **Tamamlanan Görev:** Prisma ORM generator istemcisi `"prisma-client-js"`'ten modern ve Rust-free `"prisma-client"` (Prisma v7) sürümüne yükseltildi. İstemci çıktı dizini zorunlu olarak backend projesi içine (`backend/src/generated/client`) alındı. `PrismaService` ve veritabanı tohumlama (`seed.ts`) import yolları relative olarak güncellendi. NestJS ve Jest'in CommonJS yapısına uyum sağlaması için `prisma/schema.prisma` dosyasında generator bloğuna `moduleFormat = "cjs"` parametresi eklenerek CommonJS çıktı formatı zorunlu kılındı. Jest testlerinde Wasm/ESM `import.meta` kullanımının yarattığı derleme hatasını çözmek için `moduleNameMapper` ile mock client entegre edildi. `prisma/seed.ts` dosyası hem root hem backend dizinlerinden çalışabilecek şekilde dinamik yol çözümüyle revize edildi. Geçici v7 yetenek dokümanı silindi ve kuralları kalıcı olarak `.antigravity/skills/prisma.md` içine aktarıldı. Son olarak, test işlemleri için backend ve frontend geliştirme sunucuları arka planda ayağa kaldırıldı.

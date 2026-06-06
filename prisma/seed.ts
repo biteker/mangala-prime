@@ -1,17 +1,14 @@
 import { PrismaClient } from '../backend/src/generated/client/client.js';
-import { PrismaLibSql } from '@prisma/adapter-libsql';
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
 import * as bcrypt from 'bcrypt';
-import * as path from 'path';
 
-const dbAbsPath = path.resolve(
-  process.cwd(),
-  process.cwd().endsWith('backend') ? '../prisma/dev.db' : 'prisma/dev.db'
-);
-
-const config = {
-  url: process.env.DATABASE_URL || `file:${dbAbsPath}`,
-};
-const adapter = new PrismaLibSql(config);
+const dbUrl = process.env.DATABASE_URL;
+if (!dbUrl) {
+  throw new Error('DATABASE_URL is not defined!');
+}
+const pool = new pg.Pool({ connectionString: dbUrl });
+const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main(): Promise<void> {
@@ -42,4 +39,5 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
+    await pool.end();
   });

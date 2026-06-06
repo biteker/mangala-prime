@@ -1,0 +1,22 @@
+services:
+  postgres-db:
+    image: postgres:18-alpine
+    container_name: global-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=400B1teker
+      - POSTGRES_MULTIPLE_DATABASES=mangala_db
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    networks:
+      - db-network
+
+networks:
+  db-network:
+    name: web-network
+    external: true
+
+volumes:
+  postgres_data:

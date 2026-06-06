@@ -1,7 +1,7 @@
 # Projenin Anlık Durumu
 
 Son Güncelleme: 2026-06-05
-Aktif Branch: feature/prisma7-client-upgrade
+Aktif Branch: feature/postgres-migration
 
 ---
 
@@ -64,12 +64,10 @@ Faz 1 MVP: ██████████ %100
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-06-05 — Prisma Client v7 Yükseltmesi ve Ajan Yeteneği Güncellemesi
+Oturum 2026-06-06 — PostgreSQL Şifre Güncellemesi, Temizlik ve VPS Kurulum Paketlemesi
 
 ### Yapılanlar
-- Prisma generator "prisma-client-js" yerine modern "prisma-client" (v7) sürümüne güncellendi.
-- Client çıktı dizini `backend/src/generated/client` olarak ayarlanıp absolute/relative import yolları buna göre güncellendi.
-- Jest testlerinin `import.meta` ESM syntax'ı sebebiyle patlamasını önlemek amacıyla `backend/package.json`'da Jest config'e mock client eşlemesi yapıldı ve `test/prisma-client.mock.ts` dosyası oluşturuldu.
-- `prisma/seed.ts` dosyasında veritabanı url'i dynamic relative path olarak revize edilip, `npx prisma db seed` için `npx -y tsx prisma/seed.ts` komutu hem root hem local `prisma.config.ts` dosyalarına eklendi.
-- `docs/PRISMA ORM v7 AGENT SKILLS.md` içeriği `.antigravity/skills/prisma.md` standardıyla birleştirilip geçici dosya silindi.
-- Testler ve build doğrulandı. `docs/session-log.md` güncellendi.
+- PostgreSQL yerel ve VPS şifresi `400B1teker` yapıldı. Yerel compose ve backend `.env` dosyaları güncellendi, local veritabanı sıfırlanıp yeni şifreyle yeniden seed edildi.
+- Eski SQLite veritabanı dosyaları silindi ve kullanılmayan LibSQL/SQLite paketleri `backend/package.json` dosyasından kaldırılarak temizlendi.
+- VPS için port mapping içermeyen güvenli `docker-compose-vps.yml` yapılandırması hazırlandı ve kurulum kılavuzu adımları güncellendi.
+- `docs/session-log.md` ve `.antigravity/context/current-state.md` güncellendi.
