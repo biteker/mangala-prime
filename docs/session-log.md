@@ -23,6 +23,21 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-06-06] — Küresel PostgreSQL Kurulum Dokümantasyonu
+
+**Tamamlanan Görev:** Diğer projelerde ve gelecekteki çalışmalarda tekrar kullanılabilmesi amacıyla, PostgreSQL 18 çoklu veritabanı Docker Compose yapılandırmasını, otomatik DB oluşturan `init-db.sh` betiğini, güvenlik ve connection limit (bağlantı havuzu) ayarlarını içeren kapsamlı bir kılavuz `docs/global-postgres-setup.md` dosyası altında oluşturuldu.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [global-postgres-setup.md](file:///home/biteker/Documents/mangala-prime/docs/global-postgres-setup.md) [YENİ] — Küresel PostgreSQL 18 Çoklu Veritabanı Kurulum Kılavuzu.
+
+**Test Sonuçları:** Test gerekmiyor (Dokümantasyon).
+**Derleme:** ✅ Hatasız (Sadece markdown belgesi).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Canlı ortam kabul testleri ve projenin teslim edilmesi (Final UAT).
+**Commit:** `docs: document global postgresql 18 multi-db setup and guidelines`
+**PR:** Yok
+
+---
+
 ### Oturum [2026-06-05] — PostgreSQL 18 Göçü ve Çoklu DB Altyapısı
 
 **Tamamlanan Görev:** Uygulama veritabanı altyapısı SQLite'tan PostgreSQL 18 sürümüne geçirildi. Hem yerel geliştirme hem de Hetzner VPS sunucularında 10+ projeyi barındırabilecek ortak/global PostgreSQL 18 Docker compose kurulumu ve başlangıçta `POSTGRES_MULTIPLE_DATABASES` çevre değişkenindeki tüm veritabanlarını otomatik oluşturan `init-db.sh` betiği hazırlandı. NestJS backend uygulaması ve tohumlama (`seed.ts`) scripti `@prisma/adapter-pg` ve `pg.Pool` (connection pooling) kullanılarak PostgreSQL 18 ile yerel bağlantı kuracak şekilde güncellendi. Düşük kaynaklı VPS (4GB RAM) ortamını korumak için `connection_limit=3` sınırı uygulandı. PostgreSQL 18 JSONB (`JSON_TABLE`), B-Tree index optimizasyonu ve connection pooling kuralları `.antigravity/skills/prisma.md` yetenek dosyasına kalıcı olarak eklendi.

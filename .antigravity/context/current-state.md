@@ -64,11 +64,8 @@ Faz 1 MVP: ██████████ %100
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-06-05 — PostgreSQL 18 Göçü ve Çoklu DB Altyapısı
+Oturum 2026-06-06 — Küresel PostgreSQL Kurulum Dokümantasyonu
 
 ### Yapılanlar
-- Veritabanı SQLite'tan PostgreSQL 18'e yükseltildi. Ayrı izole local ve VPS PostgreSQL 18 Docker compose altyapıları kuruldu.
-- `@prisma/adapter-pg` ve `pg.Pool` entegrasyonu hem `PrismaService` hem `seed.ts` dosyalarına uygulandı.
-- Local PostgreSQL portu `127.0.0.1:5432` localhost loopback adresine güvenli bir şekilde bağlandı. VPS postgres portu ise internete kapatıldı.
-- Bağlantı sınırı 4GB RAM verimliliği için `connection_limit=3` yapıldı ve PostgreSQL 18 mimari yönergeleri (JSONB `JSON_TABLE`, B-Tree index, connection pooling) `.antigravity/skills/prisma.md` standardına kalıcı olarak eklendi.
-- Testler ve build doğrulandı. `docs/session-log.md` güncellendi.
+- Diğer projelerde ve gelecekteki çalışmalarda tekrar kullanılabilmesi amacıyla, PostgreSQL 18 çoklu veritabanı Docker Compose yapılandırmasını, otomatik DB oluşturan `init-db.sh` betiğini, güvenlik ve connection limit (bağlantı havuzu) ayarlarını içeren kapsamlı bir kılavuz `docs/global-postgres-setup.md` dosyası altında oluşturuldu.
+- `docs/session-log.md` ve `.antigravity/context/current-state.md` güncellendi.
