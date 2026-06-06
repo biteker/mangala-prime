@@ -69,5 +69,6 @@ Oturum 2026-06-06 — PostgreSQL Şifre Güncellemesi, Temizlik ve VPS Kurulum P
 ### Yapılanlar
 - PostgreSQL yerel ve VPS şifresi `400B1teker` yapıldı. Yerel compose ve backend `.env` dosyaları güncellendi, local veritabanı sıfırlanıp yeni şifreyle yeniden seed edildi.
 - Eski SQLite veritabanı dosyaları silindi ve kullanılmayan LibSQL/SQLite paketleri `backend/package.json` dosyasından kaldırılarak temizlendi.
+- CI/CD derleme aşamasında `DATABASE_URL` bulunmadığında `prisma generate` adımının çökmesini önlemek için `prisma.config.ts` dosyasına yedek (fallback) PostgreSQL bağlantısı tanımlandı.
 - VPS için port mapping içermeyen güvenli `docker-compose-vps.yml` yapılandırması hazırlandı ve kurulum kılavuzu adımları güncellendi.
 - `docs/session-log.md` ve `.antigravity/context/current-state.md` güncellendi.

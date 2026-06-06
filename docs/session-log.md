@@ -25,10 +25,11 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 
 ### Oturum [2026-06-06] — PostgreSQL Şifre Güncellemesi, Temizlik ve VPS Kurulum Paketlemesi
 
-**Tamamlanan Görev:** Yerel ve VPS PostgreSQL konteyner şifresi `400B1teker` olarak güncellendi. Eski SQLite veritabanı dosyaları (`prisma/dev.db`) yerelden ve sunucudan tamamen silindi. Kullanılmayan `@libsql/client` ve `@prisma/adapter-libsql` bağımlılıkları `backend/package.json` dosyasından kaldırılarak temizlendi. Canlı VPS sunucusuna elle PostgreSQL 18 kurulumu yapılabilmesi için port mapping içermeyen güvenli `docker-compose-vps.yml` yapılandırması hazırlandı ve kurulum kılavuzu adımları güncellendi.
+**Tamamlanan Görev:** Yerel ve VPS PostgreSQL konteyner şifresi `400B1teker` olarak güncellendi. Eski SQLite veritabanı dosyaları (`prisma/dev.db`) yerelden ve sunucudan tamamen silindi. Kullanılmayan `@libsql/client` ve `@prisma/adapter-libsql` bağımlılıkları `backend/package.json` dosyasından kaldırılarak temizlendi. CI/CD ortamında `DATABASE_URL` bulunmadığında `prisma generate` adımının hata fırlatmasını önlemek için `prisma.config.ts` dosyasına varsayılan bir yedek (fallback) PostgreSQL bağlantı dizesi eklendi. Canlı VPS sunucusuna elle PostgreSQL 18 kurulumu yapılabilmesi için port mapping içermeyen güvenli `docker-compose-vps.yml` yapılandırması hazırlandı ve kurulum kılavuzu adımları güncellendi.
 **Oluşturulan/Değiştirilen Dosyalar:**
 - [docker-compose-vps.yml](file:///home/biteker/Documents/mangala-prime/docker/postgres/docker-compose-vps.yml) [YENİ] — VPS için port mapping içermeyen PostgreSQL compose dosyası.
 - [docker-compose.yml](file:///home/biteker/Documents/mangala-prime/docker/postgres/docker-compose.yml) [MODIFY] — Local postgres şifresi `400B1teker` yapıldı.
+- [prisma.config.ts](file:///home/biteker/Documents/mangala-prime/prisma.config.ts) [MODIFY] — CI ortamı için yedek DATABASE_URL bağlantısı tanımlandı.
 - [package.json](file:///home/biteker/Documents/mangala-prime/backend/package.json) [MODIFY] — SQLite ve LibSQL bağımlılıkları kaldırıldı.
 - [package-lock.json](file:///home/biteker/Documents/mangala-prime/package-lock.json) [MODIFY] — Kaldırılan paketler lock dosyasından temizlendi.
 - [.env](file:///home/biteker/Documents/mangala-prime/backend/.env) [MODIFY] — `DATABASE_URL` yeni şifreye güncellendi (Git'e eklenmez).
