@@ -41,7 +41,7 @@ services:
     restart: unless-stopped
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PASSWORD=400B1teker
       # Virgülle ayrılmış olarak oluşturulacak veritabanı isimlerini buraya yazın
       - POSTGRES_MULTIPLE_DATABASES=mangala_db,proje2_db,proje3_db
     ports:
@@ -107,7 +107,7 @@ Her bir projenin `DATABASE_URL` tanımında maksimum bağlantı sayısı `connec
 
 ```env
 # Bağlantı Limitli DATABASE_URL Formatı
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/mangala_db?connection_limit=3&pool_timeout=20"
+DATABASE_URL="postgresql://postgres:400B1teker@localhost:5432/mangala_db?connection_limit=3&pool_timeout=20"
 ```
 
 ### B. PostgreSQL 18 Mimari Yönergeleri

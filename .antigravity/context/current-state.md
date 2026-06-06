@@ -64,8 +64,10 @@ Faz 1 MVP: ██████████ %100
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-06-06 — Küresel PostgreSQL Kurulum Dokümantasyonu
+Oturum 2026-06-06 — PostgreSQL Şifre Güncellemesi, Temizlik ve VPS Kurulum Paketlemesi
 
 ### Yapılanlar
-- Diğer projelerde ve gelecekteki çalışmalarda tekrar kullanılabilmesi amacıyla, PostgreSQL 18 çoklu veritabanı Docker Compose yapılandırmasını, otomatik DB oluşturan `init-db.sh` betiğini, güvenlik ve connection limit (bağlantı havuzu) ayarlarını içeren kapsamlı bir kılavuz `docs/global-postgres-setup.md` dosyası altında oluşturuldu.
+- PostgreSQL yerel ve VPS şifresi `400B1teker` yapıldı. Yerel compose ve backend `.env` dosyaları güncellendi, local veritabanı sıfırlanıp yeni şifreyle yeniden seed edildi.
+- Eski SQLite veritabanı dosyaları silindi ve kullanılmayan LibSQL/SQLite paketleri `backend/package.json` dosyasından kaldırılarak temizlendi.
+- VPS için port mapping içermeyen güvenli `docker-compose-vps.yml` yapılandırması hazırlandı ve kurulum kılavuzu adımları güncellendi.
 - `docs/session-log.md` ve `.antigravity/context/current-state.md` güncellendi.

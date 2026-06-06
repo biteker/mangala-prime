@@ -23,6 +23,27 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-06-06] — PostgreSQL Şifre Güncellemesi, Temizlik ve VPS Kurulum Paketlemesi
+
+**Tamamlanan Görev:** Yerel ve VPS PostgreSQL konteyner şifresi `400B1teker` olarak güncellendi. Eski SQLite veritabanı dosyaları (`prisma/dev.db`) yerelden ve sunucudan tamamen silindi. Kullanılmayan `@libsql/client` ve `@prisma/adapter-libsql` bağımlılıkları `backend/package.json` dosyasından kaldırılarak temizlendi. Canlı VPS sunucusuna elle PostgreSQL 18 kurulumu yapılabilmesi için port mapping içermeyen güvenli `docker-compose-vps.yml` yapılandırması hazırlandı ve kurulum kılavuzu adımları güncellendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [docker-compose-vps.yml](file:///home/biteker/Documents/mangala-prime/docker/postgres/docker-compose-vps.yml) [YENİ] — VPS için port mapping içermeyen PostgreSQL compose dosyası.
+- [docker-compose.yml](file:///home/biteker/Documents/mangala-prime/docker/postgres/docker-compose.yml) [MODIFY] — Local postgres şifresi `400B1teker` yapıldı.
+- [package.json](file:///home/biteker/Documents/mangala-prime/backend/package.json) [MODIFY] — SQLite ve LibSQL bağımlılıkları kaldırıldı.
+- [package-lock.json](file:///home/biteker/Documents/mangala-prime/package-lock.json) [MODIFY] — Kaldırılan paketler lock dosyasından temizlendi.
+- [.env](file:///home/biteker/Documents/mangala-prime/backend/.env) [MODIFY] — `DATABASE_URL` yeni şifreye güncellendi (Git'e eklenmez).
+- [.env.example](file:///home/biteker/Documents/mangala-prime/backend/.env.example) [MODIFY] — `DATABASE_URL` şablonu yeni şifreye güncellendi.
+- [global-postgres-setup.md](file:///home/biteker/Documents/mangala-prime/docs/global-postgres-setup.md) [MODIFY] — Kılavuzdaki şifre ve bağlantı örnekleri güncellendi.
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (Monorepo başarıyla build edildi).
+**Açık Sorunlar:** Yok (VPS kurulumu kullanıcı tarafından elle yapılacak).
+**Bir Sonraki Görev:** Canlı ortam kabul testleri ve projenin teslim edilmesi (Final UAT).
+**Commit:** `feat(database): update postgresql password to 400B1teker and add vps compose setup`
+**PR:** Yok
+
+---
+
 ### Oturum [2026-06-06] — Küresel PostgreSQL Kurulum Dokümantasyonu
 
 **Tamamlanan Görev:** Diğer projelerde ve gelecekteki çalışmalarda tekrar kullanılabilmesi amacıyla, PostgreSQL 18 çoklu veritabanı Docker Compose yapılandırmasını, otomatik DB oluşturan `init-db.sh` betiğini, güvenlik ve connection limit (bağlantı havuzu) ayarlarını içeren kapsamlı bir kılavuz `docs/global-postgres-setup.md` dosyası altında oluşturuldu.
