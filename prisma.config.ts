@@ -7,11 +7,7 @@ if (!process.env.DATABASE_URL) {
   dotenv.config({ path: path.join(__dirname, 'backend', '.env') });
 }
 
-const dbUrl = process.env.DATABASE_URL;
-
-if (!dbUrl) {
-  throw new Error('DATABASE_URL environment variable is not defined!');
-}
+const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres:dummy_password_for_ci_only@localhost:5432/mangala_db?schema=public';
 
 export default defineConfig({
   schema: path.join(__dirname, 'prisma', 'schema.prisma'),
