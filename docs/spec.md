@@ -118,12 +118,13 @@ Local PvP aynı tarayıcı sekmesinde iki oyuncunun sırayla oynamasıdır:
 
 ```prisma
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider = "postgresql"
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider     = "prisma-client"
+  output       = "../backend/src/generated/client"
+  moduleFormat = "cjs"
 }
 
 model User {
