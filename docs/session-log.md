@@ -23,6 +23,24 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-06-06] — PostgreSQL Göçü İncelemesi ve Migrasyon Uyuşmazlığı Giderilmesi
+
+**Tamamlanan Görev:** SQLite'tan PostgreSQL 18'e yapılan veritabanı göçü ve genel Faz 1 kurulumu detaylı şekilde gözden geçirilip test edildi. Yerel ortamda `npx prisma migrate status` çalıştırıldığında eski SQLite kalıntılarından ötürü ortaya çıkan provider uyuşmazlığı (`P3019` hatası) tespit edilerek eski SQLite migrasyon klasörü silindi, temiz PostgreSQL 18 uyumlu yeni migrasyon (`init_postgres`) başarıyla oluşturulup yerel PostgreSQL veritabanına uygulandı ve 5 test kullanıcısı başarıyla tohumlandı (seed edildi). Dockerfile dosyasından artık kullanılmayan SQLite veri klasörü oluşturma komutları kaldırıldı ve teknik şartnamedeki (`docs/spec.md`) örnek Prisma şeması PostgreSQL 18 ve Prisma 7 uyumlu olacak şekilde güncellendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [prisma/migrations/20260606201211_init_postgres/migration.sql](file:///home/biteker/Documents/mangala-prime/prisma/migrations/20260606201211_init_postgres/migration.sql) [YENİ] — Temiz PostgreSQL migrasyon SQL dosyası.
+- [prisma/migrations/migration_lock.toml](file:///home/biteker/Documents/mangala-prime/prisma/migrations/migration_lock.toml) [MODIFY] — Veritabanı sağlayıcı kilidi `provider = "postgresql"` olarak güncellendi.
+- [Dockerfile](file:///home/biteker/Documents/mangala-prime/Dockerfile) [MODIFY] — Artık gereksiz olan SQLite klasör/dosya oluşturma komutları kaldırıldı.
+- [spec.md](file:///home/biteker/Documents/mangala-prime/docs/spec.md) [MODIFY] — Örnek Prisma şeması PostgreSQL ve Prisma 7 generator yapısına uygun şekilde güncellendi.
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (Monorepo `npm run build` başarıyla tamamlandı).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Canlı ortam kabul testleri ve projenin teslim edilmesi (Final UAT).
+**Commit:** `chore(database): resolve provider mismatch, recreate postgres migrations and clean dockerfile`
+**PR:** Yok
+
+---
+
 ### Oturum [2026-06-06] — PostgreSQL Şifre Güncellemesi, Temizlik ve VPS Kurulum Paketlemesi
 
 **Tamamlanan Görev:** Yerel ve VPS PostgreSQL konteyner şifresi `400B1teker` olarak güncellendi. Eski SQLite veritabanı dosyaları (`prisma/dev.db`) yerelden ve sunucudan tamamen silindi. Kullanılmayan `@libsql/client` ve `@prisma/adapter-libsql` bağımlılıkları `backend/package.json` dosyasından kaldırılarak temizlendi. CI/CD ortamında `DATABASE_URL` bulunmadığında `prisma generate` adımının hata fırlatmasını önlemek için `prisma.config.ts` dosyasına varsayılan bir yedek (fallback) PostgreSQL bağlantı dizesi eklendi. Canlı VPS sunucusuna elle PostgreSQL 18 kurulumu yapılabilmesi için port mapping içermeyen güvenli `docker-compose-vps.yml` yapılandırması hazırlandı ve kurulum kılavuzu adımları güncellendi.

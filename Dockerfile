@@ -70,7 +70,4 @@ COPY --from=build-frontend /app/frontend/dist ./backend/public
 
 EXPOSE 3000
 
-# SQLite veritabanı dosyasının kalıcı olması için boş dosya oluştur
-RUN mkdir -p /app/backend/db && touch /app/backend/db/dev.db
-
 CMD ["node", "backend/dist/main.js"]
