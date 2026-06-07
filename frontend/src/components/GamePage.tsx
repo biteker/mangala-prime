@@ -3,6 +3,38 @@ import { useGameStore } from '../stores/game.store';
 import { useAuthStore } from '../stores/auth.store';
 import { useRouter } from '../lib/router';
 
+// SVG Icon components for premium feel
+const UserIcon = (): React.JSX.Element => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+
+const TrophyIcon = (): React.JSX.Element => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+    <path d="M4 22h16" />
+    <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34" />
+    <path d="M12 2a15.3 15.3 0 0 1 4 7H8a15.3 15.3 0 0 1 4-7z" />
+  </svg>
+);
+
+const ClockIcon = (): React.JSX.Element => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>
+);
+
+const SendIcon = (): React.JSX.Element => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+    <line x1="22" y1="2" x2="11" y2="13" />
+    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+  </svg>
+);
+
 // Saat yönünün tersine taş dağıtım rotasını hesaplar (Rakip haznesini atlar)
 function calculateAnimationSteps(startPit: number, stoneCount: number): number[] {
   const steps: number[] = [];
@@ -61,6 +93,12 @@ export function GamePage(): React.JSX.Element {
 
   const [chatInput, setChatInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
 
   // Animasyon için yerel state tanımları
   const [visualBoard, setVisualBoard] = useState<number[]>(board);
@@ -277,25 +315,41 @@ export function GamePage(): React.JSX.Element {
       {/* OYUN HEADER BİLGİSİ */}
       <div className="game-header-panel">
         <div className="player-badge me">
-          <span className="player-role-indicator">P{yourColor === 0 ? '1' : '2'} (Siz)</span>
-          <span className="player-username">{currentUser.username}</span>
-          <span className="player-elo-info">{currentUser.elo} ELO</span>
+          <div className="player-avatar">
+            <UserIcon />
+          </div>
+          <div className="player-info">
+            <span className="player-username">{currentUser.username}</span>
+            <div className="player-elo-container">
+              <TrophyIcon />
+              <span className="player-elo-info">{currentUser.elo}</span>
+            </div>
+          </div>
+          {isMyTurn && <div className="active-turn-dot" />}
         </div>
 
         <div className="timer-panel">
-          <span className="timer-label">SÜRE</span>
+          <ClockIcon />
           <span className={`timer-seconds ${turnTimeLeft <= 5 ? 'danger' : ''}`}>
-            {turnTimeLeft}s
+            {formatTime(turnTimeLeft)}
           </span>
           <span className="turn-status-text">
-            {isMyTurn ? 'Sıra Sizde!' : 'Rakibin Hamlesi Bekleniyor...'}
+            {isMyTurn ? 'Sıra Sizde!' : 'Sıra Rakipte'}
           </span>
         </div>
 
         <div className="player-badge opponent">
-          <span className="player-role-indicator">P{yourColor === 0 ? '2' : '1'}</span>
-          <span className="player-username">{opponentUsername || 'Rakip'}</span>
-          <span className="player-elo-info">{opponentElo} ELO</span>
+          <div className="player-avatar">
+            <UserIcon />
+          </div>
+          <div className="player-info">
+            <span className="player-username">{opponentUsername || 'Rakip'}</span>
+            <div className="player-elo-container">
+              <TrophyIcon />
+              <span className="player-elo-info">{opponentElo}</span>
+            </div>
+          </div>
+          {!isMyTurn && <div className="active-turn-dot" />}
         </div>
       </div>
 
@@ -365,7 +419,7 @@ export function GamePage(): React.JSX.Element {
               disabled={!chatEnabled}
             />
             <button type="submit" className="auth-button chat-send-btn" disabled={!chatEnabled}>
-              Gönder
+              <SendIcon />
             </button>
           </form>
         </div>
@@ -429,6 +483,13 @@ export function GamePage(): React.JSX.Element {
               {renderStones(visualBoard[rightTreasuryIndex])}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Mobilde ekranın altında sırayı gösteren indicator */}
+      <div className="mobile-turn-indicator-container">
+        <div className={`mobile-turn-indicator ${isMyTurn ? 'my-turn' : 'opponent-turn'}`}>
+          {isMyTurn ? 'Sıra Sizde' : 'Sıra Rakipte'}
         </div>
       </div>
 

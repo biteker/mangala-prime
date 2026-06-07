@@ -1,7 +1,6 @@
 # Projenin Anlık Durumu
 
-Son Güncelleme: 2026-06-05
-Aktif Branch: feature/postgres-migration
+Aktif Branch: feature/rustic-v0-theme
 
 ---
 
@@ -64,13 +63,11 @@ Faz 1 MVP: ██████████ %100
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-06-06 — PostgreSQL Göçü İncelemesi ve Migrasyon Uyuşmazlığı Giderilmesi
+Oturum 2026-06-07 — Rustik v0.app Teması Eklenmesi
 
 ### Yapılanlar
-- SQLite'tan PostgreSQL 18 veritabanı göçü detaylıca incelendi.
-- `P3019` provider uyuşmazlığı hatası veren eski SQLite migration kalıntıları silindi, PostgreSQL 18 uyumlu yeni temiz migrasyon (`init_postgres`) başarıyla oluşturulup yerel PostgreSQL veritabanına uygulandı.
-- `npx prisma db seed` ile veritabanı 5 test kullanıcısıyla başarıyla tohumlandı.
-- `Dockerfile` içindeki gereksiz SQLite klasör/dosya oluşturma komutları temizlendi.
-- `docs/spec.md` içindeki örnek Prisma şeması PostgreSQL ve Prisma 7 generator ayarlarına uygun hale getirildi.
-- Bütün backend unit testleri ve monorepo build işlemleri başarıyla doğrulandı.
+- `ThemeType` tip tanımına ve Zustand store temayı sıfırlama mantığına `theme-rustic-v0` eklendi.
+- `App.tsx` tema buton rotasyonuna, ekran etiketine ve element sınıf güncellemelerine `theme-rustic-v0` entegre edildi.
+- `index.css` dosyasında `theme-rustic-v0` ("Rustik v0.app") için özel CSS değişkenleri, radial degradeli sayfa arka planı, cam ve ahşap görünümlü paneller, 3D parıldayan bilyeler, oyuncu kartları ve oyun sonu modalları tanımlandı.
+- Tüm monorepo build derleme ve unit test adımları (`npm run build` & `npm run test`) başarıyla doğrulandı.
 

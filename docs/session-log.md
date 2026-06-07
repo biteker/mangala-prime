@@ -23,6 +23,31 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-06-07] — Rustik v0.app Teması Eklenmesi ve Mobil Düzen İyileştirmeleri
+
+**Tamamlanan Görev:** Platforma 4. tema seçeneği olan "Rustik v0.app" (`theme-rustic-v0`) entegre edildi. Bu yeni tema Zustand store durum yönetimine eklenerek App bileşeni üzerinden döngüsel tema geçişine dahil edildi. Oyun sayfası (`GamePage.tsx`) ve CSS tasarımı (`index.css`), v0.app tasarım referansı ile tamamen birebir uyumlu olacak şekilde yeniden kodlandı:
+1. Oyuncu başlık panelleri dikeyden yataya geçirilerek avatar (User), ELO (Trophy) ve aktif sıra noktaları (Green pulse dot) eklendi.
+2. Zamanlayıcı formatı `00:XX` (Dakika:Saniye) şeklinde güncellendi ve Clock ikon entegrasyonu sağlandı.
+3. Mobil görünümün ekrana tam sığması ("tam oturması") için dikey yığılmayı engelleyen yatay header yapısı ve sohbet alanının (`chat-panel-container`) yüksekliğini kısıtlayan esnek yerleşimler eklendi.
+4. Sohbet gönderme butonuna SVG Send ikon tasarımı entegre edilerek buton daireye dönüştürüldü.
+5. Mobilde sıranın kimde olduğunu gösteren alt turn indicator rozeti ("Sıra Sizde / Sıra Rakipte") eklendi.
+Monorepo derleme ve tüm unit testler başarıyla doğrulandı.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [theme.store.ts](file:///home/biteker/Documents/mangala-prime/frontend/src/stores/theme.store.ts) [MODIFY] — `ThemeType` tip tanımına ve `setTheme` temizlik listesine `theme-rustic-v0` eklendi.
+- [App.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/App.tsx) [MODIFY] — Tema buton rotasyonuna, display label eşleşmesine ve useEffect class list temizliğine yeni tema eklendi.
+- [GamePage.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/GamePage.tsx) [MODIFY] — SVG ikonlar, formatTime yardımcı metodu, yatay header layout, dairesel send sohbet butonu ve alt turn indicator entegre edildi.
+- [index.css](file:///home/biteker/Documents/mangala-prime/frontend/src/index.css) [MODIFY] — `theme-rustic-v0` değişkenleri, 3D cam bilyeler, avatar/trophy badge'leri, dairesel buton, ve mobilde ekrana tam sığmayı sağlayan esnek media query'ler tanımlandı.
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (Monorepo `npm run build` başarıyla derlendi).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Canlı ortam kabul testleri ve projenin teslim edilmesi (Final UAT).
+**Commit:** `feat(theme): add premium rustik v0.app theme with 3D glass marbles and glassmorphism styling`
+**PR:** Yok (Doğrudan feature branch geliştirme commit'i)
+
+---
+
 ### Oturum [2026-06-06] — PostgreSQL Göçü İncelemesi ve Migrasyon Uyuşmazlığı Giderilmesi
 
 **Tamamlanan Görev:** SQLite'tan PostgreSQL 18'e yapılan veritabanı göçü ve genel Faz 1 kurulumu detaylı şekilde gözden geçirilip test edildi. Yerel ortamda `npx prisma migrate status` çalıştırıldığında eski SQLite kalıntılarından ötürü ortaya çıkan provider uyuşmazlığı (`P3019` hatası) tespit edilerek eski SQLite migrasyon klasörü silindi, temiz PostgreSQL 18 uyumlu yeni migrasyon (`init_postgres`) başarıyla oluşturulup yerel PostgreSQL veritabanına uygulandı ve 5 test kullanıcısı başarıyla tohumlandı (seed edildi). Dockerfile dosyasından artık kullanılmayan SQLite veri klasörü oluşturma komutları kaldırıldı ve teknik şartnamedeki (`docs/spec.md`) örnek Prisma şeması PostgreSQL 18 ve Prisma 7 uyumlu olacak şekilde güncellendi.

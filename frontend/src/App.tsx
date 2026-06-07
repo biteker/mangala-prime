@@ -16,7 +16,7 @@ function App(): React.JSX.Element {
   // Tema sınıfının root elementine uygulanması
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove('theme-wood', 'theme-neon', 'theme-rustic');
+    root.classList.remove('theme-wood', 'theme-neon', 'theme-rustic', 'theme-rustic-v0');
     root.classList.add(theme);
   }, [theme]);
 
@@ -29,7 +29,7 @@ function App(): React.JSX.Element {
   }, []);
 
   const handleThemeToggle = (): void => {
-    const order: Array<typeof theme> = ['theme-wood', 'theme-neon', 'theme-rustic'];
+    const order: Array<typeof theme> = ['theme-wood', 'theme-neon', 'theme-rustic', 'theme-rustic-v0'];
     const currentIndex = order.indexOf(theme);
     const nextIndex = (currentIndex + 1) % order.length;
     setTheme(order[nextIndex]);
@@ -40,6 +40,7 @@ function App(): React.JSX.Element {
       case 'theme-wood': return 'Ahşap';
       case 'theme-neon': return 'Neon';
       case 'theme-rustic': return 'Rustik';
+      case 'theme-rustic-v0': return 'Rustik v0.app';
       default: return 'Ahşap';
     }
   };
