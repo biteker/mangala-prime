@@ -103,7 +103,10 @@ export function GamePage(): React.JSX.Element {
   };
 
   // Animasyon için yerel state tanımları
-  const [lastMove, setLastMove] = useState<LastMoveDetails | null>(null);
+  const [boardData, setBoardData] = useState<{
+    board: number[];
+    lastMove: LastMoveDetails | null;
+  }>({ board, lastMove: null });
   const [isAnimating, setIsAnimating] = useState(false);
   const [showGameOverModal, setShowGameOverModal] = useState(false);
   const prevBoardRef = useRef<number[]>(board);
@@ -118,7 +121,7 @@ export function GamePage(): React.JSX.Element {
 
     // Eşleşme başlangıcı, reconnect veya geçersiz durumlarda animasyon oynatmadan direkt eşitle
     if (prevTotal !== nextTotal || prevTotal === 0) {
-      setLastMove(null);
+      setBoardData({ board, lastMove: null });
       return;
     }
 
@@ -133,7 +136,7 @@ export function GamePage(): React.JSX.Element {
     }
 
     if (lastMovePit === -1) {
-      setLastMove(null);
+      setBoardData({ board, lastMove: null });
       return;
     }
 
@@ -141,21 +144,24 @@ export function GamePage(): React.JSX.Element {
     const steps = calculateAnimationSteps(lastMovePit, startStones);
 
     if (steps.length === 0) {
-      setLastMove(null);
+      setBoardData({ board, lastMove: null });
       return;
     }
 
     setIsAnimating(true);
-    setLastMove({
-      startPit: lastMovePit,
-      steps,
-      nextState: board
+    setBoardData({
+      board,
+      lastMove: {
+        startPit: lastMovePit,
+        steps,
+        nextState: board
+      }
     });
   }, [board]);
 
   const handleAnimationComplete = (): void => {
     setIsAnimating(false);
-    setLastMove(null);
+    setBoardData(prev => ({ ...prev, lastMove: null }));
   };
 
   // Oyun sonu modalını animasyon tamamlanana kadar erteleyen mekanizma
@@ -219,7 +225,7 @@ export function GamePage(): React.JSX.Element {
         : pitIndex >= 7 && pitIndex <= 12;
 
     if (!isMyPit) return;
-    if (board[pitIndex] === 0) return;
+    if (boardData.board[pitIndex] === 0) return;
 
     makeMove(pitIndex);
   };
@@ -232,12 +238,12 @@ export function GamePage(): React.JSX.Element {
     const endIdx = isP1 ? 5 : 12;
     const pits: number[] = [];
     for (let i = startIdx; i <= endIdx; i++) {
-      if (board[i] > 0) {
+      if (boardData.board[i] > 0) {
         pits.push(i);
       }
     }
     return pits;
-  }, [board, isMyTurn, isAnimating, yourColor]);
+  }, [boardData.board, isMyTurn, isAnimating, yourColor]);
 
   // Oyuncu Bilgileri Eşleştirmesi
   const p1Info = useMemo(() => {
@@ -394,12 +400,12 @@ export function GamePage(): React.JSX.Element {
         {/* ORTA PANEL: MANGALA TAHTASI */}
         <div className="board-panel-container">
           <MangalaReactBoard
-            boardState={board}
+            boardState={boardData.board}
             isMyTurn={isMyTurn}
             clickablePits={clickablePits}
             p1Info={p1Info}
             p2Info={p2Info}
-            lastMove={lastMove}
+            lastMove={boardData.lastMove}
             onPitClicked={handlePitClick}
             onAnimationComplete={handleAnimationComplete}
           />

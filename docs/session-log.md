@@ -28,7 +28,7 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **Tamamlanan Görev:** Projeye yeni eklenen PixiJS tabanlı oyun tahtası (`MangalaReactBoard`) mevcut React ve WebSocket arayüzüne entegre edildi. Ayrıca varsayılan tema ve stil isimlendirmeleri güncellendi:
 1. Son eklenen premium tema `theme-rustic-v0` ismi ve tüm CSS sınıfları `theme-pixijs` ("PixiJS") olarak değiştirildi ve oyunun ilk açılışta bu temayla başlaması sağlandı.
 2. `GamePage.tsx` üzerindeki eski HTML tabanlı kuyu yerleşimleri kaldırılarak yerine yeni `<MangalaReactBoard>` yerleştirildi.
-3. Zustand store'daki `board` dizisi güncellendiğinde, önceki durum ile karşılaştırılarak hamlenin `startPit` (başlangıç kuyusu) ve `steps` (dağıtılan adımlar) bilgileri istemci tarafında hesaplanıp PixiJS tahtasına `lastMove` prop'u olarak paslandı.
+3. Zustand store'daki `board` dizisi güncellendiğinde, önceki durum ile karşılaştırılarak hamlenin `startPit` (başlangıç kuyusu) ve `steps` (dağıtılan adımlar) bilgileri istemci tarafında hesaplanıp PixiJS tahtasına `lastMove` prop'u olarak paslandı. Ayrıca `boardState` ve `lastMove` proplarının farklı render adımlarında güncellenmesinden kaynaklanan animasyon atlama/safeguard sorununu çözmek için bu iki veri React tarafında tek bir `boardData` yerel state'i altında birleştirilerek tek render aşamasında PixiJS'e iletildi.
 4. Sıra bizdeyken tıklanabilir kuyuların dizisi (`clickablePits`) dinamik olarak filtrelendi ve ELO etiketleri ile isimleri (`p1Info` ve `p2Info`) oyuncunun rengine göre tahtaya aktarıldı.
 5. Animasyon bitiş callback'i (`onAnimationComplete`) Zustand store ve React tarafındaki tıklama kilidi (`isAnimating`) ile entegre edildi.
 Monorepo derlemesi ve 74/74 birim testi başarıyla çalıştırılarak doğrulandı.

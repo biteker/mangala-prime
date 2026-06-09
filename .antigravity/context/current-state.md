@@ -67,7 +67,7 @@ Oturum 2026-06-10 — PixiJS Tahta Entegrasyonu ve Tema İsimlendirme Güncellem
 
 ### Yapılanlar
 - PixiJS tabanlı `MangalaReactBoard` bileşeni, React arayüzüne ve Zustand/WebSocket oyun akışına başarıyla entegre edildi.
-- Zustand store'daki `board` dizisi güncellendiğinde, önceki durum ile karşılaştırılarak hamlenin `startPit` ve `steps` bilgileri istemci tarafında hesaplanıp PixiJS tahtasına `lastMove` prop'u olarak paslandı.
+- Zustand store'daki `board` dizisi güncellendiğinde, önceki durum ile karşılaştırılarak hamlenin `startPit` ve `steps` bilgileri istemci tarafında hesaplanıp PixiJS tahtasına `lastMove` prop'u olarak paslandı. Ayrıca `boardState` ve `lastMove` proplarının farklı render adımlarında güncellenmesinden kaynaklanan animasyon atlama/safeguard sorununu çözmek için bu iki veri React tarafında tek bir `boardData` yerel state'i altında birleştirilerek tek render aşamasında PixiJS'e iletildi.
 - Sıra bizdeyken tıklanabilir kuyuların dizisi (`clickablePits`) dinamik olarak filtrelendi ve ELO etiketleri ile isimleri (`p1Info` ve `p2Info`) oyuncunun rengine göre tahtaya aktarıldı.
 - Son eklenen premium tema `theme-rustic-v0` ismi ve tüm CSS sınıfları `theme-pixijs` ("PixiJS") olarak değiştirildi ve oyunun ilk açılışta bu temayla başlaması sağlandı.
 - Monorepo derlemesi (`npm run build`) ve tüm 74 birim testi (`npm run test`) başarıyla doğrulandı.
