@@ -63,12 +63,12 @@ Faz 1 MVP: ██████████ %100
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-06-10 — PixiJS Tahta Entegrasyonu ve Tema İsimlendirme Güncellemesi
+Oturum 2026-06-10 — PixiJS Tahta Ardışık Dağıtım ve Fiziksel Yerleşim Animasyon Düzeltmesi
 
 ### Yapılanlar
-- PixiJS tabanlı `MangalaReactBoard` bileşeni, React arayüzüne ve Zustand/WebSocket oyun akışına başarıyla entegre edildi.
-- Zustand store'daki `board` dizisi güncellendiğinde, önceki durum ile karşılaştırılarak hamlenin `startPit` ve `steps` bilgileri istemci tarafında hesaplanıp PixiJS tahtasına `lastMove` prop'u olarak paslandı. Ayrıca `boardState` ve `lastMove` proplarının farklı render adımlarında güncellenmesinden kaynaklanan animasyon atlama/safeguard sorununu çözmek için bu iki veri React tarafında tek bir `boardData` yerel state'i altında birleştirilerek tek render aşamasında PixiJS'e iletildi.
-- Sıra bizdeyken tıklanabilir kuyuların dizisi (`clickablePits`) dinamik olarak filtrelendi ve ELO etiketleri ile isimleri (`p1Info` ve `p2Info`) oyuncunun rengine göre tahtaya aktarıldı.
-- Son eklenen premium tema `theme-rustic-v0` ismi ve tüm CSS sınıfları `theme-pixijs` ("PixiJS") olarak değiştirildi ve oyunun ilk açılışta bu temayla başlaması sağlandı.
+- `MangalaReactBoard.tsx` bileşenine array referans değişikliklerini tolere etmesi için `arraysEqual` yardımcı fonksiyonu eklendi ve value-equality kontrolü sağlandı.
+- `MangalaBoard.ts` içindeki `runSowingAnimation` metodu, uçuş (`x`, `y`) ve parabolik yükseklik (`flightZ`) tweens'lerini tek bir ana GSAP timeline (`tl`) üzerinde birleştirilerek refaktör edildi.
+- `checkAnimationSettle` metoduna `finalBoardState` parametresi eklenerek toplam taş sayısının doğruluğu (`currentStonesCount === totalTargetStones`) kontrol edilmeye başlandı ve havada uçuş halinde olan taşlar varken animasyonun erken sonlanması engellendi.
+- `tickPhysics` simülasyon döngüsü güncellenerek fizik motoru ile yer değiştiren ve sarsılan bilyelerin scale/shadow/Z yükseklik görsel özelliklerinin güncel kalması sağlandı.
 - Monorepo derlemesi (`npm run build`) ve tüm 74 birim testi (`npm run test`) başarıyla doğrulandı.
 

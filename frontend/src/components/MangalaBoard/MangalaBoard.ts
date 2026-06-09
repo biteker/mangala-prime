@@ -858,9 +858,20 @@ export class MangalaBoard extends PIXI.Container {
     
     // Sort stones slightly so they lift in sequence
     const gatheredStones = [...startStones];
+
+    // Map and pop each stone beforehand to construct the timeline
+    const stonesToSow = steps.map(() => gatheredStones.pop()).filter(Boolean) as VisualStone[];
+
+    // Remove from source array immediately
+    stonesToSow.forEach((stone) => {
+      const srcIdx = this.stonesInPits[startPit].indexOf(stone);
+      if (srcIdx > -1) {
+        this.stonesInPits[startPit].splice(srcIdx, 1);
+      }
+    });
     
     // Animate lifting
-    gatheredStones.forEach((stone, sIdx) => {
+    stonesToSow.forEach((stone, sIdx) => {
       // Sleep state off during animation
       stone.isSleeping = false;
 
@@ -878,104 +889,108 @@ export class MangalaBoard extends PIXI.Container {
     const stepDuration = 0.38; // Flight speed
     const stepDelay = 0.16;    // Timing between sequential drops
 
-    steps.forEach((targetPitIdx, stepIdx) => {
-      const startTime = 0.2 + stepIdx * stepDelay;
+    stonesToSow.forEach((stone, stepIdx) => {
+      const targetPitIdx = steps[stepIdx];
+      const targetCenter = this.pitCenters[targetPitIdx];
       
-      tl.add(() => {
-        // Take one stone from the gathered pile
-        const stone = gatheredStones.pop();
-        if (!stone) return;
+      // Target random point inside target boundary to avoid overlapping landing spots
+      const b = this.pitBoundaries[targetPitIdx];
+      const angle = Math.random() * Math.PI * 2;
+      const radius = (b.type === 'circle' ? b.radius : b.radius * 0.8) * Math.random() * 0.45;
+      const tx = targetCenter.x + Math.cos(angle) * radius;
+      const ty = targetCenter.y + Math.sin(angle) * radius;
 
-        // Remove from source array
-        const srcIdx = this.stonesInPits[startPit].indexOf(stone);
-        if (srcIdx > -1) this.stonesInPits[startPit].splice(srcIdx, 1);
+      const startTime = 0.2 + stepIdx * stepDelay;
 
-        // Animate stone flying to target pit center
-        const targetCenter = this.pitCenters[targetPitIdx];
-        
-        // Target random point inside target boundary to avoid overlapping landing spots
-        const b = this.pitBoundaries[targetPitIdx];
-        const angle = Math.random() * Math.PI * 2;
-        const radius = (b.type === 'circle' ? b.radius : b.radius * 0.8) * Math.random() * 0.45;
-        const tx = targetCenter.x + Math.cos(angle) * radius;
-        const ty = targetCenter.y + Math.sin(angle) * radius;
-
-        // Animate coordinate motion
-        gsap.to(stone, {
-          x: tx,
-          y: ty,
-          duration: stepDuration,
-          ease: 'power1.inOut',
-          onUpdate: () => {
-            // Shadow stays at ground coordinates
-            stone.container.x = stone.x;
-            stone.container.y = stone.y;
-            this.updateStoneVisual(stone);
-          }
-        });
-
-        // Parabolic arc (Bezier shape of height flightZ)
-        gsap.timeline()
-          .fromTo(stone,
-            { flightZ: 0.35 },
-            {
-              flightZ: 1.0, // Peak height at midpoint
-              duration: stepDuration / 2,
-              ease: 'power1.out',
-              onUpdate: () => this.updateStoneVisual(stone)
-            }
-          )
-          .to(stone, {
-            flightZ: 0.0, // Lands on target pit
-            duration: stepDuration / 2,
-            ease: 'power1.in',
-            onUpdate: () => this.updateStoneVisual(stone),
-            onComplete: () => {
-              // LANDED!
-              // Put into the target pit's array
-              this.stonesInPits[targetPitIdx].push(stone);
-              
-              // Apply physics splash velocity
-              stone.vx = (Math.random() * 4 - 2);
-              stone.vy = (Math.random() * 4 + 2); // Downward splash velocity
-              stone.isSleeping = false;
-
-              // Play drop sound!
-              const isTreasury = targetPitIdx === 6 || targetPitIdx === 13;
-              if (isTreasury) {
-                soundManager.playTreasuryCapture();
-              } else {
-                soundManager.playDrop();
-              }
-
-              // Wake up all existing stones in target pit to react to splash
-              this.stonesInPits[targetPitIdx].forEach((s) => {
-                s.isSleeping = false;
-              });
-
-              // Trigger physics updates
-              this.startPhysicsTicker();
-            }
-          });
+      // Animate coordinate motion
+      tl.to(stone, {
+        x: tx,
+        y: ty,
+        duration: stepDuration,
+        ease: 'power1.inOut',
+        onUpdate: () => {
+          // Shadow stays at ground coordinates
+          stone.container.x = stone.x;
+          stone.container.y = stone.y;
+          this.updateStoneVisual(stone);
+        }
       }, startTime);
+
+      // Parabolic arc (Bezier shape of height flightZ) - Height Bezier Arc (Up)
+      tl.fromTo(stone,
+        { flightZ: 0.35 },
+        {
+          flightZ: 1.0, // Peak height at midpoint
+          duration: stepDuration / 2,
+          ease: 'power1.out',
+          onUpdate: () => this.updateStoneVisual(stone)
+        },
+        startTime
+      );
+
+      // Height Bezier Arc (Down / Land)
+      tl.to(stone, {
+        flightZ: 0.0, // Lands on target pit
+        duration: stepDuration / 2,
+        ease: 'power1.in',
+        onUpdate: () => this.updateStoneVisual(stone),
+        onComplete: () => {
+          // LANDED!
+          // Put into the target pit's array
+          this.stonesInPits[targetPitIdx].push(stone);
+          
+          // Apply physics splash velocity
+          stone.vx = (Math.random() * 4 - 2);
+          stone.vy = (Math.random() * 4 + 2); // Downward splash velocity
+          stone.isSleeping = false;
+
+          // Play drop sound!
+          const isTreasury = targetPitIdx === 6 || targetPitIdx === 13;
+          if (isTreasury) {
+            soundManager.playTreasuryCapture();
+          } else {
+            soundManager.playDrop();
+          }
+
+          // Wake up all existing stones in target pit to react to splash
+          this.stonesInPits[targetPitIdx].forEach((s) => {
+            s.isSleeping = false;
+          });
+
+          // Trigger physics updates
+          this.startPhysicsTicker();
+        }
+      }, startTime + stepDuration / 2);
     });
 
     // Wait until animation is fully complete and all stones are packed/sleeping
     tl.add(() => {
       // Check physics completion
-      this.checkAnimationSettle();
+      this.checkAnimationSettle(finalBoardState);
     }, 0.2 + steps.length * stepDelay + stepDuration + 0.1);
   }
 
   /**
    * Monitor physics engine and terminate once everything goes to sleep.
    */
-  private checkAnimationSettle(): void {
+  private checkAnimationSettle(finalBoardState: number[]): void {
     const startTime = Date.now();
-    const safetyTimeout = 2500; // 2.5 seconds maximum settling time
-    console.log("[MangalaBoard] checkAnimationSettle started. Waiting for all stones to sleep...");
+    const safetyTimeout = 3000; // 3 seconds maximum settling time
+    const totalTargetStones = finalBoardState.reduce((a, b) => a + b, 0);
+    console.log(`[MangalaBoard] checkAnimationSettle started. Target stones: ${totalTargetStones}`);
 
     let checkInterval = setInterval(() => {
+      let currentStonesCount = 0;
+      for (let i = 0; i < 14; i++) {
+        currentStonesCount += this.stonesInPits[i].length;
+      }
+
+      // If not all stones have landed yet, keep waiting
+      if (currentStonesCount < totalTargetStones) {
+        console.log(`[MangalaBoard] checkAnimationSettle: Waiting for stones to land. Current count: ${currentStonesCount}/${totalTargetStones}`);
+        return;
+      }
+
       let allSleeping = true;
       for (let i = 0; i < 14; i++) {
         if (this.stonesInPits[i].some(stone => !stone.isSleeping)) {
@@ -1104,6 +1119,7 @@ export class MangalaBoard extends PIXI.Container {
         // Position container
         s.container.x = s.x;
         s.container.y = s.y;
+        this.updateStoneVisual(s);
       });
     }
 

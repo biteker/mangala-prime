@@ -24,6 +24,14 @@ interface MangalaReactBoardProps {
   onAnimationComplete?: () => void;
 }
 
+const arraysEqual = (a: number[], b: number[]): boolean => {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+};
+
 export const MangalaReactBoard: React.FC<MangalaReactBoardProps> = ({
   boardState,
   isMyTurn,
@@ -121,7 +129,7 @@ export const MangalaReactBoard: React.FC<MangalaReactBoardProps> = ({
   useEffect(() => {
     if (!boardRef.current) return;
 
-    if (lastMove && lastMove.nextState === boardState) {
+    if (lastMove && arraysEqual(lastMove.nextState, boardState)) {
       boardRef.current.updateBoardState(boardState, {
         startPit: lastMove.startPit,
         steps: lastMove.steps

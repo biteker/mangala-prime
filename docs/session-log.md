@@ -23,6 +23,28 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-06-10] — PixiJS Tahta Ardışık Dağıtım ve Fiziksel Yerleşim Animasyon Düzeltmesi
+
+**Tamamlanan Görev:** PixiJS Mangala tahtasında sequential sowing (ardışık taş dağıtma) ve landing (kuyuya düşüş) animasyonlarının erken sonlanıp taşların kuyuya ışınlanması (teleport) sorunu başarıyla çözüldü:
+1. `MangalaReactBoard.tsx` bileşenine array referans değişikliklerini tolere etmesi için `arraysEqual` yardımcı fonksiyonu eklendi ve `useEffect` içindeki `lastMove.nextState === boardState` kontrolü value-equality ile değiştirildi.
+2. `MangalaBoard.ts` içindeki `runSowingAnimation` metodu, uçuş (`x`, `y`) ve parabolik yükseklik (`flightZ`) tweens'lerini nested callback'ler yerine tek bir ana GSAP timeline (`tl`) üzerinde birleştirilerek refaktör edildi.
+3. `checkAnimationSettle` metoduna `finalBoardState` parametresi eklenerek toplam taş sayısının doğruluğu (`currentStonesCount === totalTargetStones`) kontrol edilmeye başlandı. Havada uçuş halinde olan taşlar varken animasyonun erken sonlanması kesin olarak engellendi.
+4. `tickPhysics` simülasyon döngüsü güncellenerek fizik motoru ile yer değiştiren ve sarsılan bilyelerin scale/shadow/Z yükseklik görsel özelliklerinin güncel kalması sağlandı.
+Monorepo derlemesi ve 74/74 birim testi başarıyla tamamlandı.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [MangalaReactBoard.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/MangalaBoard/MangalaReactBoard.tsx) [MODIFY] — `arraysEqual` helper metodu ve value-equality kontrolü eklendi.
+- [MangalaBoard.ts](file:///home/biteker/Documents/mangala-prime/frontend/src/components/MangalaBoard/MangalaBoard.ts) [MODIFY] — `runSowingAnimation` GSAP timeline refaktörü, `checkAnimationSettle` taş kontrolü ve `tickPhysics` görsel güncelleme desteği eklendi.
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (Monorepo `npm run build` başarıyla tamamlandı).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Canlı ortam kabul testleri ve projenin teslim edilmesi (Final UAT).
+**Commit:** `fix(board): resolve PixiJS sowing and physics settling animation bugs`
+**PR:** #22
+
+---
+
 ### Oturum [2026-06-10] — PixiJS Tahta Entegrasyonu ve Tema İsimlendirme Güncellemesi
 
 **Tamamlanan Görev:** Projeye yeni eklenen PixiJS tabanlı oyun tahtası (`MangalaReactBoard`) mevcut React ve WebSocket arayüzüne entegre edildi. Ayrıca varsayılan tema ve stil isimlendirmeleri güncellendi:
