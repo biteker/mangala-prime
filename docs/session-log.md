@@ -23,6 +23,31 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-06-10] — PixiJS Tahta Entegrasyonu ve Tema İsimlendirme Güncellemesi
+
+**Tamamlanan Görev:** Projeye yeni eklenen PixiJS tabanlı oyun tahtası (`MangalaReactBoard`) mevcut React ve WebSocket arayüzüne entegre edildi. Ayrıca varsayılan tema ve stil isimlendirmeleri güncellendi:
+1. Son eklenen premium tema `theme-rustic-v0` ismi ve tüm CSS sınıfları `theme-pixijs` ("PixiJS") olarak değiştirildi ve oyunun ilk açılışta bu temayla başlaması sağlandı.
+2. `GamePage.tsx` üzerindeki eski HTML tabanlı kuyu yerleşimleri kaldırılarak yerine yeni `<MangalaReactBoard>` yerleştirildi.
+3. Zustand store'daki `board` dizisi güncellendiğinde, önceki durum ile karşılaştırılarak hamlenin `startPit` (başlangıç kuyusu) ve `steps` (dağıtılan adımlar) bilgileri istemci tarafında hesaplanıp PixiJS tahtasına `lastMove` prop'u olarak paslandı.
+4. Sıra bizdeyken tıklanabilir kuyuların dizisi (`clickablePits`) dinamik olarak filtrelendi ve ELO etiketleri ile isimleri (`p1Info` ve `p2Info`) oyuncunun rengine göre tahtaya aktarıldı.
+5. Animasyon bitiş callback'i (`onAnimationComplete`) Zustand store ve React tarafındaki tıklama kilidi (`isAnimating`) ile entegre edildi.
+Monorepo derlemesi ve 74/74 birim testi başarıyla çalıştırılarak doğrulandı.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [theme.store.ts](file:///home/biteker/Documents/mangala-prime/frontend/src/stores/theme.store.ts) [MODIFY] — `ThemeType` içindeki `theme-rustic-v0` değeri `theme-pixijs` olarak değiştirildi ve varsayılan tema yapıldı.
+- [App.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/App.tsx) [MODIFY] — Tema geçiş listesi ve buton etiketleri `theme-pixijs` ("PixiJS") olarak güncellendi.
+- [index.css](file:///home/biteker/Documents/mangala-prime/frontend/src/index.css) [MODIFY] — Tüm `.theme-rustic-v0` seçicileri `.theme-pixijs` olarak yeniden adlandırıldı.
+- [GamePage.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/GamePage.tsx) [MODIFY] — PixiJS tahtası entegrasyonu, tıklanabilir kuyu filtrelemesi ve `lastMove` adım hesaplama mantığı eklendi.
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (Monorepo `npm run build` başarıyla tamamlandı).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Canlı ortam kabul testleri ve projenin son teslimi (Final UAT).
+**Commit:** `feat(board): integrate PixiJS board engine and rename premium theme to theme-pixijs`
+**PR:** Yok
+
+---
+
 ### Oturum [2026-06-07] — Rustik v0.app Teması Eklenmesi ve Mobil Düzen İyileştirmeleri
 
 **Tamamlanan Görev:** Platforma 4. tema seçeneği olan "Rustik v0.app" (`theme-rustic-v0`) entegre edildi. Bu yeni tema Zustand store durum yönetimine eklenerek App bileşeni üzerinden döngüsel tema geçişine dahil edildi. Oyun sayfası (`GamePage.tsx`) ve CSS tasarımı (`index.css`), v0.app tasarım referansı ile tamamen birebir uyumlu olacak şekilde yeniden kodlandı:

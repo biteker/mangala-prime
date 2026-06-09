@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/rustic-v0-theme
+Aktif Branch: pixijs
 
 ---
 
@@ -63,11 +63,12 @@ Faz 1 MVP: ██████████ %100
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-06-07 — Rustik v0.app Teması Eklenmesi
+Oturum 2026-06-10 — PixiJS Tahta Entegrasyonu ve Tema İsimlendirme Güncellemesi
 
 ### Yapılanlar
-- `ThemeType` tip tanımına ve Zustand store temayı sıfırlama mantığına `theme-rustic-v0` eklendi.
-- `App.tsx` tema buton rotasyonuna, ekran etiketine ve element sınıf güncellemelerine `theme-rustic-v0` entegre edildi.
-- `index.css` dosyasında `theme-rustic-v0` ("Rustik v0.app") için özel CSS değişkenleri, radial degradeli sayfa arka planı, cam ve ahşap görünümlü paneller, 3D parıldayan bilyeler, oyuncu kartları ve oyun sonu modalları tanımlandı.
-- Tüm monorepo build derleme ve unit test adımları (`npm run build` & `npm run test`) başarıyla doğrulandı.
+- PixiJS tabanlı `MangalaReactBoard` bileşeni, React arayüzüne ve Zustand/WebSocket oyun akışına başarıyla entegre edildi.
+- Zustand store'daki `board` dizisi güncellendiğinde, önceki durum ile karşılaştırılarak hamlenin `startPit` ve `steps` bilgileri istemci tarafında hesaplanıp PixiJS tahtasına `lastMove` prop'u olarak paslandı.
+- Sıra bizdeyken tıklanabilir kuyuların dizisi (`clickablePits`) dinamik olarak filtrelendi ve ELO etiketleri ile isimleri (`p1Info` ve `p2Info`) oyuncunun rengine göre tahtaya aktarıldı.
+- Son eklenen premium tema `theme-rustic-v0` ismi ve tüm CSS sınıfları `theme-pixijs` ("PixiJS") olarak değiştirildi ve oyunun ilk açılışta bu temayla başlaması sağlandı.
+- Monorepo derlemesi (`npm run build`) ve tüm 74 birim testi (`npm run test`) başarıyla doğrulandı.
 

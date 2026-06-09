@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type ThemeType = 'theme-wood' | 'theme-neon' | 'theme-rustic' | 'theme-rustic-v0';
+export type ThemeType = 'theme-wood' | 'theme-neon' | 'theme-rustic' | 'theme-pixijs';
 
 interface ThemeStore {
   theme: ThemeType;
@@ -11,10 +11,10 @@ interface ThemeStore {
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set) => ({
-      theme: 'theme-rustic',
+      theme: 'theme-pixijs',
       setTheme: (theme) => {
         const root = window.document.documentElement;
-        root.classList.remove('theme-wood', 'theme-neon', 'theme-rustic', 'theme-rustic-v0');
+        root.classList.remove('theme-wood', 'theme-neon', 'theme-rustic', 'theme-pixijs');
         root.classList.add(theme);
         set({ theme });
       },

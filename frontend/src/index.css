@@ -1,4 +1,7 @@
-html.theme-wood, :root {
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+html.theme-wood,
+:root {
   --bg-primary: #f5eae0;
   --bg-card: #e3ccb8;
   --text-primary: #4e3629;
@@ -259,6 +262,7 @@ html.theme-neon .auth-card {
     opacity: 0;
     transform: translateY(-4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -616,6 +620,7 @@ html.theme-neon .auth-card {
     transform: scale(0.95);
     opacity: 0.8;
   }
+
   to {
     transform: scale(1.05);
     opacity: 1;
@@ -752,7 +757,8 @@ html.theme-neon .auth-card {
   font-weight: 700;
   color: var(--text-secondary);
   text-transform: uppercase;
-  display: none; /* Hide standard text on desktop to keep timer compact */
+  display: none;
+  /* Hide standard text on desktop to keep timer compact */
 }
 
 /* Bağlantı Koptu Uyarısı */
@@ -982,7 +988,8 @@ html.theme-neon .auth-card {
 
 /* Temaya Göre Board Görünümü */
 html.theme-wood .mangala-board {
-  background: #fdf6ec; /* Açık ahşap tahta tonu */
+  background: #fdf6ec;
+  /* Açık ahşap tahta tonu */
   box-shadow: inset 0 0 20px rgba(78, 54, 41, 0.2);
 }
 
@@ -1119,13 +1126,15 @@ html.theme-neon .pit.bottom-pit.active:hover {
 }
 
 html.theme-wood .stone-dot {
-  background: #ccd0cf; /* Doğal taş tonu */
+  background: #ccd0cf;
+  /* Doğal taş tonu */
   border: 1px solid #999;
-  box-shadow: inset 1px 1px 1px #fff, 1px 1px 1px rgba(0,0,0,0.15);
+  box-shadow: inset 1px 1px 1px #fff, 1px 1px 1px rgba(0, 0, 0, 0.15);
 }
 
 html.theme-neon .stone-dot {
-  background: var(--accent-color); /* Fütüristik parlayan neon taş */
+  background: var(--accent-color);
+  /* Fütüristik parlayan neon taş */
   box-shadow: 0 0 6px var(--accent-color);
 }
 
@@ -1210,15 +1219,18 @@ html.theme-neon .stone-dot {
   0% {
     transform: scale(1);
   }
+
   30% {
     transform: scale(1.16);
     border-color: var(--accent-color);
   }
+
   70% {
     transform: scale(1.16);
     border-color: var(--accent-color);
     box-shadow: 0 0 15px var(--accent-color);
   }
+
   100% {
     transform: scale(1);
   }
@@ -1270,13 +1282,11 @@ html.theme-rustic body {
   background:
     radial-gradient(ellipse at 20% 50%, rgba(30, 50, 80, 0.4) 0%, transparent 70%),
     radial-gradient(ellipse at 80% 50%, rgba(20, 40, 70, 0.3) 0%, transparent 70%),
-    repeating-linear-gradient(
-      0deg,
+    repeating-linear-gradient(0deg,
       transparent,
       transparent 2px,
       rgba(255, 255, 255, 0.01) 2px,
-      rgba(255, 255, 255, 0.01) 4px
-    ),
+      rgba(255, 255, 255, 0.01) 4px),
     #1a2744;
 }
 
@@ -1338,8 +1348,7 @@ html.theme-rustic .mangala-board {
       #6b3e20 55%,
       #7a4a2a 70%,
       #5e3318 85%,
-      #6b3e20 100%
-    );
+      #6b3e20 100%);
   border: 6px solid #3d2415;
   border-radius: 24px;
   box-shadow:
@@ -1424,18 +1433,23 @@ html.theme-rustic .stone-dot {
 html.theme-rustic .stone-dot:nth-child(6n+1) {
   background: radial-gradient(circle at 35% 35%, #ff7777 0%, #cc2222 70%, #991111 100%);
 }
+
 html.theme-rustic .stone-dot:nth-child(6n+2) {
   background: radial-gradient(circle at 35% 35%, #77aaff 0%, #2266cc 70%, #114499 100%);
 }
+
 html.theme-rustic .stone-dot:nth-child(6n+3) {
   background: radial-gradient(circle at 35% 35%, #77dd77 0%, #22aa44 70%, #117733 100%);
 }
+
 html.theme-rustic .stone-dot:nth-child(6n+4) {
   background: radial-gradient(circle at 35% 35%, #ffdd55 0%, #ccaa22 70%, #997711 100%);
 }
+
 html.theme-rustic .stone-dot:nth-child(6n+5) {
   background: radial-gradient(circle at 35% 35%, #ff99cc 0%, #dd4488 70%, #aa2266 100%);
 }
+
 html.theme-rustic .stone-dot:nth-child(6n+6) {
   background: radial-gradient(circle at 35% 35%, #bb88ff 0%, #7744cc 70%, #552299 100%);
 }
@@ -1524,12 +1538,12 @@ html.theme-rustic .ring-pulse {
 }
 
 /* ================================================
-   TEMA 4: RUSTİK v0.app (theme-rustic-v0)
+   TEMA 4: RUSTİK v0.app (theme-pixijs)
    Referans: Lüks lacivert arka plan, radial geçişler,
    glassmorphism paneller ve parlak 3D cam bilyeler.
    ================================================ */
 
-html.theme-rustic-v0 {
+html.theme-pixijs {
   --bg-primary: #1a2744;
   --bg-card: rgba(74, 53, 32, 0.4);
   --text-primary: #f5f0e8;
@@ -1548,15 +1562,15 @@ html.theme-rustic-v0 {
 }
 
 /* Rustik v0 — Arka Plan */
-html.theme-rustic-v0 body {
+html.theme-pixijs body {
   background: radial-gradient(ellipse at 50% 30%, #243252 0%, #1a2744 50%, #131d33 100%);
 }
 
 /* Rustik v0 — Auth Kartı ve Diğer Kartlar */
-html.theme-rustic-v0 .auth-card,
-html.theme-rustic-v0 .dashboard-card,
-html.theme-rustic-v0 .sidebar-card,
-html.theme-rustic-v0 .info-card {
+html.theme-pixijs .auth-card,
+html.theme-pixijs .dashboard-card,
+html.theme-pixijs .sidebar-card,
+html.theme-pixijs .info-card {
   background: rgba(74, 53, 32, 0.4);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -1565,14 +1579,14 @@ html.theme-rustic-v0 .info-card {
 }
 
 /* Rustik v0 — Header */
-html.theme-rustic-v0 .app-header {
+html.theme-pixijs .app-header {
   background: linear-gradient(135deg, #5c4033 0%, #4a3020 50%, #3d2518 100%);
   border-bottom: 1px solid rgba(139, 106, 66, 0.3);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Rustik v0 — Sohbet Paneli */
-html.theme-rustic-v0 .chat-panel-container {
+html.theme-pixijs .chat-panel-container {
   background: rgba(74, 53, 32, 0.4);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -1581,14 +1595,14 @@ html.theme-rustic-v0 .chat-panel-container {
 }
 
 /* Rustik v0 — Board Panel Container */
-html.theme-rustic-v0 .board-panel-container {
+html.theme-pixijs .board-panel-container {
   background: transparent;
   border: none;
   box-shadow: none;
 }
 
 /* Rustik v0 — Mangala Tahtası */
-html.theme-rustic-v0 .mangala-board {
+html.theme-pixijs .mangala-board {
   background: linear-gradient(145deg, #7a5c3a 0%, #5c4028 30%, #4a3020 60%, #3d2518 100%);
   box-shadow:
     inset 0 2px 4px rgba(139, 106, 66, 0.5),
@@ -1600,25 +1614,23 @@ html.theme-rustic-v0 .mangala-board {
 }
 
 /* Rustik v0 — Ahşap Doku Efekti */
-html.theme-rustic-v0 .mangala-board::after {
+html.theme-pixijs .mangala-board::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: 16px;
   opacity: 0.1;
   pointer-events: none;
-  background-image: repeating-linear-gradient(
-    90deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.1) 2px,
-    rgba(0, 0, 0, 0.1) 4px
-  );
+  background-image: repeating-linear-gradient(90deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.1) 2px,
+      rgba(0, 0, 0, 0.1) 4px);
   z-index: 0;
 }
 
 /* Rustik v0 — Kuyular */
-html.theme-rustic-v0 .pit {
+html.theme-pixijs .pit {
   background: radial-gradient(circle at 50% 50%, #3d2a1a 0%, #2a1d12 60%, #1a1208 100%);
   box-shadow:
     inset 0 4px 8px rgba(0, 0, 0, 0.6),
@@ -1629,7 +1641,7 @@ html.theme-rustic-v0 .pit {
 }
 
 /* Rustik v0 — Kuyu Taş Sayısı Rozeti */
-html.theme-rustic-v0 .pit .stone-count {
+html.theme-pixijs .pit .stone-count {
   background: #243252;
   border: 1px solid rgba(212, 168, 83, 0.3);
   color: #f5f0e8;
@@ -1637,7 +1649,7 @@ html.theme-rustic-v0 .pit .stone-count {
 }
 
 /* Rustik v0 — Aktif Kuyu Hover */
-html.theme-rustic-v0 .pit.bottom-pit.active:hover {
+html.theme-pixijs .pit.bottom-pit.active:hover {
   transform: scale(1.05);
   box-shadow:
     inset 0 4px 8px rgba(0, 0, 0, 0.6),
@@ -1645,7 +1657,7 @@ html.theme-rustic-v0 .pit.bottom-pit.active:hover {
 }
 
 /* Rustik v0 — Hazneler */
-html.theme-rustic-v0 .treasury {
+html.theme-pixijs .treasury {
   background: radial-gradient(ellipse at 50% 50%, #3d2a1a 0%, #2a1d12 50%, #1a1208 100%);
   box-shadow:
     inset 0 6px 12px rgba(0, 0, 0, 0.7),
@@ -1654,12 +1666,12 @@ html.theme-rustic-v0 .treasury {
   border: none;
 }
 
-html.theme-rustic-v0 .treasury .stone-count {
+html.theme-pixijs .treasury .stone-count {
   color: #f5f0e8;
 }
 
 /* Rustik v0 — 3D Cam Bilye Taşlar */
-html.theme-rustic-v0 .stone-dot {
+html.theme-pixijs .stone-dot {
   width: 9px;
   height: 9px;
   border-radius: 50%;
@@ -1670,32 +1682,37 @@ html.theme-rustic-v0 .stone-dot {
 }
 
 /* Emerald */
-html.theme-rustic-v0 .stone-dot:nth-child(6n+1) {
+html.theme-pixijs .stone-dot:nth-child(6n+1) {
   background: radial-gradient(circle at 30% 30%, #6ee7b7, #10b981 40%, #047857 80%, #064e3b);
 }
+
 /* Sapphire */
-html.theme-rustic-v0 .stone-dot:nth-child(6n+2) {
+html.theme-pixijs .stone-dot:nth-child(6n+2) {
   background: radial-gradient(circle at 30% 30%, #93c5fd, #3b82f6 40%, #1d4ed8 80%, #1e3a8a);
 }
+
 /* Ruby */
-html.theme-rustic-v0 .stone-dot:nth-child(6n+3) {
+html.theme-pixijs .stone-dot:nth-child(6n+3) {
   background: radial-gradient(circle at 30% 30%, #fca5a5, #ef4444 40%, #dc2626 80%, #7f1d1d);
 }
+
 /* Amber */
-html.theme-rustic-v0 .stone-dot:nth-child(6n+4) {
+html.theme-pixijs .stone-dot:nth-child(6n+4) {
   background: radial-gradient(circle at 30% 30%, #fcd34d, #f59e0b 40%, #d97706 80%, #78350f);
 }
+
 /* Amethyst */
-html.theme-rustic-v0 .stone-dot:nth-child(6n+5) {
+html.theme-pixijs .stone-dot:nth-child(6n+5) {
   background: radial-gradient(circle at 30% 30%, #d8b4fe, #a855f7 40%, #7c3aed 80%, #4c1d95);
 }
+
 /* Rose */
-html.theme-rustic-v0 .stone-dot:nth-child(6n+6) {
+html.theme-pixijs .stone-dot:nth-child(6n+6) {
   background: radial-gradient(circle at 30% 30%, #fda4af, #f43f5e 40%, #e11d48 80%, #881337);
 }
 
 /* Rustik v0 — Oyuncu Bilgisi Badge */
-html.theme-rustic-v0 .player-badge {
+html.theme-pixijs .player-badge {
   background: linear-gradient(135deg, #5c4033 0%, #4a3020 50%, #3d2518 100%) !important;
   box-shadow:
     inset 0 1px 2px rgba(139, 106, 66, 0.4),
@@ -1704,131 +1721,131 @@ html.theme-rustic-v0 .player-badge {
   border: 1px solid rgba(139, 106, 66, 0.2) !important;
 }
 
-html.theme-rustic-v0 .player-badge.me {
+html.theme-pixijs .player-badge.me {
   border: 2px solid #d4a853 !important;
   box-shadow:
     0 0 20px rgba(212, 168, 83, 0.3),
     inset 0 1px 2px rgba(139, 106, 66, 0.4) !important;
 }
 
-html.theme-rustic-v0 .player-avatar {
+html.theme-pixijs .player-avatar {
   background: linear-gradient(135deg, #8b6a42 0%, #6d4c2a 100%);
-  box-shadow: inset 0 2px 4px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.3);
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3);
   color: #f5f0e8;
   border: none;
 }
 
-html.theme-rustic-v0 .player-elo-container {
+html.theme-pixijs .player-elo-container {
   color: #d4a853;
 }
 
-html.theme-rustic-v0 .active-turn-dot {
+html.theme-pixijs .active-turn-dot {
   background-color: #4ade80;
   box-shadow: 0 0 10px #4ade80;
 }
 
 /* Rustik v0 — Zamanlayıcı ve Süre */
-html.theme-rustic-v0 .timer-panel {
-  background: linear-gradient(135deg, rgba(212,168,83,0.3) 0%, rgba(212,168,83,0.1) 100%) !important;
-  box-shadow: 0 0 20px rgba(212,168,83,0.3);
-  border: 1px solid rgba(212,168,83,0.3) !important;
+html.theme-pixijs .timer-panel {
+  background: linear-gradient(135deg, rgba(212, 168, 83, 0.3) 0%, rgba(212, 168, 83, 0.1) 100%) !important;
+  box-shadow: 0 0 20px rgba(212, 168, 83, 0.3);
+  border: 1px solid rgba(212, 168, 83, 0.3) !important;
   color: #d4a853;
 }
 
-html.theme-rustic-v0 .timer-seconds {
+html.theme-pixijs .timer-seconds {
   color: #d4a853;
 }
 
-html.theme-rustic-v0 .timer-seconds.danger {
+html.theme-pixijs .timer-seconds.danger {
   color: #e74c3c;
   text-shadow: 0 0 8px rgba(231, 76, 60, 0.5);
 }
 
 /* Rustik v0 — Butonlar */
-html.theme-rustic-v0 .auth-button {
+html.theme-pixijs .auth-button {
   background: linear-gradient(180deg, #d4a853 0%, #b88b3d 100%);
   color: #1a2744;
   font-weight: 700;
   border: 1px solid rgba(212, 168, 83, 0.3);
 }
 
-html.theme-rustic-v0 .auth-button:hover:not(:disabled) {
+html.theme-pixijs .auth-button:hover:not(:disabled) {
   background: linear-gradient(180deg, #e8c072 0%, #d4a853 100%);
 }
 
 /* Rustik v0 — Form Kontrolleri */
-html.theme-rustic-v0 .form-input {
+html.theme-pixijs .form-input {
   background: rgba(245, 240, 232, 0.05);
   border: 1px solid rgba(212, 168, 83, 0.2);
   color: #f5f0e8;
 }
 
-html.theme-rustic-v0 .form-input:focus {
+html.theme-pixijs .form-input:focus {
   border-color: #d4a853;
   box-shadow: 0 0 0 3px rgba(212, 168, 83, 0.25);
 }
 
 /* Rustik v0 — Sohbet Baloncukları */
-html.theme-rustic-v0 .chat-messages-box {
+html.theme-pixijs .chat-messages-box {
   border-color: rgba(212, 168, 83, 0.2);
 }
 
-html.theme-rustic-v0 .chat-bubble-wrapper.me .chat-bubble {
+html.theme-pixijs .chat-bubble-wrapper.me .chat-bubble {
   background: #d4a853;
   color: #1a2744;
 }
 
-html.theme-rustic-v0 .chat-bubble-wrapper.opponent .chat-bubble {
+html.theme-pixijs .chat-bubble-wrapper.opponent .chat-bubble {
   background: #243252;
   color: #f5f0e8;
 }
 
 /* Rustik v0 — Hazır Mesaj Butonları */
-html.theme-rustic-v0 .preset-msg-btn {
+html.theme-pixijs .preset-msg-btn {
   background: rgba(36, 50, 82, 0.5);
   border: 1px solid rgba(212, 168, 83, 0.2);
   color: #f5f0e8;
 }
 
-html.theme-rustic-v0 .preset-msg-btn:hover:not(:disabled) {
+html.theme-pixijs .preset-msg-btn:hover:not(:disabled) {
   background: #243252;
   border-color: #d4a853;
 }
 
 /* Rustik v0 — Online Kullanıcı Kartı */
-html.theme-rustic-v0 .online-user-item {
+html.theme-pixijs .online-user-item {
   background: rgba(36, 50, 82, 0.4);
   border: 1px solid rgba(212, 168, 83, 0.2);
 }
 
 /* Rustik v0 — Spinner */
-html.theme-rustic-v0 .queue-spinner-ring {
+html.theme-pixijs .queue-spinner-ring {
   border-color: rgba(212, 168, 83, 0.2);
 }
 
-html.theme-rustic-v0 .ring-pulse {
+html.theme-pixijs .ring-pulse {
   border-color: #d4a853;
   border-top-color: transparent;
 }
 
 /* Rustik v0 — Oyun Sonu Modal */
-html.theme-rustic-v0 .game-over-modal {
+html.theme-pixijs .game-over-modal {
   background: rgba(74, 53, 32, 0.95);
   border: 2px solid rgba(212, 168, 83, 0.3);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
 }
 
-html.theme-rustic-v0 .modal-backdrop {
+html.theme-pixijs .modal-backdrop {
   background: rgba(19, 29, 51, 0.85);
 }
 
-html.theme-rustic-v0 .elo-change-panel {
+html.theme-pixijs .elo-change-panel {
   background: rgba(245, 240, 232, 0.05);
   border: 1px solid rgba(212, 168, 83, 0.2);
 }
 
 /* Rustik v0 — Mobil Turn Indicator */
-html.theme-rustic-v0 .mobile-turn-indicator {
+html.theme-pixijs .mobile-turn-indicator {
   background: rgba(74, 53, 32, 0.9);
   border: 1px solid rgba(212, 168, 83, 0.3);
   color: #d4a853;
@@ -1839,6 +1856,7 @@ html.theme-rustic-v0 .mobile-turn-indicator {
    ================================================ */
 
 @media (max-width: 768px) {
+
   /* Header stays horizontal but compact */
   .game-header-panel {
     flex-direction: row;
@@ -1892,7 +1910,8 @@ html.theme-rustic-v0 .mobile-turn-indicator {
   /* Mobilde chat paneli tahtanın altına */
   .chat-panel-container {
     order: 2;
-    height: 220px !important; /* Limit height to fit screen */
+    height: 220px !important;
+    /* Limit height to fit screen */
     padding: 12px;
   }
 
@@ -2021,7 +2040,7 @@ html.theme-rustic-v0 .mobile-turn-indicator {
   .chat-panel-container {
     height: 180px !important;
   }
-  
+
   .chat-messages-box {
     height: 50px !important;
   }
@@ -2042,7 +2061,7 @@ html.theme-rustic-v0 .mobile-turn-indicator {
     box-sizing: border-box;
     overflow: hidden;
   }
-  
+
   .game-header-panel {
     padding: 4px 10px !important;
     margin-bottom: 6px !important;
@@ -2069,7 +2088,7 @@ html.theme-rustic-v0 .mobile-turn-indicator {
   .timer-seconds {
     font-size: 14px !important;
   }
-  
+
   .game-content-container {
     display: grid !important;
     grid-template-columns: 280px 1fr !important;
@@ -2077,7 +2096,7 @@ html.theme-rustic-v0 .mobile-turn-indicator {
     flex: 1 !important;
     min-height: 0;
   }
-  
+
   .chat-panel-container {
     order: 1 !important;
     height: 100% !important;
@@ -2086,7 +2105,7 @@ html.theme-rustic-v0 .mobile-turn-indicator {
     flex-direction: column;
     min-height: 0;
   }
-  
+
   .chat-messages-box {
     flex: 1 !important;
     height: auto !important;
@@ -2116,7 +2135,7 @@ html.theme-rustic-v0 .mobile-turn-indicator {
     width: 30px !important;
     height: 30px !important;
   }
-  
+
   .board-panel-container {
     order: 2 !important;
     padding: 4px !important;
@@ -2126,7 +2145,7 @@ html.theme-rustic-v0 .mobile-turn-indicator {
     height: 100% !important;
     min-height: 0;
   }
-  
+
   .mangala-board {
     transform: scale(0.85);
     transform-origin: center;
@@ -2153,4 +2172,3 @@ html.theme-rustic-v0 .mobile-turn-indicator {
     min-height: 120px !important;
   }
 }
-
