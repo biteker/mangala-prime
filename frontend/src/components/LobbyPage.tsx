@@ -98,9 +98,11 @@ export function LobbyPage(): React.JSX.Element {
   }, [outgoingInviteTargetId]);
 
   // Kendi kullanıcımızı listeden çıkar
-  const filteredUsers = onlineUsers.filter(
+  const filteredUsers = (onlineUsers || []).filter(
     (u) =>
+      u &&
       u.userId !== currentUser?.id &&
+      u.username &&
       u.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

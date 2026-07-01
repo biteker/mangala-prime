@@ -35,7 +35,7 @@ export class GameService {
   ) {}
 
   getTurnTimeLimit(): number {
-    return parseInt(process.env.GAME_TURN_TIME_LIMIT_SECS || '15', 10);
+    return parseInt(process.env.GAME_TURN_TIME_LIMIT_SECS || '59', 10);
   }
 
   setServer(server: Server): void {
