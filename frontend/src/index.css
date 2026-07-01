@@ -2466,6 +2466,34 @@ html.theme-pixijs .mobile-turn-indicator {
   box-shadow: 0 6px 15px rgba(255, 59, 48, 0.5);
 }
 
+/* Tam Ekran (Fullscreen) Butonu */
+.game-fullscreen-btn {
+  position: absolute;
+  top: 120px; /* Exit butonunun hemen altında */
+  left: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent-color, #d4a853);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(212, 168, 83, 0.3);
+  z-index: 100;
+  transition: all 0.2s ease;
+}
+
+.game-fullscreen-btn:hover {
+  transform: scale(1.1);
+  background: var(--accent-hover, #e8c072);
+  box-shadow: 0 6px 15px rgba(212, 168, 83, 0.5);
+}
+
 /* Sağ Kenardaki Floating Sohbet Arayüzü */
 .game-floating-actions {
   position: absolute;
@@ -2593,6 +2621,15 @@ html.theme-pixijs .game-layout {
     width: 32px !important;
     height: 32px !important;
     font-size: 14px !important;
+    z-index: 100 !important;
+  }
+
+  .game-fullscreen-btn {
+    top: 88px !important; /* Exit butonunun hemen altında (48px + 32px + 8px gap) */
+    left: 16px !important;
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 13px !important;
     z-index: 100 !important;
   }
 

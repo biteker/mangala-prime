@@ -103,6 +103,7 @@ export function GamePage(): React.JSX.Element {
   const [isAnimating, setIsAnimating] = useState(false);
   const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [showForfeitConfirm, setShowForfeitConfirm] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const handleForfeitClick = (): void => {
     setShowForfeitConfirm(true);
@@ -111,6 +112,48 @@ export function GamePage(): React.JSX.Element {
   const handleForfeitConfirm = (): void => {
     setShowForfeitConfirm(false);
     abandonGame();
+  };
+
+  // Listen to fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        const el = document.documentElement;
+        if (el.requestFullscreen) {
+          await el.requestFullscreen();
+        } else if ((el as any).webkitRequestFullscreen) {
+          await (el as any).webkitRequestFullscreen();
+        } else if ((el as any).msRequestFullscreen) {
+          await (el as any).msRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen();
+        } else if ((document as any).msExitFullscreen) {
+          await (document as any).msExitFullscreen();
+        }
+      }
+    } catch (err) {
+      console.warn('Fullscreen toggle failed:', err);
+    }
   };
   const prevBoardRef = useRef<number[]>(board);
   const prevPlayerIdRef = useRef<string | null>(currentPlayerId);
@@ -410,6 +453,16 @@ export function GamePage(): React.JSX.Element {
         title="Oyundan Çekil"
       >
         ✕
+      </button>
+
+      {/* Sol Kenardaki Tam Ekran Düğmesi */}
+      <button
+        type="button"
+        className="game-fullscreen-btn"
+        onClick={toggleFullscreen}
+        title={isFullscreen ? "Tam Ekrandan Çık" : "Tam Ekran Yap"}
+      >
+        {isFullscreen ? "⤡" : "⛶"}
       </button>
 
       {/* Sağ Kenardaki Floating Sohbet Kutusu */}
