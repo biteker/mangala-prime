@@ -67,34 +67,36 @@ function App(): React.JSX.Element {
 
   return (
     <AuthGuard>
-      <header className="app-header">
-        <div className="brand">Mangala Prime</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {user && (
-            <>
-              <span style={{ fontSize: '14px', fontWeight: 600 }}>
-                {user.username} ({user.elo} ELO)
-              </span>
-              <button 
-                type="button" 
-                className="theme-toggle-btn" 
-                onClick={handleLogout}
-              >
-                Çıkış Yap
-              </button>
-            </>
-          )}
-          <button 
-            type="button" 
-            className="theme-toggle-btn" 
-            onClick={handleThemeToggle}
-          >
-            Tema: {getThemeLabel()}
-          </button>
-        </div>
-      </header>
+      {route !== '#/game' && (
+        <header className="app-header">
+          <div className="brand">Mangala Prime</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {user && (
+              <>
+                <span style={{ fontSize: '14px', fontWeight: 600 }}>
+                  {user.username} ({user.elo} ELO)
+                </span>
+                <button 
+                  type="button" 
+                  className="theme-toggle-btn" 
+                  onClick={handleLogout}
+                >
+                  Çıkış Yap
+                </button>
+              </>
+            )}
+            <button 
+              type="button" 
+              className="theme-toggle-btn" 
+              onClick={handleThemeToggle}
+            >
+              Tema: {getThemeLabel()}
+            </button>
+          </div>
+        </header>
+      )}
 
-      <main className="auth-container">
+      <main className={route === '#/game' ? 'game-page-main' : 'auth-container'}>
         {renderContent()}
       </main>
     </AuthGuard>

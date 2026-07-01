@@ -11,4 +11,8 @@ export default defineConfig({
       '@shared': path.resolve(__dirname, '../shared/types'),
     },
   },
+  server: {
+    host: true,
+    port: 5173,
+  },
 })

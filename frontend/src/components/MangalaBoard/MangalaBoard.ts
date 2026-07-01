@@ -78,9 +78,11 @@ export class MangalaBoard extends PIXI.Container {
   // Player Labels
   private p1Label: PIXI.Text | null = null;
   private p2Label: PIXI.Text | null = null;
+  private perspective: number = 0; // 0 = Player 1, 1 = Player 2
 
-  constructor() {
+  constructor(perspective: number = 0) {
     super();
+    this.perspective = perspective;
     this.createTextureCache();
     this.setupLayout();
     this.drawBoard();
@@ -95,20 +97,20 @@ export class MangalaBoard extends PIXI.Container {
    * while maintaining a 16:9 aspect ratio and centering the container.
    */
   public resize(width: number, height: number): void {
-    const targetRatio = 16 / 9;
+    const targetRatio = 1400 / 600;
     const currentRatio = width / height;
     let scale = 1;
 
     if (currentRatio > targetRatio) {
-      scale = height / 900;
+      scale = height / 600;
     } else {
-      scale = width / 1600;
+      scale = width / 1400;
     }
 
     this.scale.set(scale);
-    // Center board
-    this.x = (width - 1600 * scale) / 2;
-    this.y = (height - 900 * scale) / 2;
+    // Center the 1400x600 board inside the canvas and adjust for the local offsets (BOARD_X=100, BOARD_Y=150)
+    this.x = (width - 1400 * scale) / 2 - 100 * scale;
+    this.y = (height - 600 * scale) / 2 - 150 * scale;
   }
 
   /**
@@ -296,6 +298,35 @@ export class MangalaBoard extends PIXI.Container {
       y2: lty + (TREASURY_HEIGHT / 2) - TREASURY_RADIUS - 10,
       radius: TREASURY_RADIUS - 5
     };
+
+    // Apply perspective rotation (180 degrees) if playing as Player 2
+    if (this.perspective === 1) {
+      const boardCenterX = BOARD_X + BOARD_WIDTH / 2;
+      const boardCenterY = BOARD_Y + BOARD_HEIGHT / 2;
+
+      for (let i = 0; i < 14; i++) {
+        // Rotate center
+        const center = this.pitCenters[i];
+        center.x = 2 * boardCenterX - center.x;
+        center.y = 2 * boardCenterY - center.y;
+
+        // Rotate boundary
+        const boundary = this.pitBoundaries[i];
+        if (boundary.type === 'circle') {
+          boundary.cx = 2 * boardCenterX - boundary.cx;
+          boundary.cy = 2 * boardCenterY - boundary.cy;
+        } else if (boundary.type === 'capsule') {
+          const x1 = boundary.x1;
+          const y1 = boundary.y1;
+          const x2 = boundary.x2;
+          const y2 = boundary.y2;
+          boundary.x1 = 2 * boardCenterX - x1;
+          boundary.y1 = 2 * boardCenterY - y1;
+          boundary.x2 = 2 * boardCenterX - x2;
+          boundary.y2 = 2 * boardCenterY - y2;
+        }
+      }
+    }
   }
 
   /**
@@ -470,11 +501,14 @@ export class MangalaBoard extends PIXI.Container {
    * Set user information labels dynamically.
    */
   public setPlayerInfo(p1: { name: string; elo: number }, p2: { name: string; elo: number }): void {
+    const bottomPlayer = this.perspective === 0 ? p1 : p2;
+    const topPlayer = this.perspective === 0 ? p2 : p1;
+
     if (this.p1Label) {
-      this.p1Label.text = `${p1.name} (ELO: ${p1.elo})`;
+      this.p1Label.text = `${bottomPlayer.name} (ELO: ${bottomPlayer.elo})`;
     }
     if (this.p2Label) {
-      this.p2Label.text = `${p2.name} (ELO: ${p2.elo})`;
+      this.p2Label.text = `${topPlayer.name} (ELO: ${topPlayer.elo})`;
     }
   }
 
@@ -690,68 +724,72 @@ export class MangalaBoard extends PIXI.Container {
     console.log("[MangalaBoard] initializeBoard called. Target state:", initialBoard);
     this.isAnimating = false;
 
+    const surplusPool: VisualStone[] = [];
+    const hasChanged: boolean[] = Array(14).fill(false);
+
+    // Step 1: Collect surplus stones from pits that have more stones than their target count
+    for (let pitIdx = 0; pitIdx < 14; pitIdx++) {
+      const targetCount = initialBoard[pitIdx] || 0;
+      const currentCount = this.stonesInPits[pitIdx].length;
+
+      if (currentCount > targetCount) {
+        hasChanged[pitIdx] = true;
+        const diff = currentCount - targetCount;
+        for (let idx = 0; idx < diff; idx++) {
+          const stone = this.stonesInPits[pitIdx].pop();
+          if (stone) {
+            surplusPool.push(stone);
+          }
+        }
+      }
+    }
+
+    // Step 2: Distribute surplus stones (or create new ones if empty) to pits with a deficit
     for (let pitIdx = 0; pitIdx < 14; pitIdx++) {
       const targetCount = initialBoard[pitIdx] || 0;
       const currentCount = this.stonesInPits[pitIdx].length;
 
       if (currentCount < targetCount) {
-        // We need to add stones
+        hasChanged[pitIdx] = true;
+        const diff = targetCount - currentCount;
+        for (let idx = 0; idx < diff; idx++) {
+          const stone = surplusPool.pop();
+          if (stone) {
+            this.stonesInPits[pitIdx].push(stone);
+          } else {
+            // Pool is empty, create a new stone (will be correctly positioned below)
+            this.createVisualStone(pitIdx, 0, 0);
+          }
+        }
+      }
+    }
+
+    // Step 3: Destroy any leftover surplus stones
+    while (surplusPool.length > 0) {
+      const stone = surplusPool.pop();
+      if (stone) {
+        this.removeChild(stone.container);
+        stone.container.destroy({ children: true });
+      }
+    }
+
+    // Step 4: Statically pack and reposition stones ONLY in pits that have changed
+    for (let pitIdx = 0; pitIdx < 14; pitIdx++) {
+      if (!hasChanged[pitIdx]) continue;
+
+      const stones = this.stonesInPits[pitIdx];
+      const targetCount = stones.length;
+      if (targetCount > 0) {
         const boundary = this.pitBoundaries[pitIdx];
         const packedPositions = packStonesStatically(targetCount, boundary, STONE_RADIUS);
         
-        // Reposition existing stones to the first currentCount positions
-        for (let idx = 0; idx < currentCount; idx++) {
-          const stone = this.stonesInPits[pitIdx][idx];
+        for (let idx = 0; idx < targetCount; idx++) {
+          const stone = stones[idx];
           stone.x = packedPositions[idx].x;
           stone.y = packedPositions[idx].y;
           stone.vx = 0;
           stone.vy = 0;
           stone.isSleeping = true;
-        }
-        
-        // Create new stones for the remaining positions
-        for (let idx = currentCount; idx < targetCount; idx++) {
-          this.createVisualStone(pitIdx, packedPositions[idx].x, packedPositions[idx].y);
-        }
-      } else if (currentCount > targetCount) {
-        // We need to remove extra stones
-        const diff = currentCount - targetCount;
-        
-        // Remove from container and destroy
-        for (let idx = 0; idx < diff; idx++) {
-          const stone = this.stonesInPits[pitIdx].pop();
-          if (stone) {
-            this.removeChild(stone.container);
-            stone.container.destroy({ children: true });
-          }
-        }
-        
-        // Reposition remaining stones
-        if (targetCount > 0) {
-          const boundary = this.pitBoundaries[pitIdx];
-          const packedPositions = packStonesStatically(targetCount, boundary, STONE_RADIUS);
-          for (let idx = 0; idx < targetCount; idx++) {
-            const stone = this.stonesInPits[pitIdx][idx];
-            stone.x = packedPositions[idx].x;
-            stone.y = packedPositions[idx].y;
-            stone.vx = 0;
-            stone.vy = 0;
-            stone.isSleeping = true;
-          }
-        }
-      } else {
-        // Counts match, but let's make sure they are packed correctly
-        if (targetCount > 0) {
-          const boundary = this.pitBoundaries[pitIdx];
-          const packedPositions = packStonesStatically(targetCount, boundary, STONE_RADIUS);
-          for (let idx = 0; idx < targetCount; idx++) {
-            const stone = this.stonesInPits[pitIdx][idx];
-            stone.x = packedPositions[idx].x;
-            stone.y = packedPositions[idx].y;
-            stone.vx = 0;
-            stone.vy = 0;
-            stone.isSleeping = true;
-          }
         }
       }
     }
@@ -963,71 +1001,22 @@ export class MangalaBoard extends PIXI.Container {
       }, startTime + stepDuration / 2);
     });
 
-    // Wait until animation is fully complete and all stones are packed/sleeping
+    // Trigger completion immediately after the last stone lands (with a tiny buffer of 0.02s)
     tl.add(() => {
-      // Check physics completion
-      this.checkAnimationSettle(finalBoardState);
-    }, 0.2 + steps.length * stepDelay + stepDuration + 0.1);
+      this.checkAnimationSettle();
+    }, 0.2 + steps.length * stepDelay + stepDuration + 0.02);
   }
 
   /**
-   * Monitor physics engine and terminate once everything goes to sleep.
+   * Snaps the animation to completion as soon as all stones land, allowing immediate next turn interaction
+   * while the stones continue to physically settle in the background.
    */
-  private checkAnimationSettle(finalBoardState: number[]): void {
-    const startTime = Date.now();
-    const safetyTimeout = 3000; // 3 seconds maximum settling time
-    const totalTargetStones = finalBoardState.reduce((a, b) => a + b, 0);
-    console.log(`[MangalaBoard] checkAnimationSettle started. Target stones: ${totalTargetStones}`);
-
-    let checkInterval = setInterval(() => {
-      let currentStonesCount = 0;
-      for (let i = 0; i < 14; i++) {
-        currentStonesCount += this.stonesInPits[i].length;
-      }
-
-      // If not all stones have landed yet, keep waiting
-      if (currentStonesCount < totalTargetStones) {
-        console.log(`[MangalaBoard] checkAnimationSettle: Waiting for stones to land. Current count: ${currentStonesCount}/${totalTargetStones}`);
-        return;
-      }
-
-      let allSleeping = true;
-      for (let i = 0; i < 14; i++) {
-        if (this.stonesInPits[i].some(stone => !stone.isSleeping)) {
-          allSleeping = false;
-          break;
-        }
-      }
-
-      const elapsed = Date.now() - startTime;
-      if (allSleeping || elapsed > safetyTimeout) {
-        clearInterval(checkInterval);
-        this.stopPhysicsTicker();
-        
-        console.log(`[MangalaBoard] checkAnimationSettle: Done. allSleeping=${allSleeping}, elapsed=${elapsed}ms`);
-
-        // If safety timeout was reached, force stop all active stones and sync positions
-        if (elapsed > safetyTimeout) {
-          console.warn("[MangalaBoard] checkAnimationSettle: Safety timeout reached! Forcing all stones to sleep.");
-          for (let i = 0; i < 14; i++) {
-            this.stonesInPits[i].forEach((stone) => {
-              stone.vx = 0;
-              stone.vy = 0;
-              stone.isSleeping = true;
-            });
-          }
-          this.syncStonesVisuals();
-        }
-
-        this.isAnimating = false;
-        if (this.onAnimationComplete) {
-          console.log("[MangalaBoard] checkAnimationSettle: triggering this.onAnimationComplete");
-          this.onAnimationComplete();
-        } else {
-          console.warn("[MangalaBoard] checkAnimationSettle: this.onAnimationComplete callback is null!");
-        }
-      }
-    }, 100);
+  private checkAnimationSettle(): void {
+    console.log("[MangalaBoard] checkAnimationSettle called. Settle complete, enabling next turn.");
+    this.isAnimating = false;
+    if (this.onAnimationComplete) {
+      this.onAnimationComplete();
+    }
   }
 
   /**
@@ -1126,5 +1115,10 @@ export class MangalaBoard extends PIXI.Container {
     if (!anyActive) {
       this.stopPhysicsTicker();
     }
+  }
+
+  public override destroy(options?: any): void {
+    this.stopPhysicsTicker();
+    super.destroy(options);
   }
 }

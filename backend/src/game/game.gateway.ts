@@ -182,6 +182,33 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
   }
 
+  @SubscribeMessage('game:abandon')
+  async handleAbandon(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { matchId: string },
+  ): Promise<void> {
+    const userId = client.data.userId;
+    if (!userId) {
+      client.disconnect(true);
+      return;
+    }
+
+    if (!payload || !payload.matchId) {
+      client.emit('game:error', {
+        error: { code: 'INVALID_PARAMS', message: 'Geçersiz parametreler.' },
+      });
+      return;
+    }
+
+    try {
+      await this.gameService.handleAbandon(payload.matchId, userId);
+    } catch (error) {
+      client.emit('game:error', {
+        error: { code: 'FORFEIT_FAILED', message: 'Oyundan çekilme işlemi başarısız oldu.' },
+      });
+    }
+  }
+
   @SubscribeMessage('game:chat_toggle')
   async handleChatToggle(
     @ConnectedSocket() client: Socket,

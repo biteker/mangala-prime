@@ -13,15 +13,7 @@ const UserIcon = (): React.JSX.Element => (
   </svg>
 );
 
-const TrophyIcon = (): React.JSX.Element => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
-    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-    <path d="M4 22h16" />
-    <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34" />
-    <path d="M12 2a15.3 15.3 0 0 1 4 7H8a15.3 15.3 0 0 1 4-7z" />
-  </svg>
-);
+
 
 const ClockIcon = (): React.JSX.Element => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
@@ -91,6 +83,7 @@ export function GamePage(): React.JSX.Element {
     makeMove,
     sendChatMessage,
     toggleChat,
+    abandonGame,
   } = useGameStore();
 
   const [chatInput, setChatInput] = useState('');
@@ -109,12 +102,26 @@ export function GamePage(): React.JSX.Element {
   }>({ board, lastMove: null });
   const [isAnimating, setIsAnimating] = useState(false);
   const [showGameOverModal, setShowGameOverModal] = useState(false);
+  const [showForfeitConfirm, setShowForfeitConfirm] = useState(false);
+
+  const handleForfeitClick = (): void => {
+    setShowForfeitConfirm(true);
+  };
+
+  const handleForfeitConfirm = (): void => {
+    setShowForfeitConfirm(false);
+    abandonGame();
+  };
   const prevBoardRef = useRef<number[]>(board);
+  const prevPlayerIdRef = useRef<string | null>(currentPlayerId);
 
   // Store'daki board güncellemelerini yakalayıp animasyon adımlarını belirler
   useEffect(() => {
     const prevBoard = prevBoardRef.current;
     prevBoardRef.current = board;
+
+    const prevPlayerId = prevPlayerIdRef.current;
+    prevPlayerIdRef.current = currentPlayerId;
 
     const prevTotal = prevBoard.reduce((a, b) => a + b, 0);
     const nextTotal = board.reduce((a, b) => a + b, 0);
@@ -125,13 +132,44 @@ export function GamePage(): React.JSX.Element {
       return;
     }
 
-    // Taş kaybeden kuyu başlangıç kuyusudur
-    let lastMovePit = -1;
-    for (let i = 0; i < 14; i++) {
-      if (i === 6 || i === 13) continue;
+    // Taş kaybeden kuyu başlangıç kuyusudur.
+    // Kapma (capture) durumlarında hem hamleyi başlatan kuyu hem de kapılan rakip kuyu taş kaybeder.
+    // Hangisinin başlangıç kuyusu olduğunu son hamle yapan oyuncunun sırasına göre belirleriz.
+    const p1PitsLosing: number[] = [];
+    const p2PitsLosing: number[] = [];
+    for (let i = 0; i < 6; i++) {
       if (board[i] < prevBoard[i]) {
-        lastMovePit = i;
-        break;
+        p1PitsLosing.push(i);
+      }
+    }
+    for (let i = 7; i < 13; i++) {
+      if (board[i] < prevBoard[i]) {
+        p2PitsLosing.push(i);
+      }
+    }
+
+    let lastMovePit = -1;
+    if (p1PitsLosing.length > 0 && p2PitsLosing.length === 0) {
+      // Sadece Player 1 kuyularından taş eksilmiş
+      lastMovePit = p1PitsLosing[0];
+    } else if (p2PitsLosing.length > 0 && p1PitsLosing.length === 0) {
+      // Sadece Player 2 kuyularından taş eksilmiş
+      lastMovePit = p2PitsLosing[0];
+    } else if (p1PitsLosing.length > 0 && p2PitsLosing.length > 0) {
+      // İki taraftan da taş eksilmiş (hamle başlatan kuyu + kapılan rakip kuyu)
+      // Sıra kimdeyken hamle yapıldığını kontrol edip o oyuncunun kuyularına bakarız
+      const wasMyTurn = currentUser ? prevPlayerId === currentUser.id : false;
+      const myPitsStart = yourColor === 1 ? 7 : 0;
+      const myPitsEnd = yourColor === 1 ? 12 : 5;
+
+      if (wasMyTurn) {
+        // Hamleyi ben yaptım, o halde başlangıç kuyusu benim tarafımda olmalı
+        lastMovePit = p1PitsLosing.find(p => p >= myPitsStart && p <= myPitsEnd) ?? 
+                      p2PitsLosing.find(p => p >= myPitsStart && p <= myPitsEnd) ?? -1;
+      } else {
+        // Hamleyi rakip yaptı, o halde başlangıç kuyusu rakip tarafında olmalı
+        lastMovePit = p1PitsLosing.find(p => !(p >= myPitsStart && p <= myPitsEnd)) ?? 
+                      p2PitsLosing.find(p => !(p >= myPitsStart && p <= myPitsEnd)) ?? -1;
       }
     }
 
@@ -181,6 +219,29 @@ export function GamePage(): React.JSX.Element {
     }
     connectGame(matchId);
   }, [matchId, connectGame, navigate]);
+
+  // Ekranı yatay (landscape) moda kilitleme girişimi (mobil cihazlar için)
+  useEffect(() => {
+    try {
+      if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+        window.screen.orientation.lock('landscape').catch((err) => {
+          console.log('Screen orientation lock failed:', err);
+        });
+      }
+    } catch (e) {
+      // ignore
+    }
+    
+    return () => {
+      try {
+        if (window.screen && window.screen.orientation && window.screen.orientation.unlock) {
+          window.screen.orientation.unlock();
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+  }, []);
 
   // Yeni mesaj geldiğinde sohbeti aşağı kaydır
   useEffect(() => {
@@ -285,45 +346,95 @@ export function GamePage(): React.JSX.Element {
 
   return (
     <div className="game-layout">
-      {/* OYUN HEADER BİLGİSİ */}
-      <div className="game-header-panel">
-        <div className="player-badge me">
+      {/* CİHAZ DÖNDÜRME UYARISI (MOBİL PORTRAIT İÇİN) */}
+      <div className="orientation-warning-overlay">
+        <div className="orientation-warning-card">
+          <div className="orientation-warning-icon">
+            <svg viewBox="0 0 24 24" width="40" height="40">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2" style={{ fill: 'none', stroke: '#ff375f', strokeWidth: 2 }} />
+              <circle cx="12" cy="18" r="1" style={{ fill: '#ff375f' }} />
+            </svg>
+          </div>
+          <h3 className="orientation-warning-title">Ekranı Döndürün</h3>
+          <p className="orientation-warning-text">
+            Daha iyi bir Mangala deneyimi için lütfen cihazınızı yatay (landscape) konuma getirin.
+          </p>
+        </div>
+      </div>
+
+      {/* OYUN ÜST BARI (TRANSPARAN VE MINIMAL) */}
+      <div className="game-top-bar">
+        {/* Sol Oyuncu Bilgisi */}
+        <div className={`top-bar-player me ${isMyTurn ? 'active-turn' : ''}`}>
           <div className="player-avatar">
             <UserIcon />
           </div>
-          <div className="player-info">
-            <span className="player-username">{currentUser.username}</span>
-            <div className="player-elo-container">
-              <TrophyIcon />
-              <span className="player-elo-info">{currentUser.elo}</span>
+          <div className="player-meta">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="player-name">{currentUser.username}</span>
+              {isMyTurn && <div className="active-turn-dot" title="Sıra Sizde" />}
             </div>
+            <span className="player-elo">{currentUser.elo} ELO</span>
           </div>
-          {isMyTurn && <div className="active-turn-dot" />}
         </div>
 
-        <div className="timer-panel">
-          <ClockIcon />
-          <span className={`timer-seconds ${turnTimeLeft <= 5 ? 'danger' : ''}`}>
-            {formatTime(turnTimeLeft)}
-          </span>
-          <span className="turn-status-text">
-            {isMyTurn ? 'Sıra Sizde!' : 'Sıra Rakipte'}
-          </span>
+        {/* Orta Bölüm: Başlık ve Zamanlayıcı */}
+        <div className="top-bar-center">
+          <div className="game-title">Türk Mangalası</div>
+          <div className={`game-timer ${turnTimeLeft <= 5 ? 'danger' : ''}`}>
+            <ClockIcon />
+            <span>{formatTime(turnTimeLeft)}</span>
+          </div>
         </div>
 
-        <div className="player-badge opponent">
+        {/* Sağ Oyuncu Bilgisi */}
+        <div className={`top-bar-player opponent ${!isMyTurn ? 'active-turn' : ''}`}>
+          <div className="player-meta">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {!isMyTurn && <div className="active-turn-dot" title="Sıra Rakipte" />}
+              <span className="player-name">{opponentUsername || 'Rakip'}</span>
+            </div>
+            <span className="player-elo">{opponentElo} ELO</span>
+          </div>
           <div className="player-avatar">
             <UserIcon />
           </div>
-          <div className="player-info">
-            <span className="player-username">{opponentUsername || 'Rakip'}</span>
-            <div className="player-elo-container">
-              <TrophyIcon />
-              <span className="player-elo-info">{opponentElo}</span>
-            </div>
-          </div>
-          {!isMyTurn && <div className="active-turn-dot" />}
         </div>
+      </div>
+
+      {/* Sol Kenardaki Oyundan Çekilme (Kapatma) Düğmesi - Referans Resimdeki Kırmızı X Butonu */}
+      <button
+        type="button"
+        className="game-exit-btn"
+        onClick={handleForfeitClick}
+        title="Oyundan Çekil"
+      >
+        ✕
+      </button>
+
+      {/* Sağ Kenardaki Floating Sohbet Kutusu */}
+      <div className="game-floating-actions">
+        <label className="sohbet-acik-checkbox" title="Sohbet Durumu">
+          <input
+            type="checkbox"
+            checked={chatEnabled}
+            onChange={(e): void => toggleChat(e.target.checked)}
+          />
+          <span>Sohbet Açık</span>
+        </label>
+        <button
+          type="button"
+          className="action-icon-btn"
+          onClick={() => {
+            const chatEl = document.querySelector('.chat-panel-container');
+            if (chatEl) {
+              chatEl.scrollIntoView({ behavior: 'smooth' });
+            }
+          }}
+          title="Sohbete Git"
+        >
+          💬
+        </button>
       </div>
 
       {disconnectedPlayerId && (
@@ -405,6 +516,7 @@ export function GamePage(): React.JSX.Element {
             clickablePits={clickablePits}
             p1Info={p1Info}
             p2Info={p2Info}
+            yourColor={yourColor}
             lastMove={boardData.lastMove}
             onPitClicked={handlePitClick}
             onAnimationComplete={handleAnimationComplete}
@@ -454,6 +566,34 @@ export function GamePage(): React.JSX.Element {
             >
               Lobiye Dön
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ÇEKİLME ONAY MODALI */}
+      {showForfeitConfirm && (
+        <div className="modal-backdrop">
+          <div className="auth-card game-over-modal">
+            <h2 className="auth-title" style={{ color: '#ff3b30' }}>Oyundan Çekil</h2>
+            <p className="game-end-reason" style={{ textAlign: 'center', marginBottom: '24px' }}>
+              Oyundan çekilmek istediğinize emin misiniz? Bu işlem hükmen mağlup sayılmanıza ve ELO puanınızın düşmesine neden olacaktır.
+            </p>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="auth-button decline-invite-btn"
+                onClick={handleForfeitConfirm}
+              >
+                Evet, Çekil
+              </button>
+              <button
+                type="button"
+                className="auth-button accept-invite-btn"
+                onClick={(): void => setShowForfeitConfirm(false)}
+              >
+                Vazgeç
+              </button>
+            </div>
           </div>
         </div>
       )}

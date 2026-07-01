@@ -42,6 +42,7 @@ interface GameState {
   toggleChat: (enabled: boolean) => void;
   sendChatMessage: (message: string, type: 'text' | 'preset') => void;
   setMatchDetails: (details: { opponentUsername: string; opponentElo: number; yourColor: Player }) => void;
+  abandonGame: () => void;
 }
 
 let timerInterval: ReturnType<typeof setInterval> | null = null;
@@ -83,8 +84,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       timerInterval = null;
     }
 
-    const socketUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
-      ? window.location.origin
+    const socketUrl = typeof window !== 'undefined'
+      ? (window.location.port === '5173'
+        ? `${window.location.protocol}//${window.location.hostname}:3000`
+        : window.location.origin)
       : 'http://127.0.0.1:3000';
 
     const newSocket = io(`${socketUrl}/game`, {
@@ -238,6 +241,13 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (socket && socket.connected && matchId) {
       socket.emit('game:reconnect', { matchId });
       set({ gameError: null });
+    }
+  },
+
+  abandonGame: () => {
+    const { socket, matchId } = get();
+    if (socket && socket.connected && matchId) {
+      socket.emit('game:abandon', { matchId });
     }
   },
 

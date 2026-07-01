@@ -3,6 +3,9 @@ import { useAuthStore } from '../stores/auth.store';
 
 const getApiBaseUrl = (): string => {
   if (typeof window !== 'undefined') {
+    if (window.location.port === '5173') {
+      return `${window.location.protocol}//${window.location.hostname}:3000`;
+    }
     const hostname = window.location.hostname;
     if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
       return window.location.origin;

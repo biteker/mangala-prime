@@ -20,6 +20,7 @@ interface MangalaReactBoardProps {
   p1Info: PlayerInfo;
   p2Info: PlayerInfo;
   lastMove?: LastMoveDetails | null;
+  yourColor?: number | null;
   onPitClicked?: (pitIndex: number) => void;
   onAnimationComplete?: () => void;
 }
@@ -39,6 +40,7 @@ export const MangalaReactBoard: React.FC<MangalaReactBoardProps> = ({
   p1Info,
   p2Info,
   lastMove = null,
+  yourColor = 0,
   onPitClicked,
   onAnimationComplete
 }) => {
@@ -66,6 +68,13 @@ export const MangalaReactBoard: React.FC<MangalaReactBoardProps> = ({
       }
     };
 
+    const handleResizeWithDelay = () => {
+      handleResize();
+      setTimeout(handleResize, 100);
+      setTimeout(handleResize, 300);
+      setTimeout(handleResize, 600);
+    };
+
     const init = async () => {
       const newApp = new PIXI.Application();
       await newApp.init({
@@ -75,7 +84,11 @@ export const MangalaReactBoard: React.FC<MangalaReactBoardProps> = ({
       });
 
       if (isDestroyed) {
-        newApp.destroy({ removeView: true }, { children: true });
+        try {
+          newApp.destroy(true, { children: true });
+        } catch (e) {
+          console.warn("Failed to destroy Pixi application on early unmount:", e);
+        }
         return;
       }
 
@@ -88,7 +101,7 @@ export const MangalaReactBoard: React.FC<MangalaReactBoardProps> = ({
       }
 
       // Initialize the Board container
-      board = new MangalaBoard();
+      board = new MangalaBoard(yourColor ?? 0);
       app.stage.addChild(board);
 
       // Store references
@@ -110,20 +123,24 @@ export const MangalaReactBoard: React.FC<MangalaReactBoardProps> = ({
       };
 
       // Responsive Resize
-      handleResize();
-      window.addEventListener('resize', handleResize);
+      handleResizeWithDelay();
+      window.addEventListener('resize', handleResizeWithDelay);
     };
 
     init();
 
     return () => {
       isDestroyed = true;
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', handleResizeWithDelay);
       if (app) {
-        app.destroy({ removeView: true }, { children: true });
+        try {
+          app.destroy(true, { children: true });
+        } catch (e) {
+          console.warn("Failed to destroy Pixi application on unmount:", e);
+        }
       }
     };
-  }, []);
+  }, [yourColor]);
 
   // 2. React to Board State changes
   useEffect(() => {
@@ -154,10 +171,8 @@ export const MangalaReactBoard: React.FC<MangalaReactBoardProps> = ({
   return (
     <div 
       ref={containerRef} 
+      className="mangala-board-canvas-container"
       style={{ 
-        width: '100%', 
-        height: '100%',
-        minHeight: '450px',
         position: 'relative',
         overflow: 'hidden'
       }} 
