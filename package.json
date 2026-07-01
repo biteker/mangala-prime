@@ -14,5 +14,9 @@
   },
   "devDependencies": {
     "ajv": "^8.20.0"
+  },
+  "dependencies": {
+    "gsap": "^3.15.0",
+    "pixi.js": "^8.19.0"
   }
 }

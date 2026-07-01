@@ -16,7 +16,7 @@ function App(): React.JSX.Element {
   // Tema sınıfının root elementine uygulanması
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove('theme-wood', 'theme-neon', 'theme-rustic');
+    root.classList.remove('theme-wood', 'theme-neon', 'theme-rustic', 'theme-pixijs');
     root.classList.add(theme);
   }, [theme]);
 
@@ -29,7 +29,7 @@ function App(): React.JSX.Element {
   }, []);
 
   const handleThemeToggle = (): void => {
-    const order: Array<typeof theme> = ['theme-wood', 'theme-neon', 'theme-rustic'];
+    const order: Array<typeof theme> = ['theme-wood', 'theme-neon', 'theme-rustic', 'theme-pixijs'];
     const currentIndex = order.indexOf(theme);
     const nextIndex = (currentIndex + 1) % order.length;
     setTheme(order[nextIndex]);
@@ -40,6 +40,7 @@ function App(): React.JSX.Element {
       case 'theme-wood': return 'Ahşap';
       case 'theme-neon': return 'Neon';
       case 'theme-rustic': return 'Rustik';
+      case 'theme-pixijs': return 'PixiJS';
       default: return 'Ahşap';
     }
   };
@@ -66,34 +67,36 @@ function App(): React.JSX.Element {
 
   return (
     <AuthGuard>
-      <header className="app-header">
-        <div className="brand">Mangala Prime</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {user && (
-            <>
-              <span style={{ fontSize: '14px', fontWeight: 600 }}>
-                {user.username} ({user.elo} ELO)
-              </span>
-              <button 
-                type="button" 
-                className="theme-toggle-btn" 
-                onClick={handleLogout}
-              >
-                Çıkış Yap
-              </button>
-            </>
-          )}
-          <button 
-            type="button" 
-            className="theme-toggle-btn" 
-            onClick={handleThemeToggle}
-          >
-            Tema: {getThemeLabel()}
-          </button>
-        </div>
-      </header>
+      {route !== '#/game' && (
+        <header className="app-header">
+          <div className="brand">Mangala Prime</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {user && (
+              <>
+                <span style={{ fontSize: '14px', fontWeight: 600 }}>
+                  {user.username} ({user.elo} ELO)
+                </span>
+                <button 
+                  type="button" 
+                  className="theme-toggle-btn" 
+                  onClick={handleLogout}
+                >
+                  Çıkış Yap
+                </button>
+              </>
+            )}
+            <button 
+              type="button" 
+              className="theme-toggle-btn" 
+              onClick={handleThemeToggle}
+            >
+              Tema: {getThemeLabel()}
+            </button>
+          </div>
+        </header>
+      )}
 
-      <main className="auth-container">
+      <main className={route === '#/game' ? 'game-page-main' : 'auth-container'}>
         {renderContent()}
       </main>
     </AuthGuard>

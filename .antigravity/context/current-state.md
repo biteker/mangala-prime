@@ -1,7 +1,6 @@
 # Projenin Anlık Durumu
 
-Son Güncelleme: 2026-06-05
-Aktif Branch: feature/postgres-migration
+Aktif Branch: pixijs
 
 ---
 
@@ -64,13 +63,12 @@ Faz 1 MVP: ██████████ %100
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-06-06 — PostgreSQL Göçü İncelemesi ve Migrasyon Uyuşmazlığı Giderilmesi
+Oturum 2026-06-10 — PixiJS Tahta Ardışık Dağıtım ve Fiziksel Yerleşim Animasyon Düzeltmesi
 
 ### Yapılanlar
-- SQLite'tan PostgreSQL 18 veritabanı göçü detaylıca incelendi.
-- `P3019` provider uyuşmazlığı hatası veren eski SQLite migration kalıntıları silindi, PostgreSQL 18 uyumlu yeni temiz migrasyon (`init_postgres`) başarıyla oluşturulup yerel PostgreSQL veritabanına uygulandı.
-- `npx prisma db seed` ile veritabanı 5 test kullanıcısıyla başarıyla tohumlandı.
-- `Dockerfile` içindeki gereksiz SQLite klasör/dosya oluşturma komutları temizlendi.
-- `docs/spec.md` içindeki örnek Prisma şeması PostgreSQL ve Prisma 7 generator ayarlarına uygun hale getirildi.
-- Bütün backend unit testleri ve monorepo build işlemleri başarıyla doğrulandı.
+- `MangalaReactBoard.tsx` bileşenine array referans değişikliklerini tolere etmesi için `arraysEqual` yardımcı fonksiyonu eklendi ve value-equality kontrolü sağlandı.
+- `MangalaBoard.ts` içindeki `runSowingAnimation` metodu, uçuş (`x`, `y`) ve parabolik yükseklik (`flightZ`) tweens'lerini tek bir ana GSAP timeline (`tl`) üzerinde birleştirilerek refaktör edildi.
+- `checkAnimationSettle` metoduna `finalBoardState` parametresi eklenerek toplam taş sayısının doğruluğu (`currentStonesCount === totalTargetStones`) kontrol edilmeye başlandı ve havada uçuş halinde olan taşlar varken animasyonun erken sonlanması engellendi.
+- `tickPhysics` simülasyon döngüsü güncellenerek fizik motoru ile yer değiştiren ve sarsılan bilyelerin scale/shadow/Z yükseklik görsel özelliklerinin güncel kalması sağlandı.
+- Monorepo derlemesi (`npm run build`) ve tüm 74 birim testi (`npm run test`) başarıyla doğrulandı.
 

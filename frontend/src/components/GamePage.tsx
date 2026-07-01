@@ -1,7 +1,33 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useGameStore } from '../stores/game.store';
 import { useAuthStore } from '../stores/auth.store';
 import { useRouter } from '../lib/router';
+import { MangalaReactBoard } from './MangalaBoard/MangalaReactBoard';
+import type { LastMoveDetails } from './MangalaBoard/MangalaReactBoard';
+
+// SVG Icon components for premium feel
+const UserIcon = (): React.JSX.Element => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+
+
+
+const ClockIcon = (): React.JSX.Element => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>
+);
+
+const SendIcon = (): React.JSX.Element => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+    <line x1="22" y1="2" x2="11" y2="13" />
+    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+  </svg>
+);
 
 // Saat yönünün tersine taş dağıtım rotasını hesaplar (Rakip haznesini atlar)
 function calculateAnimationSteps(startPit: number, stoneCount: number): number[] {
@@ -57,44 +83,141 @@ export function GamePage(): React.JSX.Element {
     makeMove,
     sendChatMessage,
     toggleChat,
+    abandonGame,
   } = useGameStore();
 
   const [chatInput, setChatInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Animasyon için yerel state tanımları
-  const [visualBoard, setVisualBoard] = useState<number[]>(board);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [activePit, setActivePit] = useState<number | null>(null);
-  const [showGameOverModal, setShowGameOverModal] = useState(false);
-  const prevBoardRef = useRef<number[]>(board);
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
 
-  // Store'daki board güncellemelerini yakalayıp animasyonu tetikler
+  // Animasyon için yerel state tanımları
+  const [boardData, setBoardData] = useState<{
+    board: number[];
+    lastMove: LastMoveDetails | null;
+  }>({ board, lastMove: null });
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [showGameOverModal, setShowGameOverModal] = useState(false);
+  const [showForfeitConfirm, setShowForfeitConfirm] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const handleForfeitClick = (): void => {
+    setShowForfeitConfirm(true);
+  };
+
+  const handleForfeitConfirm = (): void => {
+    setShowForfeitConfirm(false);
+    abandonGame();
+  };
+
+  // Listen to fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        const el = document.documentElement;
+        if (el.requestFullscreen) {
+          await el.requestFullscreen();
+        } else if ((el as any).webkitRequestFullscreen) {
+          await (el as any).webkitRequestFullscreen();
+        } else if ((el as any).msRequestFullscreen) {
+          await (el as any).msRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen();
+        } else if ((document as any).msExitFullscreen) {
+          await (document as any).msExitFullscreen();
+        }
+      }
+    } catch (err) {
+      console.warn('Fullscreen toggle failed:', err);
+    }
+  };
+  const prevBoardRef = useRef<number[]>(board);
+  const prevPlayerIdRef = useRef<string | null>(currentPlayerId);
+
+  // Store'daki board güncellemelerini yakalayıp animasyon adımlarını belirler
   useEffect(() => {
     const prevBoard = prevBoardRef.current;
     prevBoardRef.current = board;
+
+    const prevPlayerId = prevPlayerIdRef.current;
+    prevPlayerIdRef.current = currentPlayerId;
 
     const prevTotal = prevBoard.reduce((a, b) => a + b, 0);
     const nextTotal = board.reduce((a, b) => a + b, 0);
 
     // Eşleşme başlangıcı, reconnect veya geçersiz durumlarda animasyon oynatmadan direkt eşitle
     if (prevTotal !== nextTotal || prevTotal === 0) {
-      setVisualBoard(board);
+      setBoardData({ board, lastMove: null });
       return;
     }
 
-    // Taş kaybeden kuyu başlangıç kuyusudur
-    let lastMovePit = -1;
-    for (let i = 0; i < 14; i++) {
-      if (i === 6 || i === 13) continue;
+    // Taş kaybeden kuyu başlangıç kuyusudur.
+    // Kapma (capture) durumlarında hem hamleyi başlatan kuyu hem de kapılan rakip kuyu taş kaybeder.
+    // Hangisinin başlangıç kuyusu olduğunu son hamle yapan oyuncunun sırasına göre belirleriz.
+    const p1PitsLosing: number[] = [];
+    const p2PitsLosing: number[] = [];
+    for (let i = 0; i < 6; i++) {
       if (board[i] < prevBoard[i]) {
-        lastMovePit = i;
-        break;
+        p1PitsLosing.push(i);
+      }
+    }
+    for (let i = 7; i < 13; i++) {
+      if (board[i] < prevBoard[i]) {
+        p2PitsLosing.push(i);
+      }
+    }
+
+    let lastMovePit = -1;
+    if (p1PitsLosing.length > 0 && p2PitsLosing.length === 0) {
+      // Sadece Player 1 kuyularından taş eksilmiş
+      lastMovePit = p1PitsLosing[0];
+    } else if (p2PitsLosing.length > 0 && p1PitsLosing.length === 0) {
+      // Sadece Player 2 kuyularından taş eksilmiş
+      lastMovePit = p2PitsLosing[0];
+    } else if (p1PitsLosing.length > 0 && p2PitsLosing.length > 0) {
+      // İki taraftan da taş eksilmiş (hamle başlatan kuyu + kapılan rakip kuyu)
+      // Sıra kimdeyken hamle yapıldığını kontrol edip o oyuncunun kuyularına bakarız
+      const wasMyTurn = currentUser ? prevPlayerId === currentUser.id : false;
+      const myPitsStart = yourColor === 1 ? 7 : 0;
+      const myPitsEnd = yourColor === 1 ? 12 : 5;
+
+      if (wasMyTurn) {
+        // Hamleyi ben yaptım, o halde başlangıç kuyusu benim tarafımda olmalı
+        lastMovePit = p1PitsLosing.find(p => p >= myPitsStart && p <= myPitsEnd) ?? 
+                      p2PitsLosing.find(p => p >= myPitsStart && p <= myPitsEnd) ?? -1;
+      } else {
+        // Hamleyi rakip yaptı, o halde başlangıç kuyusu rakip tarafında olmalı
+        lastMovePit = p1PitsLosing.find(p => !(p >= myPitsStart && p <= myPitsEnd)) ?? 
+                      p2PitsLosing.find(p => !(p >= myPitsStart && p <= myPitsEnd)) ?? -1;
       }
     }
 
     if (lastMovePit === -1) {
-      setVisualBoard(board);
+      setBoardData({ board, lastMove: null });
       return;
     }
 
@@ -102,44 +225,25 @@ export function GamePage(): React.JSX.Element {
     const steps = calculateAnimationSteps(lastMovePit, startStones);
 
     if (steps.length === 0) {
-      setVisualBoard(board);
+      setBoardData({ board, lastMove: null });
       return;
     }
 
     setIsAnimating(true);
-    setActivePit(lastMovePit);
-
-    let currentBoard = [...prevBoard];
-    if (startStones === 1) {
-      currentBoard[lastMovePit] = 0;
-    } else {
-      currentBoard[lastMovePit] = 1;
-    }
-    setVisualBoard([...currentBoard]);
-
-    let stepIdx = 0;
-    const stepDelay = 175; // 175ms kuyu geçiş gecikmesi
-
-    const playNextStep = () => {
-      if (stepIdx >= steps.length) {
-        // Animasyon tamamlandığında sunucunun nihai durumunu tahtaya bas ve kilidi aç
-        setVisualBoard(board);
-        setIsAnimating(false);
-        setActivePit(null);
-        return;
+    setBoardData({
+      board,
+      lastMove: {
+        startPit: lastMovePit,
+        steps,
+        nextState: board
       }
-
-      const targetPit = steps[stepIdx];
-      currentBoard[targetPit] += 1;
-      setVisualBoard([...currentBoard]);
-      setActivePit(targetPit);
-      stepIdx++;
-
-      setTimeout(playNextStep, stepDelay);
-    };
-
-    setTimeout(playNextStep, stepDelay);
+    });
   }, [board]);
+
+  const handleAnimationComplete = (): void => {
+    setIsAnimating(false);
+    setBoardData(prev => ({ ...prev, lastMove: null }));
+  };
 
   // Oyun sonu modalını animasyon tamamlanana kadar erteleyen mekanizma
   useEffect(() => {
@@ -150,25 +254,37 @@ export function GamePage(): React.JSX.Element {
     }
   }, [gameOverDetails, isAnimating]);
 
-
   // Otomatik sayfa yönlendirme ve bağlantı yönetimi
-  // Not: React StrictMode geliştirme modunda effect'i iki kez çalıştırır.
-  // connectGame guard'ı (socket && matchId === matchId) sayesinde çift soket oluşmaz.
-  // disconnectGame ise ancak matchId gerçekten null olduğunda lobiye döner.
   useEffect(() => {
     if (!matchId) {
       navigate('#/lobby');
       return;
     }
     connectGame(matchId);
-    // Cleanup: sadece bileşen gerçekten unmount edildiğinde çalışır.
-    // game:game_over alındığında kullanıcı "Lobiye Dön" butonuna basar,
-    // bu da disconnectGame + navigate çağırır — burada tekrar çağırmaya gerek yok.
-    return () => {
-      // intentionally empty — disconnectGame is called by the "Lobiye Dön" button
-      // or when matchId becomes null (handled above).
-    };
   }, [matchId, connectGame, navigate]);
+
+  // Ekranı yatay (landscape) moda kilitleme girişimi (mobil cihazlar için)
+  useEffect(() => {
+    try {
+      if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+        window.screen.orientation.lock('landscape').catch((err) => {
+          console.log('Screen orientation lock failed:', err);
+        });
+      }
+    } catch (e) {
+      // ignore
+    }
+    
+    return () => {
+      try {
+        if (window.screen && window.screen.orientation && window.screen.orientation.unlock) {
+          window.screen.orientation.unlock();
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+  }, []);
 
   // Yeni mesaj geldiğinde sohbeti aşağı kaydır
   useEffect(() => {
@@ -202,22 +318,6 @@ export function GamePage(): React.JSX.Element {
     sendChatMessage(preset, 'preset');
   };
 
-  // Kuyularda görsel taş dağılımı için yardımcı fonksiyon
-  const renderStones = (count: number): React.ReactNode => {
-    const maxDots = 6;
-    const dotsCount = Math.min(count, maxDots);
-    const dots = Array.from({ length: dotsCount }).map((_, i) => (
-      <span key={i} className="stone-dot"></span>
-    ));
-
-    return (
-      <div className="stone-dots-container">
-        {dots}
-        {count > maxDots && <span className="stone-more-text">+{count - maxDots}</span>}
-      </div>
-    );
-  };
-
   // Kuyu tıklama işleyicisi
   const handlePitClick = (pitIndex: number): void => {
     if (isAnimating || !isMyTurn) return;
@@ -229,27 +329,42 @@ export function GamePage(): React.JSX.Element {
         : pitIndex >= 7 && pitIndex <= 12;
 
     if (!isMyPit) return;
-    if (visualBoard[pitIndex] === 0) return;
+    if (boardData.board[pitIndex] === 0) return;
 
     makeMove(pitIndex);
   };
 
-  // Rotaların Eşleştirilmesi (Perspektife Göre Sıralama)
-  // yourColor === 0 (Player 1) ise:
-  // - Üst Sıra: 12, 11, 10, 9, 8, 7 (Rakip)
-  // - Alt Sıra: 0, 1, 2, 3, 4, 5 (Biz)
-  // - Sol Hazine: 13 (Rakip)
-  // - Sağ Hazine: 6 (Biz)
-  //
-  // yourColor === 1 (Player 2) ise:
-  // - Üst Sıra: 5, 4, 3, 2, 1, 0 (Rakip)
-  // - Alt Sıra: 7, 8, 9, 10, 11, 12 (Biz)
-  // - Sol Hazine: 6 (Rakip)
-  // - Sağ Hazine: 13 (Biz)
-  const topPits = yourColor === 1 ? [5, 4, 3, 2, 1, 0] : [12, 11, 10, 9, 8, 7];
-  const bottomPits = yourColor === 1 ? [7, 8, 9, 10, 11, 12] : [0, 1, 2, 3, 4, 5];
-  const leftTreasuryIndex = yourColor === 1 ? 6 : 13;
-  const rightTreasuryIndex = yourColor === 1 ? 13 : 6;
+  // Tıklanabilir kuyular dizisi
+  const clickablePits = useMemo(() => {
+    if (!isMyTurn || isAnimating) return [];
+    const isP1 = yourColor === 0;
+    const startIdx = isP1 ? 0 : 7;
+    const endIdx = isP1 ? 5 : 12;
+    const pits: number[] = [];
+    for (let i = startIdx; i <= endIdx; i++) {
+      if (boardData.board[i] > 0) {
+        pits.push(i);
+      }
+    }
+    return pits;
+  }, [boardData.board, isMyTurn, isAnimating, yourColor]);
+
+  // Oyuncu Bilgileri Eşleştirmesi
+  const p1Info = useMemo(() => {
+    if (yourColor === 0) {
+      return { name: currentUser.username, elo: currentUser.elo };
+    } else {
+      return { name: opponentUsername || 'Rakip', elo: opponentElo || 1000 };
+    }
+  }, [yourColor, currentUser, opponentUsername, opponentElo]);
+
+  const p2Info = useMemo(() => {
+    if (yourColor === 1) {
+      return { name: currentUser.username, elo: currentUser.elo };
+    } else {
+      return { name: opponentUsername || 'Rakip', elo: opponentElo || 1000 };
+    }
+  }, [yourColor, currentUser, opponentUsername, opponentElo]);
 
   // ELO Değişimi Hesaplama (modal için)
   const myEloChange = (): number => {
@@ -274,29 +389,105 @@ export function GamePage(): React.JSX.Element {
 
   return (
     <div className="game-layout">
-      {/* OYUN HEADER BİLGİSİ */}
-      <div className="game-header-panel">
-        <div className="player-badge me">
-          <span className="player-role-indicator">P{yourColor === 0 ? '1' : '2'} (Siz)</span>
-          <span className="player-username">{currentUser.username}</span>
-          <span className="player-elo-info">{currentUser.elo} ELO</span>
+      {/* CİHAZ DÖNDÜRME UYARISI (MOBİL PORTRAIT İÇİN) */}
+      <div className="orientation-warning-overlay">
+        <div className="orientation-warning-card">
+          <div className="orientation-warning-icon">
+            <svg viewBox="0 0 24 24" width="40" height="40">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2" style={{ fill: 'none', stroke: '#ff375f', strokeWidth: 2 }} />
+              <circle cx="12" cy="18" r="1" style={{ fill: '#ff375f' }} />
+            </svg>
+          </div>
+          <h3 className="orientation-warning-title">Ekranı Döndürün</h3>
+          <p className="orientation-warning-text">
+            Daha iyi bir Mangala deneyimi için lütfen cihazınızı yatay (landscape) konuma getirin.
+          </p>
+        </div>
+      </div>
+
+      {/* OYUN ÜST BARI (TRANSPARAN VE MINIMAL) */}
+      <div className="game-top-bar">
+        {/* Sol Oyuncu Bilgisi */}
+        <div className={`top-bar-player me ${isMyTurn ? 'active-turn' : ''}`}>
+          <div className="player-avatar">
+            <UserIcon />
+          </div>
+          <div className="player-meta">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="player-name">{currentUser.username}</span>
+              {isMyTurn && <div className="active-turn-dot" title="Sıra Sizde" />}
+            </div>
+            <span className="player-elo">{currentUser.elo} ELO</span>
+          </div>
         </div>
 
-        <div className="timer-panel">
-          <span className="timer-label">SÜRE</span>
-          <span className={`timer-seconds ${turnTimeLeft <= 5 ? 'danger' : ''}`}>
-            {turnTimeLeft}s
-          </span>
-          <span className="turn-status-text">
-            {isMyTurn ? 'Sıra Sizde!' : 'Rakibin Hamlesi Bekleniyor...'}
-          </span>
+        {/* Orta Bölüm: Başlık ve Zamanlayıcı */}
+        <div className="top-bar-center">
+          <div className="game-title">Türk Mangalası</div>
+          <div className={`game-timer ${turnTimeLeft <= 5 ? 'danger' : ''}`}>
+            <ClockIcon />
+            <span>{formatTime(turnTimeLeft)}</span>
+          </div>
         </div>
 
-        <div className="player-badge opponent">
-          <span className="player-role-indicator">P{yourColor === 0 ? '2' : '1'}</span>
-          <span className="player-username">{opponentUsername || 'Rakip'}</span>
-          <span className="player-elo-info">{opponentElo} ELO</span>
+        {/* Sağ Oyuncu Bilgisi */}
+        <div className={`top-bar-player opponent ${!isMyTurn ? 'active-turn' : ''}`}>
+          <div className="player-meta">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {!isMyTurn && <div className="active-turn-dot" title="Sıra Rakipte" />}
+              <span className="player-name">{opponentUsername || 'Rakip'}</span>
+            </div>
+            <span className="player-elo">{opponentElo} ELO</span>
+          </div>
+          <div className="player-avatar">
+            <UserIcon />
+          </div>
         </div>
+      </div>
+
+      {/* Sol Kenardaki Oyundan Çekilme (Kapatma) Düğmesi - Referans Resimdeki Kırmızı X Butonu */}
+      <button
+        type="button"
+        className="game-exit-btn"
+        onClick={handleForfeitClick}
+        title="Oyundan Çekil"
+      >
+        ✕
+      </button>
+
+      {/* Sol Kenardaki Tam Ekran Düğmesi */}
+      <button
+        type="button"
+        className="game-fullscreen-btn"
+        onClick={toggleFullscreen}
+        title={isFullscreen ? "Tam Ekrandan Çık" : "Tam Ekran Yap"}
+      >
+        {isFullscreen ? "⤡" : "⛶"}
+      </button>
+
+      {/* Sağ Kenardaki Floating Sohbet Kutusu */}
+      <div className="game-floating-actions">
+        <label className="sohbet-acik-checkbox" title="Sohbet Durumu">
+          <input
+            type="checkbox"
+            checked={chatEnabled}
+            onChange={(e): void => toggleChat(e.target.checked)}
+          />
+          <span>Sohbet Açık</span>
+        </label>
+        <button
+          type="button"
+          className="action-icon-btn"
+          onClick={() => {
+            const chatEl = document.querySelector('.chat-panel-container');
+            if (chatEl) {
+              chatEl.scrollIntoView({ behavior: 'smooth' });
+            }
+          }}
+          title="Sohbete Git"
+        >
+          💬
+        </button>
       </div>
 
       {disconnectedPlayerId && (
@@ -365,70 +556,31 @@ export function GamePage(): React.JSX.Element {
               disabled={!chatEnabled}
             />
             <button type="submit" className="auth-button chat-send-btn" disabled={!chatEnabled}>
-              Gönder
+              <SendIcon />
             </button>
           </form>
         </div>
 
         {/* ORTA PANEL: MANGALA TAHTASI */}
         <div className="board-panel-container">
-          <div className={`mangala-board ${isAnimating ? 'input-locked' : ''}`}>
-            {/* SOL HAZNE (Rakip Haznesi) */}
-            <div className={`treasury left-treasury ${activePit === leftTreasuryIndex ? 'animate-drop' : ''}`}>
-              <span className="treasury-label">P{yourColor === 1 ? '1' : '2'}</span>
-              <span className="stone-count">{visualBoard[leftTreasuryIndex]}</span>
-              {renderStones(visualBoard[leftTreasuryIndex])}
-            </div>
+          <MangalaReactBoard
+            boardState={boardData.board}
+            isMyTurn={isMyTurn}
+            clickablePits={clickablePits}
+            p1Info={p1Info}
+            p2Info={p2Info}
+            yourColor={yourColor}
+            lastMove={boardData.lastMove}
+            onPitClicked={handlePitClick}
+            onAnimationComplete={handleAnimationComplete}
+          />
+        </div>
+      </div>
 
-            {/* ORTA 12 KUYU BÖLGESİ */}
-            <div className="pits-grid">
-              {/* ÜST SIRA (Rakip Kuyuları - Ters Perspektif) */}
-              <div className="pits-row top-row">
-                {topPits.map((pitIdx) => {
-                  const isActive = activePit === pitIdx;
-                  return (
-                    <div
-                      key={pitIdx}
-                      className={`pit top-pit disabled ${isActive ? 'animate-drop' : ''}`}
-                    >
-                      <span className="pit-index-label">{pitIdx}</span>
-                      <span className="stone-count">{visualBoard[pitIdx]}</span>
-                      {renderStones(visualBoard[pitIdx])}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* ALT SIRA (Kendi Kuyularımız - Tıklanabilir) */}
-              <div className="pits-row bottom-row">
-                {bottomPits.map((pitIdx) => {
-                  const hasStones = visualBoard[pitIdx] > 0;
-                  const canClick = isMyTurn && hasStones && !isAnimating;
-                  const isActive = activePit === pitIdx;
-                  return (
-                    <div
-                      key={pitIdx}
-                      className={`pit bottom-pit ${canClick ? 'active' : 'disabled'} ${
-                        isActive ? 'animate-drop' : ''
-                      }`}
-                      onClick={(): void => handlePitClick(pitIdx)}
-                    >
-                      <span className="pit-index-label">{pitIdx}</span>
-                      <span className="stone-count">{visualBoard[pitIdx]}</span>
-                      {renderStones(visualBoard[pitIdx])}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* SAĞ HAZNE (Bizim Haznemiz) */}
-            <div className={`treasury right-treasury ${activePit === rightTreasuryIndex ? 'animate-drop' : ''}`}>
-              <span className="treasury-label">P{yourColor === 0 ? '1' : '2'} (Siz)</span>
-              <span className="stone-count">{visualBoard[rightTreasuryIndex]}</span>
-              {renderStones(visualBoard[rightTreasuryIndex])}
-            </div>
-          </div>
+      {/* Mobilde ekranın altında sırayı gösteren indicator */}
+      <div className="mobile-turn-indicator-container">
+        <div className={`mobile-turn-indicator ${isMyTurn ? 'my-turn' : 'opponent-turn'}`}>
+          {isMyTurn ? 'Sıra Sizde' : 'Sıra Rakipte'}
         </div>
       </div>
 
@@ -467,6 +619,34 @@ export function GamePage(): React.JSX.Element {
             >
               Lobiye Dön
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ÇEKİLME ONAY MODALI */}
+      {showForfeitConfirm && (
+        <div className="modal-backdrop">
+          <div className="auth-card game-over-modal">
+            <h2 className="auth-title" style={{ color: '#ff3b30' }}>Oyundan Çekil</h2>
+            <p className="game-end-reason" style={{ textAlign: 'center', marginBottom: '24px' }}>
+              Oyundan çekilmek istediğinize emin misiniz? Bu işlem hükmen mağlup sayılmanıza ve ELO puanınızın düşmesine neden olacaktır.
+            </p>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="auth-button decline-invite-btn"
+                onClick={handleForfeitConfirm}
+              >
+                Evet, Çekil
+              </button>
+              <button
+                type="button"
+                className="auth-button accept-invite-btn"
+                onClick={(): void => setShowForfeitConfirm(false)}
+              >
+                Vazgeç
+              </button>
+            </div>
           </div>
         </div>
       )}

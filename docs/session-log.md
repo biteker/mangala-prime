@@ -23,6 +23,78 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-06-10] — PixiJS Tahta Ardışık Dağıtım ve Fiziksel Yerleşim Animasyon Düzeltmesi
+
+**Tamamlanan Görev:** PixiJS Mangala tahtasında sequential sowing (ardışık taş dağıtma) ve landing (kuyuya düşüş) animasyonlarının erken sonlanıp taşların kuyuya ışınlanması (teleport) sorunu başarıyla çözüldü:
+1. `MangalaReactBoard.tsx` bileşenine array referans değişikliklerini tolere etmesi için `arraysEqual` yardımcı fonksiyonu eklendi ve `useEffect` içindeki `lastMove.nextState === boardState` kontrolü value-equality ile değiştirildi.
+2. `MangalaBoard.ts` içindeki `runSowingAnimation` metodu, uçuş (`x`, `y`) ve parabolik yükseklik (`flightZ`) tweens'lerini nested callback'ler yerine tek bir ana GSAP timeline (`tl`) üzerinde birleştirilerek refaktör edildi.
+3. `checkAnimationSettle` metoduna `finalBoardState` parametresi eklenerek toplam taş sayısının doğruluğu (`currentStonesCount === totalTargetStones`) kontrol edilmeye başlandı. Havada uçuş halinde olan taşlar varken animasyonun erken sonlanması kesin olarak engellendi.
+4. `tickPhysics` simülasyon döngüsü güncellenerek fizik motoru ile yer değiştiren ve sarsılan bilyelerin scale/shadow/Z yükseklik görsel özelliklerinin güncel kalması sağlandı.
+Monorepo derlemesi ve 74/74 birim testi başarıyla tamamlandı.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [MangalaReactBoard.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/MangalaBoard/MangalaReactBoard.tsx) [MODIFY] — `arraysEqual` helper metodu ve value-equality kontrolü eklendi.
+- [MangalaBoard.ts](file:///home/biteker/Documents/mangala-prime/frontend/src/components/MangalaBoard/MangalaBoard.ts) [MODIFY] — `runSowingAnimation` GSAP timeline refaktörü, `checkAnimationSettle` taş kontrolü ve `tickPhysics` görsel güncelleme desteği eklendi.
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (Monorepo `npm run build` başarıyla tamamlandı).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Canlı ortam kabul testleri ve projenin teslim edilmesi (Final UAT).
+**Commit:** `fix(board): resolve PixiJS sowing and physics settling animation bugs`
+**PR:** #22
+
+---
+
+### Oturum [2026-06-10] — PixiJS Tahta Entegrasyonu ve Tema İsimlendirme Güncellemesi
+
+**Tamamlanan Görev:** Projeye yeni eklenen PixiJS tabanlı oyun tahtası (`MangalaReactBoard`) mevcut React ve WebSocket arayüzüne entegre edildi. Ayrıca varsayılan tema ve stil isimlendirmeleri güncellendi:
+1. Son eklenen premium tema `theme-rustic-v0` ismi ve tüm CSS sınıfları `theme-pixijs` ("PixiJS") olarak değiştirildi ve oyunun ilk açılışta bu temayla başlaması sağlandı.
+2. `GamePage.tsx` üzerindeki eski HTML tabanlı kuyu yerleşimleri kaldırılarak yerine yeni `<MangalaReactBoard>` yerleştirildi.
+3. Zustand store'daki `board` dizisi güncellendiğinde, önceki durum ile karşılaştırılarak hamlenin `startPit` (başlangıç kuyusu) ve `steps` (dağıtılan adımlar) bilgileri istemci tarafında hesaplanıp PixiJS tahtasına `lastMove` prop'u olarak paslandı. Ayrıca `boardState` ve `lastMove` proplarının farklı render adımlarında güncellenmesinden kaynaklanan animasyon atlama/safeguard sorununu çözmek için bu iki veri React tarafında tek bir `boardData` yerel state'i altında birleştirilerek tek render aşamasında PixiJS'e iletildi.
+4. Sıra bizdeyken tıklanabilir kuyuların dizisi (`clickablePits`) dinamik olarak filtrelendi ve ELO etiketleri ile isimleri (`p1Info` ve `p2Info`) oyuncunun rengine göre tahtaya aktarıldı.
+5. Animasyon bitiş callback'i (`onAnimationComplete`) Zustand store ve React tarafındaki tıklama kilidi (`isAnimating`) ile entegre edildi.
+Monorepo derlemesi ve 74/74 birim testi başarıyla çalıştırılarak doğrulandı.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [theme.store.ts](file:///home/biteker/Documents/mangala-prime/frontend/src/stores/theme.store.ts) [MODIFY] — `ThemeType` içindeki `theme-rustic-v0` değeri `theme-pixijs` olarak değiştirildi ve varsayılan tema yapıldı.
+- [App.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/App.tsx) [MODIFY] — Tema geçiş listesi ve buton etiketleri `theme-pixijs` ("PixiJS") olarak güncellendi.
+- [index.css](file:///home/biteker/Documents/mangala-prime/frontend/src/index.css) [MODIFY] — Tüm `.theme-rustic-v0` seçicileri `.theme-pixijs` olarak yeniden adlandırıldı.
+- [GamePage.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/GamePage.tsx) [MODIFY] — PixiJS tahtası entegrasyonu, tıklanabilir kuyu filtrelemesi ve `lastMove` adım hesaplama mantığı eklendi.
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (Monorepo `npm run build` başarıyla tamamlandı).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Canlı ortam kabul testleri ve projenin son teslimi (Final UAT).
+**Commit:** `feat(board): integrate PixiJS board engine and rename premium theme to theme-pixijs`
+**PR:** Yok
+
+---
+
+### Oturum [2026-06-07] — Rustik v0.app Teması Eklenmesi ve Mobil Düzen İyileştirmeleri
+
+**Tamamlanan Görev:** Platforma 4. tema seçeneği olan "Rustik v0.app" (`theme-rustic-v0`) entegre edildi. Bu yeni tema Zustand store durum yönetimine eklenerek App bileşeni üzerinden döngüsel tema geçişine dahil edildi. Oyun sayfası (`GamePage.tsx`) ve CSS tasarımı (`index.css`), v0.app tasarım referansı ile tamamen birebir uyumlu olacak şekilde yeniden kodlandı:
+1. Oyuncu başlık panelleri dikeyden yataya geçirilerek avatar (User), ELO (Trophy) ve aktif sıra noktaları (Green pulse dot) eklendi.
+2. Zamanlayıcı formatı `00:XX` (Dakika:Saniye) şeklinde güncellendi ve Clock ikon entegrasyonu sağlandı.
+3. Mobil görünümün ekrana tam sığması ("tam oturması") için dikey yığılmayı engelleyen yatay header yapısı ve sohbet alanının (`chat-panel-container`) yüksekliğini kısıtlayan esnek yerleşimler eklendi.
+4. Sohbet gönderme butonuna SVG Send ikon tasarımı entegre edilerek buton daireye dönüştürüldü.
+5. Mobilde sıranın kimde olduğunu gösteren alt turn indicator rozeti ("Sıra Sizde / Sıra Rakipte") eklendi.
+Monorepo derleme ve tüm unit testler başarıyla doğrulandı.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [theme.store.ts](file:///home/biteker/Documents/mangala-prime/frontend/src/stores/theme.store.ts) [MODIFY] — `ThemeType` tip tanımına ve `setTheme` temizlik listesine `theme-rustic-v0` eklendi.
+- [App.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/App.tsx) [MODIFY] — Tema buton rotasyonuna, display label eşleşmesine ve useEffect class list temizliğine yeni tema eklendi.
+- [GamePage.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/GamePage.tsx) [MODIFY] — SVG ikonlar, formatTime yardımcı metodu, yatay header layout, dairesel send sohbet butonu ve alt turn indicator entegre edildi.
+- [index.css](file:///home/biteker/Documents/mangala-prime/frontend/src/index.css) [MODIFY] — `theme-rustic-v0` değişkenleri, 3D cam bilyeler, avatar/trophy badge'leri, dairesel buton, ve mobilde ekrana tam sığmayı sağlayan esnek media query'ler tanımlandı.
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (Monorepo `npm run build` başarıyla derlendi).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Canlı ortam kabul testleri ve projenin teslim edilmesi (Final UAT).
+**Commit:** `feat(theme): add premium rustik v0.app theme with 3D glass marbles and glassmorphism styling`
+**PR:** Yok (Doğrudan feature branch geliştirme commit'i)
+
+---
+
 ### Oturum [2026-06-06] — PostgreSQL Göçü İncelemesi ve Migrasyon Uyuşmazlığı Giderilmesi
 
 **Tamamlanan Görev:** SQLite'tan PostgreSQL 18'e yapılan veritabanı göçü ve genel Faz 1 kurulumu detaylı şekilde gözden geçirilip test edildi. Yerel ortamda `npx prisma migrate status` çalıştırıldığında eski SQLite kalıntılarından ötürü ortaya çıkan provider uyuşmazlığı (`P3019` hatası) tespit edilerek eski SQLite migrasyon klasörü silindi, temiz PostgreSQL 18 uyumlu yeni migrasyon (`init_postgres`) başarıyla oluşturulup yerel PostgreSQL veritabanına uygulandı ve 5 test kullanıcısı başarıyla tohumlandı (seed edildi). Dockerfile dosyasından artık kullanılmayan SQLite veri klasörü oluşturma komutları kaldırıldı ve teknik şartnamedeki (`docs/spec.md`) örnek Prisma şeması PostgreSQL 18 ve Prisma 7 uyumlu olacak şekilde güncellendi.
