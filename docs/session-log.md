@@ -23,6 +23,28 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-09-09] — Kapsamlı Proje Analizi, Test Düzeltmesi ve Production Backlog
+
+**Tamamlanan Görev:** 
+1. Projenin kaynak kodları, mimarisi, güvenlik açıkları, spec karşılaştırması ve yayınlanma kriterleri detaylı analiz edildi.
+2. `GAME_TURN_TIME_LIMIT_SECS` fallback süresinin 59 saniyeye çıkarılmasından sonra patlayan `game.service.spec.ts` birim testi, `service.getTurnTimeLimit() * 1000` dinamik limitine bağlanarak düzeltildi.
+3. Yayına çıkış için gereken tüm güvenlik (CORS, Helmet, Throttler, JWT env), oynanış (Local PvP, Leaderboard, Bot) ve UX eksiklikleri `docs/production-backlog.md` dokümanında önceliklendirilerek kayıt altına alındı.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [backend/src/game/game.service.spec.ts](file:///home/biteker/Documents/mangala-prime/backend/src/game/game.service.spec.ts) [MODIFY] — `advanceTimersByTimeAsync` çağrısı dinamik time limit ile güncellendi.
+- [docs/production-backlog.md](file:///home/biteker/Documents/mangala-prime/docs/production-backlog.md) [NEW] — Öncelikli eksikler ve yayın yol haritası dokümante edildi.
+- [.antigravity/context/current-state.md](file:///home/biteker/Documents/mangala-prime/.antigravity/context/current-state.md) [MODIFY] — Proje durumu güncellendi.
+- [.antigravity/context/next-task.md](file:///home/biteker/Documents/mangala-prime/.antigravity/context/next-task.md) [MODIFY] — Sıradaki görev tanımlandı.
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (Monorepo `npm run build` başarıyla tamamlandı).
+**Açık Sorunlar:** `docs/production-backlog.md` dosyasında listelenen güvenlik ve oynanış maddeleri geliştirilmeyi bekliyor.
+**Bir Sonraki Görev:** Kullanıcı tercihine göre Güvenlik Sertleştirmesi (Paket A) veya Local PvP Modu (Paket B) geliştirilmesi.
+**Commit:** `fix(test): align turn timeout test with configurable turn limit`
+**Branch:** `feature/fix-test-and-backlog`
+
+---
+
 ### Oturum [2026-06-10] — PixiJS Tahta Ardışık Dağıtım ve Fiziksel Yerleşim Animasyon Düzeltmesi
 
 **Tamamlanan Görev:** PixiJS Mangala tahtasında sequential sowing (ardışık taş dağıtma) ve landing (kuyuya düşüş) animasyonlarının erken sonlanıp taşların kuyuya ışınlanması (teleport) sorunu başarıyla çözüldü:

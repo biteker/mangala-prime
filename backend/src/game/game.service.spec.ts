@@ -295,8 +295,9 @@ describe('GameService', () => {
     it('should_apply_forfeit_when_turn_timer_expires', async () => {
       mockEloService.updateEloScores.mockResolvedValue({ p1EloChange: -15, p2EloChange: 15 });
 
-      // Act: Fast forward 15 seconds
-      await jest.advanceTimersByTimeAsync(15000);
+      // Act: Fast forward to turn time limit
+      const timeLimitMs = service.getTurnTimeLimit() * 1000;
+      await jest.advanceTimersByTimeAsync(timeLimitMs);
 
       // Assert
       expect(mockEloService.updateEloScores).toHaveBeenCalledWith(matchId, p1Id, p2Id, 'p1_forfeit');

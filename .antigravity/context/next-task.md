@@ -2,20 +2,18 @@
 
 ---
 
-## Görev: Canlı Ortam Kabul Testleri, Temaların Doğrulanması ve Teslim (Final UAT)
+## Görev: Yayın Öncesi Güvenlik & Kararlılık Sertleştirmesi veya Local PvP Modu
 
 ### Ne Yapılacak?
-Uygulamanın canlı sunucu ortamında (`mangala-prime.egitimhaber.gen.tr`) uçtan uca kabul testlerini ve tüm temaların (özellikle yeni eklenen "PixiJS" temasının ve PixiJS tahta motorunun) görsel doğruluğunu test et.
-1. Canlı web arayüzüne tarayıcıdan girip kullanıcı kaydı oluşturmayı dene.
-2. Lobi gateway ve websocket bağlantılarının stabil olduğunu doğrula.
-3. Tema seçiciyi kullanarak tüm temaların (Ahşap, Neon, Rustik, PixiJS) sorunsuz yüklendiğini kontrol et.
-4. Hızlı eşleşme ve canlı oynanış mekaniklerinin çalıştığını test et.
+`docs/production-backlog.md` dokümanında listelenen eksiklerden kullanıcı tercihi doğrultusunda ilk paketi uygulamak:
+1. **Paket A (Güvenlik & Kararlılık):** CORS whitelist, Helmet, Rate Limiting (`@nestjs/throttler`), `.env.example` JWT ayarları ve `--accept-data-loss` temizliği.
+2. **Paket B (Oynanış & İçerik):** Spec Bölüm 4.6 uyarınca aynı cihazda iki kişinin oynayabilmesi için "Local PvP" modunun eklenmesi ve Liderlik Tablosu (Leaderboard) arayüzünün oluşturulması.
 
-### Oluşturulacak/Değiştirilecek Dosyalar
-- Yok (Sadece canlı sistem doğrulama ve manuel testler yapılacak).
+### Referans Doküman
+- `docs/production-backlog.md`
 
 ### Kabul Kriterleri
-- [ ] Yeni kullanıcı kayıt adımı sorunsuz çalışıyor, DB'ye kullanıcı kaydı ekleniyor.
-- [ ] Lobiye sorunsuz bağlanılıyor, WebSocket bağlantısı kuruluyor.
-- [ ] Tüm 4 tema (Ahşap, Neon, Rustik, PixiJS) arayüzde seçilebiliyor ve görsel stil değişiklikleri hatasız uygulanıyor.
-- [ ] Maç eşleşmesi, PixiJS tahta animasyonları ve karşılıklı hamle iletimi canlı ortamda çalışıyor.
+- [ ] Seçilen paketin geliştirmeleri tamamlandı.
+- [ ] Tüm unit testler (`npm run test`) %100 geçti.
+- [ ] Monorepo hatasız derlendi (`npm run build`).
+- [ ] Canlı ortamda doğrulandı.
