@@ -120,8 +120,8 @@ jobs:
             docker compose pull
             docker compose up -d
 
-            # Veritabanı şema güncellemelerini konteyner içinde koştur
-            docker exec mangala-backend npx prisma db push --accept-data-loss --schema=/app/prisma/schema.prisma
+            # Veritabanı şema güncellemelerini güvenli şekilde koştur (veri kaybı engellendi)
+            docker exec mangala-backend npx prisma migrate deploy --schema=/app/prisma/schema.prisma
             
             # Docker atık temizliği yap (kullanılmayan eski imajları siler)
             docker image prune -f

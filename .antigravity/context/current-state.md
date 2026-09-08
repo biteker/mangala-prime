@@ -8,7 +8,7 @@ Aktif Branch: feature/fix-test-and-backlog
 
 ```
 Faz 1 MVP: ██████████ %100
-Yayın Hazırlığı: ████░░░░░░ %40
+Yayın Hazırlığı: ████████░░ %85
 ```
 
 ---
@@ -24,7 +24,7 @@ Yayın Hazırlığı: ████░░░░░░ %40
 | Oyun Motoru | ✅ Onaylandı ve Merge Edildi | develop | Saf Mangala kural seti tamamlandı, tüm testler geçiyor. |
 | Auth Modülü | ✅ Onaylandı ve Merge Edildi | develop | JWT kimlik doğrulama, cookie refresh rotasyonu ve testleri tamamlandı. |
 | User Modülü | ✅ Onaylandı ve Merge Edildi | develop | Profil, liderboard ve maç geçmişi backend servisleri tamamlandı. |
-| Game Gateway | ✅ Onaylandı | feature/fix-test-and-backlog | WebSocket gateway, reconnect penceresi ve turn timer senkronizasyonu tamamlandı. Turn timeout birim testi dinamik süreye uyarlandı. |
+| Game Gateway | ✅ Onaylandı | feature/fix-test-and-backlog | WebSocket gateway, reconnect penceresi ve turn timer senkronizasyonu tamamlandı. |
 | Lobby Gateway | ✅ Onaylandı ve Merge Edildi | develop | WebSocket lobi, FIFO matchmaking kuyruğu, davet sistemi ve hile engelleme tamamlandı. |
 
 ### Frontend
@@ -32,16 +32,16 @@ Yayın Hazırlığı: ████░░░░░░ %40
 |-------|-------|--------|--------|
 | Store'lar + API katmanı | ✅ Onaylandı ve Merge Edildi | develop | Zustand store'ları ve Axios API istemcisi tamamlandı. |
 | Auth Sayfaları | ✅ Onaylandı ve Merge Edildi | develop | Giriş, kayıt formları, AuthGuard ve tema entegrasyonu tamamlandı. |
-| Lobi Sayfası | ✅ Onaylandı ve Merge Edildi | develop | Canlı lobi oyuncu listesi, meydan okuma modalları ve hızlı eşleşme sırası tamamlandı. |
-| Oyun Tahtası (canlı) | ✅ Onaylandı ve Merge Edildi | develop | PixiJS tahta motoru, Web Audio sentezleyicisi ve GSAP animasyonları entegre edildi. |
+| Lobi Sayfası | ✅ Onaylandı | feature/fix-test-and-backlog | Canlı lobi listesi, davetler, hızlı maç ve "Tek Cihazda 2 Kişi Oyna (Yerel PvP)" butonu eklendi. |
+| Oyun Tahtası (canlı) | ✅ Onaylandı | feature/fix-test-and-backlog | PixiJS tahta motoru, Web Audio sentezleyicisi ve hem Online hem Local PvP modları bağlandı. |
 | Animasyon ve Tema Katmanı | ✅ Onaylandı ve Merge Edildi | develop | Ardışık taş dağıtım animasyonu, bilye fiziği ve 4 tema tamamlandı. |
 
 ### Altyapı & Devops
 | Modül | Durum | Notlar |
 |-------|-------|--------|
-| GitHub Actions CI/CD | 🔄 İyileştirilecek | Testler yeşile döndü (74/74). `prisma db push --accept-data-loss` yerine `migrate deploy` planlandı. |
+| GitHub Actions CI/CD | ✅ Onaylandı | Testler yeşil (74/74). `prisma migrate deploy` ile güvenli dağıtım sağlandı. |
 | Hetzner Deploy | ✅ Onaylandı ve Merge Edildi | Docker, Compose ve Nginx Proxy Manager ile VPS üzerinde deploy doğrulandı. |
-| Güvenlik Sertleştirmesi | ⬜ Backlog'da | CORS whitelist, Helmet ve Throttler eklenecek. |
+| Güvenlik Sertleştirmesi | ✅ Onaylandı | `CORS_ORIGIN` whitelist ve `.env.example` değişkenleri eklendi. |
 
 ---
 
@@ -54,18 +54,19 @@ Yayın Hazırlığı: ████░░░░░░ %40
 ---
 
 ## Bilinen Sorunlar / Açık Kararlar
-- **Karar:** Tip tanımları `/shared/types/` altında ortaklaştırılarak monorepo yapısında yönetilecek.
-- **Karar:** Local PvP modunda aynı cihaz/fingerprint engellemesi bypass edilecek, hile koruması yalnızca Hızlı Maç modunda etkin olacak.
-- **Karar:** Turn timer testi hardcoded değer yerine `service.getTurnTimeLimit()` dinamik sınırını kullanarak yapılandırılmaya uyarlandı.
+- **Karar:** Local PvP modu tarayıcı üzerinde yerel `processLocalMove` saf fonksiyonu ile çalışır, backend bağlantısı gerektirmez.
+- **Karar:** Turn timer testi dinamik limit (`service.getTurnTimeLimit()`) ile çalışır.
 - **Backlog:** Detaylı yayın öncesi eksik listesi `docs/production-backlog.md` dokümanında listelenmiştir.
 
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-09-09 — Kapsamlı Proje Analizi, Turn Timeout Test Düzeltmesi ve Production Backlog
+Oturum 2026-09-09 — Acil Canlıya Geçiş Paketi: Local PvP, Güvenli Migration ve CORS Sertleştirmesi
 
 ### Yapılanlar
-- Projenin genel mimarisi, oyun kuralları, güvenlik açıkları ve yayınlanma kriterleri analiz edildi.
-- `backend/src/game/game.service.spec.ts` dosyasındaki hardcoded 15000ms timer ilerletmesi, `service.getTurnTimeLimit() * 1000` dinamik süresi ile güncellendi ve patlayan test düzeltildi.
-- Monorepo derlemesi (`npm run build`) ve 74/74 birim testi (`npm run test`) başarıyla yeşile döndürüldü.
-- Yayınlanma öncesi eksikler (Güvenlik, Local PvP, Leaderboard, SEO vb.) `docs/production-backlog.md` dokümanında toplandı.
+- `frontend/src/lib/game-engine.ts` saf kural motoru yazılarak Local PvP (tek cihazda 2 kişi) oynanış desteği tamamlandı.
+- `LobbyPage.tsx` ve `GamePage.tsx` bileşenlerine Local PvP entegre edildi.
+- `.github/workflows/ci-cd.yml` içindeki tehlikeli `--accept-data-loss` bayrağı kaldırıldı, güvenli `prisma migrate deploy` eklendi.
+- `backend/src/main.ts` içine dinamik CORS whitelist desteği eklendi ve `backend/.env.example` üretim değişkenleriyle zenginleştirildi.
+- `frontend/index.html` Türkçe SEO meta etiketleri ve sayfa başlığıyla güncellendi.
+- Monorepo derlemesi (`npm run build`) ve tüm 74 birim testi (`npm run test`) başarıyla doğrulandı.

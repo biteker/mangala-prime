@@ -2680,3 +2680,13 @@ html.theme-pixijs .game-layout {
     box-sizing: border-box !important;
   }
 }
+
+/* Local PvP Mode */
+.game-content-container.local-pvp-mode {
+  justify-content: center !important;
+}
+
+.game-content-container.local-pvp-mode .board-panel-container {
+  max-width: 100% !important;
+  width: 100% !important;
+}

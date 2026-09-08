@@ -23,6 +23,45 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-09-09] — Acil Canlıya Geçiş Paketi: Local PvP, Güvenli Migration ve CORS Sertleştirmesi
+
+**Tamamlanan Görev:** 
+Canlıya çıkış öncesi tespit edilen 3 kritik gereksinim başarıyla tamamlandı:
+1. **Local PvP (Aynı Cihazda 2 Kişi Oynama) Modu:**
+   - `frontend/src/lib/game-engine.ts` kural motoru eklenerek Mangala Federasyonu kuralları frontend tarafında saf fonksiyon olarak uygulandı.
+   - `game.store.ts` içine `startLocalGame` ve yerel `makeMove` entegre edildi.
+   - `LobbyPage.tsx` üzerine "Tek Cihazda 2 Kişi Oyna (Yerel PvP)" butonu eklendi.
+   - `GamePage.tsx` üzerinde Local PvP sıra göstergeleri, P1/P2 kuyu kontrolleri, sonuç modalı ve layout desteği sağlandı.
+2. **Güvenli CI/CD Veritabanı Dağıtımı:**
+   - `.github/workflows/ci-cd.yml` içindeki `npx prisma db push --accept-data-loss` silindi, yerine veri kaybını önleyen `npx prisma migrate deploy` komutu entegre edildi.
+3. **CORS ve Ortam Değişkenleri Güvenliği:**
+   - `backend/src/main.ts` içindeki gevşek CORS, `process.env.CORS_ORIGIN` whitelist yapısına kavuşturuldu.
+   - `backend/.env.example` içine `JWT_SECRET`, `JWT_REFRESH_SECRET`, `CORS_ORIGIN` üretim değişkenleri eklendi.
+4. **Kozmetik İyileştirmeler:**
+   - `frontend/index.html` sayfa başlığı "Mangala Prime — Online & Yerel Türk Zeka Oyunu" ve SEO meta etiketleriyle güncellendi.
+   - `GamePage.tsx` fullscreen yardımcı fonksiyonundaki `any` tipleri giderildi.
+Monorepo derlemesi (`npm run build`) ve tüm 74 birim testi (`npm run test`) başarıyla doğrulandı.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [frontend/src/lib/game-engine.ts](file:///home/biteker/Documents/mangala-prime/frontend/src/lib/game-engine.ts) [NEW] — Saf Mangala kural motoru.
+- [frontend/src/stores/game.store.ts](file:///home/biteker/Documents/mangala-prime/frontend/src/stores/game.store.ts) [MODIFY] — Local PvP state ve yerel hamle desteği.
+- [frontend/src/components/LobbyPage.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/LobbyPage.tsx) [MODIFY] — Yerel PvP butonu.
+- [frontend/src/components/GamePage.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/GamePage.tsx) [MODIFY] — Local PvP sıra/modal yönetimi ve any tip temizliği.
+- [frontend/src/index.css](file:///home/biteker/Documents/mangala-prime/frontend/src/index.css) [MODIFY] — Local PvP ortalanmış tahta stilleri.
+- [.github/workflows/ci-cd.yml](file:///home/biteker/Documents/mangala-prime/.github/workflows/ci-cd.yml) [MODIFY] — `prisma migrate deploy` komutu.
+- [backend/src/main.ts](file:///home/biteker/Documents/mangala-prime/backend/src/main.ts) [MODIFY] — Dinamik CORS whitelist.
+- [backend/.env.example](file:///home/biteker/Documents/mangala-prime/backend/.env.example) [MODIFY] — Üretim ortam değişkenleri.
+- [frontend/index.html](file:///home/biteker/Documents/mangala-prime/frontend/index.html) [MODIFY] — Başlık ve SEO etiketleri.
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (Monorepo `npm run build` başarıyla tamamlandı).
+**Açık Sorunlar:** Yok. Canlı sunucu UAT testi yapılabilir.
+**Bir Sonraki Görev:** Canlı sunucuda (Hetzner VPS) doğrulamaların yapılması veya `develop` branch'ine PR açılması.
+**Commit:** `feat: implement local pvp mode, safe db migrations and cors hardening for production readiness`
+**Branch:** `feature/fix-test-and-backlog`
+
+---
+
 ### Oturum [2026-09-09] — Kapsamlı Proje Analizi, Test Düzeltmesi ve Production Backlog
 
 **Tamamlanan Görev:** 
