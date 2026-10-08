@@ -948,6 +948,7 @@ export class MangalaBoard extends PIXI.Container {
         duration: stepDuration,
         ease: 'power1.inOut',
         onUpdate: () => {
+          if (!stone || !stone.container || this.isDestroyed) return;
           // Shadow stays at ground coordinates
           stone.container.x = stone.x;
           stone.container.y = stone.y;
@@ -1045,8 +1046,10 @@ export class MangalaBoard extends PIXI.Container {
    * Force update position on all stones (used during non-animated resets)
    */
   private syncStonesVisuals(): void {
+    if (this.isDestroyed) return;
     for (let i = 0; i < 14; i++) {
       this.stonesInPits[i].forEach((stone) => {
+        if (!stone || !stone.container || this.isDestroyed) return;
         stone.container.x = stone.x;
         stone.container.y = stone.y;
         stone.flightZ = 0;
