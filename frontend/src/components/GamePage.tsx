@@ -60,6 +60,11 @@ function calculateAnimationSteps(startPit: number, stoneCount: number): number[]
   return steps;
 }
 
+interface LockableScreenOrientation {
+  lock?: (orientation: 'any' | 'natural' | 'landscape' | 'portrait' | 'portrait-primary' | 'portrait-secondary' | 'landscape-primary' | 'landscape-secondary') => Promise<void>;
+  unlock?: () => void;
+}
+
 export function GamePage(): React.JSX.Element {
   const { navigate } = useRouter();
   const currentUser = useAuthStore((state) => state.user);
@@ -282,21 +287,23 @@ export function GamePage(): React.JSX.Element {
   // Ekranı yatay (landscape) moda kilitleme girişimi (mobil cihazlar için)
   useEffect(() => {
     try {
-      if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
-        window.screen.orientation.lock('landscape').catch((err) => {
+      const orientation = window.screen?.orientation as (ScreenOrientation & LockableScreenOrientation) | undefined;
+      if (orientation && typeof orientation.lock === 'function') {
+        orientation.lock('landscape')?.catch((err: unknown) => {
           console.log('Screen orientation lock failed:', err);
         });
       }
-    } catch (e) {
+    } catch {
       // ignore
     }
     
     return () => {
       try {
-        if (window.screen && window.screen.orientation && window.screen.orientation.unlock) {
-          window.screen.orientation.unlock();
+        const orientation = window.screen?.orientation as (ScreenOrientation & LockableScreenOrientation) | undefined;
+        if (orientation && typeof orientation.unlock === 'function') {
+          orientation.unlock();
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
     };

@@ -61,12 +61,11 @@ Yayın Hazırlığı: ████████░░ %85
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-09-09 — Acil Canlıya Geçiş Paketi: Local PvP, Güvenli Migration ve CORS Sertleştirmesi
+Oturum 2026-10-08 — GamePage Lock Hatası Düzeltmesi ve Yerel Bilgisayarda Çalıştırma
 
 ### Yapılanlar
-- `frontend/src/lib/game-engine.ts` saf kural motoru yazılarak Local PvP (tek cihazda 2 kişi) oynanış desteği tamamlandı.
-- `LobbyPage.tsx` ve `GamePage.tsx` bileşenlerine Local PvP entegre edildi.
-- `.github/workflows/ci-cd.yml` içindeki tehlikeli `--accept-data-loss` bayrağı kaldırıldı, güvenli `prisma migrate deploy` eklendi.
-- `backend/src/main.ts` içine dinamik CORS whitelist desteği eklendi ve `backend/.env.example` üretim değişkenleriyle zenginleştirildi.
-- `frontend/index.html` Türkçe SEO meta etiketleri ve sayfa başlığıyla güncellendi.
+- `frontend/src/components/GamePage.tsx` dosyasında `LockableScreenOrientation` arayüzü eklenerek `window.screen.orientation.lock` ve `unlock` çağrıları `any` kullanılmadan tip güvenli hale getirildi.
+- `frontend/vite.config.ts` içerisine `@mangala/shared` modül alias'ı eklenerek dev ortamında export çözünürlüğü garantilendi.
+- PostgreSQL Docker konteyneri ve Prisma tohum verileri (`prisma db seed`) doğrulandı.
+- Backend (port 3000) ve Frontend (port 5173) yerel dev sunucuları arka planda başarıyla ayağa kaldırıldı.
 - Monorepo derlemesi (`npm run build`) ve tüm 74 birim testi (`npm run test`) başarıyla doğrulandı.

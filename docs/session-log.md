@@ -23,6 +23,29 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-10-08] — GamePage Lock Hatası Düzeltmesi ve Yerel Bilgisayarda Çalıştırma
+
+**Tamamlanan Görev:**
+1. **GamePage.tsx ScreenOrientation Lock Hatası:**
+   - `GamePage.tsx` dosyasındaki mobil ekran yatay kilitleme kodunda (`window.screen.orientation.lock`) `LockableScreenOrientation` arayüzü tanımlanarak `any` kullanılmadan tam tip güvenliği sağlandı ve IDE/TypeScript hataları giderildi.
+2. **Vite @mangala/shared Alias Desteği:**
+   - `frontend/vite.config.ts` dosyasına `@mangala/shared` alias'ı eklenerek dev modundaki CJS/ESM ayrışması çözüldü.
+3. **Yerel Ortamın Başlatılması:**
+   - PostgreSQL konteyneri (`global-postgres`) doğrulandı, veritabanı seed komutu (`npx prisma db seed`) ile test kullanıcıları oluşturuldu.
+   - Backend NestJS servisi 3000 portunda (`npm run backend:dev`) arka planda başlatıldı.
+   - Frontend Vite servisi 5173 portunda (`npm run frontend:dev`) arka planda başlatıldı.
+   - Tarayıcı testi ve curl ile hem API hem UI başarıyla doğrulandı.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [frontend/src/components/GamePage.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/GamePage.tsx) [MODIFY] — `LockableScreenOrientation` ile tip güvenliği.
+- [frontend/vite.config.ts](file:///home/biteker/Documents/mangala-prime/frontend/vite.config.ts) [MODIFY] — `@mangala/shared` alias tanımı.
+
+**Test Sonuçları:** 74/74 test geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (`npm run build`).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Canlı sunucuya (VPS) dağıtım veya kullanıcı talepleri doğrultusunda yeni geliştirmeler.
+**Commit:** `fix(frontend): resolve screen orientation lock types and configure vite shared alias`
+
 ### Oturum [2026-09-09] — Acil Canlıya Geçiş Paketi: Local PvP, Güvenli Migration ve CORS Sertleştirmesi
 
 **Tamamlanan Görev:** 
