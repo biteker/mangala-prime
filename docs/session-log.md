@@ -38,17 +38,24 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 4. **Yerel PvP Mangala Tahtası Ortalanması ve Boyutlandırılması:**
    - CSS grid'de sohbet gizlendiğinde 320px'lik dar sol sütuna sıkışan tahta yapısı düzeltildi.
    - `.local-pvp-mode` ve `.local-pvp-layout` kuralları eklenerek tahtanın tek başına tüm ekranda (~1240px) ortalı, büyük ve net render edilmesi sağlandı.
+5. **Yerel PvP Oyundan Çıkış ve Lobiye Dönüş:**
+   - `GamePage.tsx` onay modalı yerel PvP'ye uyarlandı ("Oyundan Çık", "Evet, Lobiye Dön").
+   - `game.store.ts` içinde `abandonGame` fonksiyonuna `isLocalPvP` kontrolü eklenerek doğrudan lobiye yönlendirme sağlandı.
+   - Sayfa unmount edilirken PixiJS ve GSAP animasyon döngüsünün tetiklediği null referans hatası (`MangalaBoard.ts` ve `MangalaReactBoard.tsx`) giderildi, tahta ve fizik ticker'ı güvenli şekilde imha edildi.
 
 **Oluşturulan/Değiştirilen Dosyalar:**
-- [frontend/src/components/GamePage.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/GamePage.tsx) [MODIFY] — `LockableScreenOrientation` ile tip güvenliği ve `local-pvp-layout` sınıfı.
+- [frontend/src/components/GamePage.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/GamePage.tsx) [MODIFY] — `LockableScreenOrientation` ile tip güvenliği, `local-pvp-layout` sınıfı ve yerel çıkış modalı/yönlendirmesi.
 - [frontend/vite.config.ts](file:///home/biteker/Documents/mangala-prime/frontend/vite.config.ts) [MODIFY] — `@mangala/shared` alias tanımı.
 - [frontend/src/index.css](file:///home/biteker/Documents/mangala-prime/frontend/src/index.css) [MODIFY] — Yerel PvP tahta ortalama ve tam genişlik CSS kuralları.
+- [frontend/src/stores/game.store.ts](file:///home/biteker/Documents/mangala-prime/frontend/src/stores/game.store.ts) [MODIFY] — `abandonGame` fonksiyonunda `isLocalPvP` desteği.
+- [frontend/src/components/MangalaBoard/MangalaBoard.ts](file:///home/biteker/Documents/mangala-prime/frontend/src/components/MangalaBoard/MangalaBoard.ts) [MODIFY] — Güvenli `destroy`, fizik ticker temizliği ve GSAP tween sonlandırma.
+- [frontend/src/components/MangalaBoard/MangalaReactBoard.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/MangalaBoard/MangalaReactBoard.tsx) [MODIFY] — Unmount sırasında tahtanın güvenli imhası.
 
 **Test Sonuçları:** 74/74 test geçti (`npm run test`).
 **Derleme:** ✅ Hatasız (`npm run build`).
 **Açık Sorunlar:** Yok.
 **Bir Sonraki Görev:** Canlı sunucuya (VPS) dağıtım veya kullanıcı talepleri doğrultusunda yeni geliştirmeler.
-**Commit:** `fix(frontend): center and expand mangala board in local pvp mode`
+**Commit:** `fix(frontend): handle local pvp exit to lobby and clean up pixi/gsap unmount`
 
 ### Oturum [2026-09-09] — Acil Canlıya Geçiş Paketi: Local PvP, Güvenli Migration ve CORS Sertleştirmesi
 

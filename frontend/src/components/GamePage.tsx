@@ -117,7 +117,12 @@ export function GamePage(): React.JSX.Element {
 
   const handleForfeitConfirm = (): void => {
     setShowForfeitConfirm(false);
-    abandonGame();
+    if (isLocalPvP) {
+      disconnectGame();
+      navigate('#/lobby');
+    } else {
+      abandonGame();
+    }
   };
 
   // Listen to fullscreen changes
@@ -513,7 +518,7 @@ export function GamePage(): React.JSX.Element {
         type="button"
         className="game-exit-btn"
         onClick={handleForfeitClick}
-        title="Oyundan Çekil"
+        title={isLocalPvP ? "Oyundan Çık" : "Oyundan Çekil"}
       >
         ✕
       </button>
@@ -706,9 +711,13 @@ export function GamePage(): React.JSX.Element {
       {showForfeitConfirm && (
         <div className="modal-backdrop">
           <div className="auth-card game-over-modal">
-            <h2 className="auth-title" style={{ color: '#ff3b30' }}>Oyundan Çekil</h2>
+            <h2 className="auth-title" style={{ color: '#ff3b30' }}>
+              {isLocalPvP ? 'Oyundan Çık' : 'Oyundan Çekil'}
+            </h2>
             <p className="game-end-reason" style={{ textAlign: 'center', marginBottom: '24px' }}>
-              Oyundan çekilmek istediğinize emin misiniz? Bu işlem hükmen mağlup sayılmanıza ve ELO puanınızın düşmesine neden olacaktır.
+              {isLocalPvP
+                ? 'Yerel oyunu sonlandırıp lobiye dönmek istediğinize emin misiniz?'
+                : 'Oyundan çekilmek istediğinize emin misiniz? Bu işlem hükmen mağlup sayılmanıza ve ELO puanınızın düşmesine neden olacaktır.'}
             </p>
             <div className="modal-actions">
               <button
@@ -716,7 +725,7 @@ export function GamePage(): React.JSX.Element {
                 className="auth-button decline-invite-btn"
                 onClick={handleForfeitConfirm}
               >
-                Evet, Çekil
+                {isLocalPvP ? 'Evet, Lobiye Dön' : 'Evet, Çekil'}
               </button>
               <button
                 type="button"

@@ -132,6 +132,13 @@ export const MangalaReactBoard: React.FC<MangalaReactBoardProps> = ({
     return () => {
       isDestroyed = true;
       window.removeEventListener('resize', handleResizeWithDelay);
+      if (board) {
+        try {
+          board.destroy({ children: true });
+        } catch (e) {
+          console.warn("Failed to destroy MangalaBoard on unmount:", e);
+        }
+      }
       if (app) {
         try {
           app.destroy(true, { children: true });
@@ -139,6 +146,8 @@ export const MangalaReactBoard: React.FC<MangalaReactBoardProps> = ({
           console.warn("Failed to destroy Pixi application on unmount:", e);
         }
       }
+      boardRef.current = null;
+      appRef.current = null;
     };
   }, [yourColor]);
 

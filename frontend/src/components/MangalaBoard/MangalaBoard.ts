@@ -67,8 +67,9 @@ export class MangalaBoard extends PIXI.Container {
   // Interactivity block
   private isAnimating: boolean = false;
   
-  // Physics Ticker
+  // Physics Ticker & Destruction Guard
   private tickerActive: boolean = false;
+  private isDestroyed: boolean = false;
   private physicsTickerCallback: () => void;
   
   // Callbacks
@@ -1073,11 +1074,18 @@ export class MangalaBoard extends PIXI.Container {
    * Tick Physics loop. Called every frame while physics is active.
    */
   private tickPhysics(): void {
+    if (this.isDestroyed) {
+      this.stopPhysicsTicker();
+      return;
+    }
+
     let anyActive = false;
 
     for (let pitIdx = 0; pitIdx < 14; pitIdx++) {
+      if (this.isDestroyed) break;
       const stones = this.stonesInPits[pitIdx];
       const boundary = this.pitBoundaries[pitIdx];
+      if (!stones || !boundary) continue;
 
       // Format to PhysicsStone model
       const pStones: PhysicsStone[] = stones.map((s) => ({
@@ -1099,6 +1107,7 @@ export class MangalaBoard extends PIXI.Container {
       // Map back coordinates
       pStones.forEach((ps, idx) => {
         const s = stones[idx];
+        if (!s || !s.container || this.isDestroyed) return;
         s.x = ps.x;
         s.y = ps.y;
         s.vx = ps.vx;
@@ -1112,13 +1121,31 @@ export class MangalaBoard extends PIXI.Container {
       });
     }
 
-    if (!anyActive) {
+    if (!anyActive || this.isDestroyed) {
       this.stopPhysicsTicker();
     }
   }
 
-  public override destroy(options?: any): void {
+  public override destroy(options?: PIXI.DestroyOptions): void {
+    this.isDestroyed = true;
     this.stopPhysicsTicker();
+
+    // Kill all GSAP tweens on board elements
+    gsap.killTweensOf(this);
+    this.pitGlows.forEach((g) => {
+      if (g) gsap.killTweensOf(g);
+    });
+    this.pathDots.forEach((d) => {
+      if (d) gsap.killTweensOf(d);
+    });
+    this.stonesInPits.forEach((pit) => {
+      pit.forEach((s) => {
+        if (s?.container) {
+          gsap.killTweensOf(s.container);
+        }
+      });
+    });
+
     super.destroy(options);
   }
 }

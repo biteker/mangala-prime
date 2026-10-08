@@ -325,7 +325,11 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   abandonGame: () => {
-    const { socket, matchId } = get();
+    const { socket, matchId, isLocalPvP } = get();
+    if (isLocalPvP) {
+      get().disconnectGame();
+      return;
+    }
     if (socket && socket.connected && matchId) {
       socket.emit('game:abandon', { matchId });
     }
