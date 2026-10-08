@@ -451,7 +451,7 @@ export function GamePage(): React.JSX.Element {
   };
 
   return (
-    <div className="game-layout">
+    <div className={`game-layout ${isLocalPvP ? 'local-pvp-layout' : ''}`}>
       {/* CİHAZ DÖNDÜRME UYARISI (MOBİL PORTRAIT İÇİN) */}
       <div className="orientation-warning-overlay">
         <div className="orientation-warning-card">

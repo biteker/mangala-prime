@@ -35,16 +35,20 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
    - Backend NestJS servisi 3000 portunda (`npm run backend:dev`) arka planda başlatıldı.
    - Frontend Vite servisi 5173 portunda (`npm run frontend:dev`) arka planda başlatıldı.
    - Tarayıcı testi ve curl ile hem API hem UI başarıyla doğrulandı.
+4. **Yerel PvP Mangala Tahtası Ortalanması ve Boyutlandırılması:**
+   - CSS grid'de sohbet gizlendiğinde 320px'lik dar sol sütuna sıkışan tahta yapısı düzeltildi.
+   - `.local-pvp-mode` ve `.local-pvp-layout` kuralları eklenerek tahtanın tek başına tüm ekranda (~1240px) ortalı, büyük ve net render edilmesi sağlandı.
 
 **Oluşturulan/Değiştirilen Dosyalar:**
-- [frontend/src/components/GamePage.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/GamePage.tsx) [MODIFY] — `LockableScreenOrientation` ile tip güvenliği.
+- [frontend/src/components/GamePage.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/GamePage.tsx) [MODIFY] — `LockableScreenOrientation` ile tip güvenliği ve `local-pvp-layout` sınıfı.
 - [frontend/vite.config.ts](file:///home/biteker/Documents/mangala-prime/frontend/vite.config.ts) [MODIFY] — `@mangala/shared` alias tanımı.
+- [frontend/src/index.css](file:///home/biteker/Documents/mangala-prime/frontend/src/index.css) [MODIFY] — Yerel PvP tahta ortalama ve tam genişlik CSS kuralları.
 
 **Test Sonuçları:** 74/74 test geçti (`npm run test`).
 **Derleme:** ✅ Hatasız (`npm run build`).
 **Açık Sorunlar:** Yok.
 **Bir Sonraki Görev:** Canlı sunucuya (VPS) dağıtım veya kullanıcı talepleri doğrultusunda yeni geliştirmeler.
-**Commit:** `fix(frontend): resolve screen orientation lock types and configure vite shared alias`
+**Commit:** `fix(frontend): center and expand mangala board in local pvp mode`
 
 ### Oturum [2026-09-09] — Acil Canlıya Geçiş Paketi: Local PvP, Güvenli Migration ve CORS Sertleştirmesi
 

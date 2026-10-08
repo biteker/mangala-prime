@@ -68,4 +68,5 @@ Oturum 2026-10-08 — GamePage Lock Hatası Düzeltmesi ve Yerel Bilgisayarda Ç
 - `frontend/vite.config.ts` içerisine `@mangala/shared` modül alias'ı eklenerek dev ortamında export çözünürlüğü garantilendi.
 - PostgreSQL Docker konteyneri ve Prisma tohum verileri (`prisma db seed`) doğrulandı.
 - Backend (port 3000) ve Frontend (port 5173) yerel dev sunucuları arka planda başarıyla ayağa kaldırıldı.
+- Yerel PvP modunda sol tarafa sıkışan tahta CSS grid'den kurtarılıp flexbox ile tam genişlikte (~1240px) ortalandı.
 - Monorepo derlemesi (`npm run build`) ve tüm 74 birim testi (`npm run test`) başarıyla doğrulandı.

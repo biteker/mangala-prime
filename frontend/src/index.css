@@ -2682,11 +2682,34 @@ html.theme-pixijs .game-layout {
 }
 
 /* Local PvP Mode */
+.game-layout.local-pvp-layout {
+  max-width: 1240px;
+}
+
 .game-content-container.local-pvp-mode {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
   justify-content: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 .game-content-container.local-pvp-mode .board-panel-container {
   max-width: 100% !important;
   width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.game-content-container.local-pvp-mode .mangala-board-canvas-container {
+  width: 100% !important;
+  max-width: 1200px !important;
+  aspect-ratio: 1400 / 600 !important;
+  min-height: 460px !important;
 }
