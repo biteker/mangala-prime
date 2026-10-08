@@ -42,6 +42,9 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
    - `GamePage.tsx` onay modalı yerel PvP'ye uyarlandı ("Oyundan Çık", "Evet, Lobiye Dön").
    - `game.store.ts` içinde `abandonGame` fonksiyonuna `isLocalPvP` kontrolü eklenerek doğrudan lobiye yönlendirme sağlandı.
    - Sayfa unmount edilirken PixiJS ve GSAP animasyon döngüsünün tetiklediği null referans hatası (`MangalaBoard.ts` ve `MangalaReactBoard.tsx`) giderildi, tahta ve fizik ticker'ı güvenli şekilde imha edildi.
+6. **İki Tarayıcı ile Karşılıklı Çok Oyunculu (Online PvP) Testi:**
+   - İki bağımsız Chrome penceresiyle `player1` ve `player2` kullanıcıları lobiye bağlandı.
+   - Hızlı Maç kuyruğu üzerinden FIFO eşleştirmesi, WebSocket bağlantısı, tahtanın gerçek zamanlı animasyonlu taş dağıtımı ve iki yönlü canlı sohbet eksiksiz doğrulandı.
 
 **Oluşturulan/Değiştirilen Dosyalar:**
 - [frontend/src/components/GamePage.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/GamePage.tsx) [MODIFY] — `LockableScreenOrientation` ile tip güvenliği, `local-pvp-layout` sınıfı ve yerel çıkış modalı/yönlendirmesi.

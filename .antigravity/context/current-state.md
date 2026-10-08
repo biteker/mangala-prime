@@ -70,4 +70,5 @@ Oturum 2026-10-08 — GamePage Lock Hatası Düzeltmesi ve Yerel Bilgisayarda Ç
 - Backend (port 3000) ve Frontend (port 5173) yerel dev sunucuları arka planda başarıyla ayağa kaldırıldı.
 - Yerel PvP modunda sol tarafa sıkışan tahta CSS grid'den kurtarılıp flexbox ile tam genişlikte (~1240px) ortalandı.
 - Yerel PvP'de oyundan çıkış / lobiye dönüş mekanizması düzeltildi, PixiJS unmount null hatası giderildi.
+- İki bağımsız tarayıcı penceresiyle Online PvP (eşleşme, tahta hamle senkronizasyonu, canlı sohbet) uçtan uca test edildi ve doğrulandı.
 - Monorepo derlemesi (`npm run build`) ve tüm 74 birim testi (`npm run test`) başarıyla doğrulandı.
