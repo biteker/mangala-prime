@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/fix-test-and-backlog
+Aktif Branch: feature/architecture-roadmap
 
 ---
 
@@ -8,7 +8,7 @@ Aktif Branch: feature/fix-test-and-backlog
 
 ```
 Faz 1 MVP: ██████████ %100
-Yayın Hazırlığı: ████████░░ %85
+Yayın Hazırlığı: ██████░░░░ %60  (mimari denetimde kritik güvenlik bulguları — bkz. docs/architecture-roadmap.md)
 ```
 
 ---
@@ -41,7 +41,7 @@ Yayın Hazırlığı: ████████░░ %85
 |-------|-------|--------|
 | GitHub Actions CI/CD | ✅ Onaylandı | Testler yeşil (74/74). `prisma migrate deploy` ile güvenli dağıtım sağlandı. |
 | Hetzner Deploy | ✅ Onaylandı ve Merge Edildi | Docker, Compose ve Nginx Proxy Manager ile VPS üzerinde deploy doğrulandı. |
-| Güvenlik Sertleştirmesi | ✅ Onaylandı | `CORS_ORIGIN` whitelist ve `.env.example` değişkenleri eklendi. |
+| Güvenlik Sertleştirmesi | 🔄 Devam Ediyor | Yalnızca HTTP `CORS_ORIGIN` whitelist yapıldı. Eksikler: JWT fallback secret'ları, WS CORS `*`, Helmet/rate limit yok, `/test-match` açık. → Roadmap Faz A (T-01…T-07) |
 
 ---
 
@@ -57,18 +57,19 @@ Yayın Hazırlığı: ████████░░ %85
 - **Karar:** Local PvP modu tarayıcı üzerinde yerel `processLocalMove` saf fonksiyonu ile çalışır, backend bağlantısı gerektirmez.
 - **Karar:** Turn timer testi dinamik limit (`service.getTurnTimeLimit()`) ile çalışır.
 - **Backlog:** Detaylı yayın öncesi eksik listesi `docs/production-backlog.md` dokümanında listelenmiştir.
+- **Mimari Yol Haritası:** `docs/architecture-roadmap.md` (2026-10-30) — bağlayıcı görev listesi (T-01…T-16). Görevler bu sırayla yürütülür.
+- **🔴 KRİTİK (B-01):** `POST /test-match` kimlik doğrulamasız, canlıda açık. → T-02
+- **🔴 KRİTİK (B-02):** JWT secret'larında hardcoded fallback (6 yer). → T-01
+- **🔴 KRİTİK (B-03):** Gerçek DB şifresi `.env.example` ve git geçmişinde. → T-03 (insan: şifre rotasyonu)
+- **🟠 (B-04/B-07):** WS gateway CORS `origin: '*'`; `lobby.gateway.ts` içinde `as any`, ESLint'te `no-explicit-any` kapalı. → T-04, T-06
+- **Onay Bekleyen Kararlar:** K-1…K-7 (roadmap Bölüm 2). K-2 onaylanmadan T-01 başlatılamaz.
 
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-10-08 — GamePage Lock Hatası Düzeltmesi ve Yerel Bilgisayarda Çalıştırma
+Oturum 2026-10-30 — Mimari Denetim ve Yol Haritası (Sistem Mimarı)
 
 ### Yapılanlar
-- `frontend/src/components/GamePage.tsx` dosyasında `LockableScreenOrientation` arayüzü eklenerek `window.screen.orientation.lock` ve `unlock` çağrıları `any` kullanılmadan tip güvenli hale getirildi.
-- `frontend/vite.config.ts` içerisine `@mangala/shared` modül alias'ı eklenerek dev ortamında export çözünürlüğü garantilendi.
-- PostgreSQL Docker konteyneri ve Prisma tohum verileri (`prisma db seed`) doğrulandı.
-- Backend (port 3000) ve Frontend (port 5173) yerel dev sunucuları arka planda başarıyla ayağa kaldırıldı.
-- Yerel PvP modunda sol tarafa sıkışan tahta CSS grid'den kurtarılıp flexbox ile tam genişlikte (~1240px) ortalandı.
-- Yerel PvP'de oyundan çıkış / lobiye dönüş mekanizması düzeltildi, PixiJS unmount null hatası giderildi.
-- İki bağımsız tarayıcı penceresiyle Online PvP (eşleşme, tahta hamle senkronizasyonu, canlı sohbet) uçtan uca test edildi ve doğrulandı.
-- Monorepo derlemesi (`npm run build`) ve tüm 74 birim testi (`npm run test`) başarıyla doğrulandı.
+- Kod tabanının mimari denetimi yapıldı; 14 bulgu (3 kritik) `docs/architecture-roadmap.md` Bölüm 1'e kaydedildi.
+- 7 onay gerektiren mimari karar (K-1…K-7) ve 16 görev (T-01…T-16) tasarlandı.
+- Kod değişikliği yapılmadı. Sıradaki görev: T-01.
