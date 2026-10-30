@@ -62,7 +62,7 @@ Yayın Hazırlığı: ██████░░░░ %60  (mimari denetimde krit
 - **🔴 KRİTİK (B-02):** JWT secret'larında hardcoded fallback (6 yer). → T-01
 - **🔴 KRİTİK (B-03):** Gerçek DB şifresi `.env.example` ve git geçmişinde. → T-03 (insan: şifre rotasyonu)
 - **🟠 (B-04/B-07):** WS gateway CORS `origin: '*'`; `lobby.gateway.ts` içinde `as any`, ESLint'te `no-explicit-any` kapalı. → T-04, T-06
-- **Onay Bekleyen Kararlar:** K-1…K-7 (roadmap Bölüm 2). K-2 onaylanmadan T-01 başlatılamaz.
+- **Mimari Kararlar:** K-1…K-7 tamamı 2026-10-31'de onaylandı (K-4: yalnızca şifre rotasyonu). T-01 başlatılabilir.
 
 ---
 

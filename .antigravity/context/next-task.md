@@ -7,7 +7,7 @@
 > **Tam tasarım:** `docs/architecture-roadmap.md` → Bölüm 4, **T-01**. Bu dosya özet bilgi verir; bağlayıcı olan roadmap dokümanıdır.
 
 ### Ön Koşullar (Başlamadan Kontrol Et)
-- [ ] `docs/architecture-roadmap.md` Bölüm 2'de **K-2** kararı "Onaylandı" olarak işaretli mi? Değilse **başlama**, insana sor.
+- [x] **K-2** kararı onaylandı (2026-10-31).
 - [ ] `feature/fix-test-and-backlog` ve `feature/architecture-roadmap` `develop`'a merge edildi mi? (bkz. T-10 adım 1)
 
 ### Branch
