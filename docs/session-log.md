@@ -23,6 +23,23 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-10-30] — Mimari Denetim ve Yol Haritası (Sistem Mimarı)
+
+**Tamamlanan Görev:** Kod tabanının mimari denetimi yapıldı. 14 bulgu (3 kritik güvenlik) tespit edildi. 16 görevlik tasarım ve görev dokümanı hazırlandı. Kod değişikliği yapılmadı.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `docs/architecture-roadmap.md` — Yeni: denetim bulguları (B-01…B-14), onay gerektiren kararlar (K-1…K-7), görevler (T-01…T-16)
+- `.antigravity/context/next-task.md` — Sıradaki görev T-01 olarak güncellendi
+- `.antigravity/context/current-state.md` — Güvenlik durumu gerçeğe göre düzeltildi, kritik bulgular eklendi
+
+**Test Sonuçları:** Kod değişikliği yok (yalnızca doküman).
+**Derleme:** ✅ Etkilenmedi (yalnızca markdown).
+**Açık Sorunlar:** `POST /test-match` canlıda açık (B-01); JWT fallback secret'ları (B-02); repoda sızmış DB şifresi (B-03); WS CORS `*` (B-04). K-1…K-7 kararları insan onayı bekliyor.
+**Bir Sonraki Görev:** T-01 — Tipli Config Modülü ve Secret Fail-Fast (K-2 onayı gerekli)
+**Commit:** docs: add architecture audit and hardening roadmap
+**PR:** feature/architecture-roadmap → develop (push bekliyor)
+
+---
+
 ### Oturum [2026-10-08] — GamePage Lock Hatası Düzeltmesi ve Yerel Bilgisayarda Çalıştırma
 
 **Tamamlanan Görev:**
