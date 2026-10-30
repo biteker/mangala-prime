@@ -50,7 +50,7 @@ Denetim tarihi: 2026-10-30, branch `feature/fix-test-and-backlog` (HEAD `cb952eb
 | K-1 | Saf oyun motoru `shared/engine/` altına taşınsın. | **Önerilir.** Tek kaynak; Bot (T-14) da bunu kullanacak. | T-08, T-14 | ⬜ Bekliyor |
 | K-2 | Backend'e `common/config/` (tipli env yükleyici) ve `common/adapters/` (socket CORS adapter) klasörleri eklensin. | **Önerilir.** | T-01, T-04 | ⬜ Bekliyor |
 | K-3 | `POST /test-match` ve `ws-test.html` **tamamen silinsin** (dev-only flag ile saklanmasın). | **Önerilir.** Test ihtiyacı seed + iki tarayıcı ile karşılanıyor. | T-02 | ⬜ Bekliyor |
-| K-4 | Sızan DB şifresi için: (a) yalnızca şifre rotasyonu **veya** (b) rotasyon + git geçmişi temizliği (`git filter-repo`, force-push). | **(a) zorunlu, (b) opsiyonel.** Repo private ise (a) yeterli. | T-03 | ⬜ Bekliyor |
+| K-4 | Sızan DB şifresi için: (a) yalnızca şifre rotasyonu **veya** (b) rotasyon + git geçmişi temizliği (`git filter-repo`, force-push). | **(a) zorunlu, (b) opsiyonel.** Repo private ise (a) yeterli. | T-03 | ✅ Onaylandı — (a) yalnızca rotasyon (2026-10-31) |
 | K-5 | Spec Bölüm 17 frontend klasör yapısı **gerçeğe göre güncellensin** (frontend refactor edilmesin). | **Önerilir.** Refactor değer üretmez, risk üretir. | T-12 | ⬜ Bekliyor |
 | K-6 | Rate limit değerleri (Bölüm T-05 tablosu). | Tablodaki değerler. | T-05 | ⬜ Bekliyor |
 | K-7 | Rövanş yeni `Match` kaydı olarak mı açılsın, aynı kayıt mı sıfırlansın? | **Yeni kayıt.** ELO geçmişi temiz kalır. | T-15 | ⬜ Bekliyor |
