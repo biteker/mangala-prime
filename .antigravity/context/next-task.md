@@ -8,7 +8,7 @@
 
 ### Ön Koşullar (Başlamadan Kontrol Et)
 - [x] **K-2** kararı onaylandı (2026-10-31).
-- [ ] `feature/fix-test-and-backlog` ve `feature/architecture-roadmap` `develop`'a merge edildi mi? (bkz. T-10 adım 1)
+- [x] `feature/fix-test-and-backlog`, `feature/architecture-roadmap` ve T-03 `develop`'a merge edildi.
 
 ### Branch
 `feature/config-hardening` (base: güncel `origin/develop`)
