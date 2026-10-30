@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from './auth.store';
+import { GameEndReason } from '@mangala/shared';
 import type {
   BoardState,
   Player,
@@ -12,6 +13,7 @@ import type {
   GameChatTogglePayload,
   GameErrorPayload,
 } from '@mangala/shared';
+import { processLocalMove } from '../lib/game-engine';
 
 export interface ChatMessage {
   sender: 'me' | 'opponent';
@@ -34,6 +36,7 @@ interface GameState {
   gameOverDetails: GameGameOverPayload | null;
   disconnectedPlayerId: string | null;
   reconnectWindowSecs: number | null;
+  isLocalPvP: boolean;
 
   connectGame: (matchId: string) => void;
   disconnectGame: () => void;
@@ -43,9 +46,32 @@ interface GameState {
   sendChatMessage: (message: string, type: 'text' | 'preset') => void;
   setMatchDetails: (details: { opponentUsername: string; opponentElo: number; yourColor: Player }) => void;
   abandonGame: () => void;
+  startLocalGame: () => void;
 }
 
 let timerInterval: ReturnType<typeof setInterval> | null = null;
+
+const runTimer = (
+  seconds: number,
+  set: (partial: Partial<GameState>) => void,
+  get: () => GameState
+): void => {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+  set({ turnTimeLeft: seconds });
+  timerInterval = setInterval(() => {
+    const current = get().turnTimeLeft;
+    if (current > 0) {
+      set({ turnTimeLeft: current - 1 });
+    } else {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+  }, 1000);
+};
 
 export const useGameStore = create<GameState>((set, get) => ({
   socket: null,
@@ -62,6 +88,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   gameOverDetails: null,
   disconnectedPlayerId: null,
   reconnectWindowSecs: null,
+  isLocalPvP: false,
 
   connectGame: (matchId: string) => {
     const state = get();
@@ -114,21 +141,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     });
 
     const startClientTimer = (seconds: number): void => {
-      if (timerInterval) {
-        clearInterval(timerInterval);
-      }
-      set({ turnTimeLeft: seconds });
-      timerInterval = setInterval(() => {
-        const current = get().turnTimeLeft;
-        if (current > 0) {
-          set({ turnTimeLeft: current - 1 });
-        } else {
-          if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-          }
-        }
-      }, 1000);
+      runTimer(seconds, set, get);
     };
 
     newSocket.on('game:state_update', (payload: GameStateUpdatePayload) => {
@@ -225,10 +238,77 @@ export const useGameStore = create<GameState>((set, get) => ({
       gameOverDetails: null,
       disconnectedPlayerId: null,
       reconnectWindowSecs: null,
+      isLocalPvP: false,
     });
   },
 
+  startLocalGame: () => {
+    const { socket } = get();
+    if (socket) {
+      socket.disconnect();
+    }
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    set({
+      socket: null,
+      isLocalPvP: true,
+      matchId: 'local-match',
+      board: [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0],
+      currentPlayerId: 'p1',
+      turnTimeLeft: 59,
+      opponentUsername: '2. Oyuncu (Misafir)',
+      opponentElo: 1000,
+      yourColor: 0,
+      chatEnabled: false,
+      messages: [],
+      gameError: null,
+      gameOverDetails: null,
+      disconnectedPlayerId: null,
+      reconnectWindowSecs: null,
+    });
+    runTimer(59, set, get);
+  },
+
   makeMove: (pitIndex: number) => {
+    const state = get();
+    if (state.isLocalPvP) {
+      const currentPlayer: Player = state.currentPlayerId === 'p2' ? 1 : 0;
+      try {
+        const result = processLocalMove(state.board, pitIndex, currentPlayer);
+        if (result.gameOver) {
+          set({
+            board: result.newBoard,
+            currentPlayerId: null,
+            gameOverDetails: {
+              matchId: 'local-match',
+              winnerId: result.winner === 0 ? 'p1' : (result.winner === 1 ? 'p2' : undefined),
+              reason: GameEndReason.NORMAL,
+              p1EloChange: 0,
+              p2EloChange: 0,
+              finalBoard: result.newBoard,
+            },
+          });
+          if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+          }
+        } else {
+          const nextPlayerId = result.nextPlayer === 0 ? 'p1' : 'p2';
+          set({
+            board: result.newBoard,
+            currentPlayerId: nextPlayerId,
+            gameError: null,
+          });
+          runTimer(59, set, get);
+        }
+      } catch (err: unknown) {
+        set({ gameError: err instanceof Error ? err.message : 'Geçersiz hamle.' });
+      }
+      return;
+    }
+
     const { socket, matchId } = get();
     if (socket && socket.connected && matchId) {
       socket.emit('game:move', { matchId, pitIndex });
@@ -245,7 +325,11 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   abandonGame: () => {
-    const { socket, matchId } = get();
+    const { socket, matchId, isLocalPvP } = get();
+    if (isLocalPvP) {
+      get().disconnectGame();
+      return;
+    }
     if (socket && socket.connected && matchId) {
       socket.emit('game:abandon', { matchId });
     }

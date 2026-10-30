@@ -38,3 +38,7 @@ npm-debug.log*
 
 # TypeScript cache
 *.tsbuildinfo
+
+# Scratch scripts
+scratch/
+

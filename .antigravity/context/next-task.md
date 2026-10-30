@@ -2,20 +2,13 @@
 
 ---
 
-## Görev: Canlı Ortam Kabul Testleri, Temaların Doğrulanması ve Teslim (Final UAT)
+## Görev: Canlı Ortama Deploy (VPS UAT) veya Liderlik Tablosu (Leaderboard UI)
 
 ### Ne Yapılacak?
-Uygulamanın canlı sunucu ortamında (`mangala-prime.egitimhaber.gen.tr`) uçtan uca kabul testlerini ve tüm temaların (özellikle yeni eklenen "PixiJS" temasının ve PixiJS tahta motorunun) görsel doğruluğunu test et.
-1. Canlı web arayüzüne tarayıcıdan girip kullanıcı kaydı oluşturmayı dene.
-2. Lobi gateway ve websocket bağlantılarının stabil olduğunu doğrula.
-3. Tema seçiciyi kullanarak tüm temaların (Ahşap, Neon, Rustik, PixiJS) sorunsuz yüklendiğini kontrol et.
-4. Hızlı eşleşme ve canlı oynanış mekaniklerinin çalıştığını test et.
-
-### Oluşturulacak/Değiştirilecek Dosyalar
-- Yok (Sadece canlı sistem doğrulama ve manuel testler yapılacak).
+Acil canlıya çıkış paketi (Local PvP modu, güvenli migration ve CORS whitelist) tamamlandı. Bir sonraki adımda:
+1. `feature/fix-test-and-backlog` branch'ini `develop` ve `main` branch'lerine merge ederek canlı sunucuya (VPS) otomatik dağıtımı tetiklemek ve canlıda doğrulamak.
+2. VEYA kullanıcı tercihine göre canlıya çıkmadan önce "Liderlik Tablosu (Leaderboard Modal)" arayüzünü eklemek.
 
 ### Kabul Kriterleri
-- [ ] Yeni kullanıcı kayıt adımı sorunsuz çalışıyor, DB'ye kullanıcı kaydı ekleniyor.
-- [ ] Lobiye sorunsuz bağlanılıyor, WebSocket bağlantısı kuruluyor.
-- [ ] Tüm 4 tema (Ahşap, Neon, Rustik, PixiJS) arayüzde seçilebiliyor ve görsel stil değişiklikleri hatasız uygulanıyor.
-- [ ] Maç eşleşmesi, PixiJS tahta animasyonları ve karşılıklı hamle iletimi canlı ortamda çalışıyor.
+- [ ] Değişiklikler canlı ortamda doğrulandı.
+- [ ] Canlıda hem Yerel PvP hem Online Hızlı Maç çalışır durumda.

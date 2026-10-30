@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLobbyStore } from '../stores/lobby.store';
 import { useAuthStore } from '../stores/auth.store';
+import { useGameStore } from '../stores/game.store';
+import { useRouter } from '../lib/router';
 
 export function LobbyPage(): React.JSX.Element {
   const currentUser = useAuthStore((state) => state.user);
@@ -18,6 +20,9 @@ export function LobbyPage(): React.JSX.Element {
     sendInvite,
     respondToInvite,
   } = useLobbyStore();
+
+  const { navigate } = useRouter();
+  const startLocalGame = useGameStore((state) => state.startLocalGame);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [queueSeconds, setQueueSeconds] = useState(120);
@@ -132,13 +137,31 @@ export function LobbyPage(): React.JSX.Element {
           </p>
 
           {!isInQueue ? (
-            <button
-              type="button"
-              className="auth-button start-queue-btn"
-              onClick={joinQueue}
-            >
-              Hızlı Maç Bul
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button
+                type="button"
+                className="auth-button start-queue-btn"
+                onClick={joinQueue}
+              >
+                Hızlı Maç Bul (Online)
+              </button>
+              <button
+                type="button"
+                className="auth-button local-pvp-btn"
+                style={{
+                  background: 'linear-gradient(135deg, #1f4037 0%, #99f2c8 100%)',
+                  color: '#0d2218',
+                  fontWeight: 700,
+                  boxShadow: '0 4px 15px rgba(153, 242, 200, 0.25)',
+                }}
+                onClick={(): void => {
+                  startLocalGame();
+                  navigate('#/game');
+                }}
+              >
+                🎮 Tek Cihazda 2 Kişi Oyna (Yerel PvP)
+              </button>
+            </div>
           ) : (
             <div className="queue-active-container">
               <div className="queue-spinner-ring">

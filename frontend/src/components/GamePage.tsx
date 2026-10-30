@@ -60,6 +60,11 @@ function calculateAnimationSteps(startPit: number, stoneCount: number): number[]
   return steps;
 }
 
+interface LockableScreenOrientation {
+  lock?: (orientation: 'any' | 'natural' | 'landscape' | 'portrait' | 'portrait-primary' | 'portrait-secondary' | 'landscape-primary' | 'landscape-secondary') => Promise<void>;
+  unlock?: () => void;
+}
+
 export function GamePage(): React.JSX.Element {
   const { navigate } = useRouter();
   const currentUser = useAuthStore((state) => state.user);
@@ -78,6 +83,7 @@ export function GamePage(): React.JSX.Element {
     gameOverDetails,
     disconnectedPlayerId,
     reconnectWindowSecs,
+    isLocalPvP,
     connectGame,
     disconnectGame,
     makeMove,
@@ -111,12 +117,17 @@ export function GamePage(): React.JSX.Element {
 
   const handleForfeitConfirm = (): void => {
     setShowForfeitConfirm(false);
-    abandonGame();
+    if (isLocalPvP) {
+      disconnectGame();
+      navigate('#/lobby');
+    } else {
+      abandonGame();
+    }
   };
 
   // Listen to fullscreen changes
   useEffect(() => {
-    const handleFullscreenChange = () => {
+    const handleFullscreenChange = (): void => {
       setIsFullscreen(!!document.fullscreenElement);
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -131,28 +142,41 @@ export function GamePage(): React.JSX.Element {
     };
   }, []);
 
-  const toggleFullscreen = async () => {
+  const toggleFullscreen = async (): Promise<void> => {
     try {
       if (!document.fullscreenElement) {
-        const el = document.documentElement;
+        const el = document.documentElement as HTMLElement & {
+          webkitRequestFullscreen?: () => Promise<void>;
+          mozRequestFullScreen?: () => Promise<void>;
+          msRequestFullscreen?: () => Promise<void>;
+        };
         if (el.requestFullscreen) {
           await el.requestFullscreen();
-        } else if ((el as any).webkitRequestFullscreen) {
-          await (el as any).webkitRequestFullscreen();
-        } else if ((el as any).msRequestFullscreen) {
-          await (el as any).msRequestFullscreen();
+        } else if (el.webkitRequestFullscreen) {
+          await el.webkitRequestFullscreen();
+        } else if (el.mozRequestFullScreen) {
+          await el.mozRequestFullScreen();
+        } else if (el.msRequestFullscreen) {
+          await el.msRequestFullscreen();
         }
       } else {
-        if (document.exitFullscreen) {
-          await document.exitFullscreen();
-        } else if ((document as any).webkitExitFullscreen) {
-          await (document as any).webkitExitFullscreen();
-        } else if ((document as any).msExitFullscreen) {
-          await (document as any).msExitFullscreen();
+        const doc = document as Document & {
+          webkitExitFullscreen?: () => Promise<void>;
+          mozCancelFullScreen?: () => Promise<void>;
+          msExitFullscreen?: () => Promise<void>;
+        };
+        if (doc.exitFullscreen) {
+          await doc.exitFullscreen();
+        } else if (doc.webkitExitFullscreen) {
+          await doc.webkitExitFullscreen();
+        } else if (doc.mozCancelFullScreen) {
+          await doc.mozCancelFullScreen();
+        } else if (doc.msExitFullscreen) {
+          await doc.msExitFullscreen();
         }
       }
     } catch (err) {
-      console.warn('Fullscreen toggle failed:', err);
+      console.warn('Fullscreen error:', err);
     }
   };
   const prevBoardRef = useRef<number[]>(board);
@@ -260,27 +284,31 @@ export function GamePage(): React.JSX.Element {
       navigate('#/lobby');
       return;
     }
-    connectGame(matchId);
-  }, [matchId, connectGame, navigate]);
+    if (!isLocalPvP) {
+      connectGame(matchId);
+    }
+  }, [matchId, connectGame, navigate, isLocalPvP]);
 
   // Ekranı yatay (landscape) moda kilitleme girişimi (mobil cihazlar için)
   useEffect(() => {
     try {
-      if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
-        window.screen.orientation.lock('landscape').catch((err) => {
+      const orientation = window.screen?.orientation as (ScreenOrientation & LockableScreenOrientation) | undefined;
+      if (orientation && typeof orientation.lock === 'function') {
+        orientation.lock('landscape')?.catch((err: unknown) => {
           console.log('Screen orientation lock failed:', err);
         });
       }
-    } catch (e) {
+    } catch {
       // ignore
     }
     
     return () => {
       try {
-        if (window.screen && window.screen.orientation && window.screen.orientation.unlock) {
-          window.screen.orientation.unlock();
+        const orientation = window.screen?.orientation as (ScreenOrientation & LockableScreenOrientation) | undefined;
+        if (orientation && typeof orientation.unlock === 'function') {
+          orientation.unlock();
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
     };
@@ -295,7 +323,9 @@ export function GamePage(): React.JSX.Element {
     return <div className="auth-card">Yükleniyor...</div>;
   }
 
-  const isMyTurn = currentPlayerId === currentUser.id;
+  const isMyTurn = isLocalPvP ? true : (currentPlayerId === currentUser.id);
+  const isP1Active = isLocalPvP ? (currentPlayerId === 'p1') : isMyTurn;
+  const isP2Active = isLocalPvP ? (currentPlayerId === 'p2') : !isMyTurn;
 
   // Hazır (preset) mesajlar listesi
   const PRESET_MESSAGES = [
@@ -320,7 +350,24 @@ export function GamePage(): React.JSX.Element {
 
   // Kuyu tıklama işleyicisi
   const handlePitClick = (pitIndex: number): void => {
-    if (isAnimating || !isMyTurn) return;
+    if (isAnimating) return;
+
+    if (isLocalPvP) {
+      // P1 sırası (currentPlayerId === 'p1'): 0-5 arası kuyular
+      // P2 sırası (currentPlayerId === 'p2'): 7-12 arası kuyular
+      const isP1Turn = currentPlayerId === 'p1';
+      const isAllowedPit = isP1Turn
+        ? pitIndex >= 0 && pitIndex <= 5
+        : pitIndex >= 7 && pitIndex <= 12;
+
+      if (!isAllowedPit) return;
+      if (boardData.board[pitIndex] === 0) return;
+
+      makeMove(pitIndex);
+      return;
+    }
+
+    if (!isMyTurn) return;
 
     // Sadece kendi kuyularımıza tıklayabiliriz
     const isMyPit =
@@ -336,7 +383,22 @@ export function GamePage(): React.JSX.Element {
 
   // Tıklanabilir kuyular dizisi
   const clickablePits = useMemo(() => {
-    if (!isMyTurn || isAnimating) return [];
+    if (isAnimating) return [];
+
+    if (isLocalPvP) {
+      const isP1Turn = currentPlayerId === 'p1';
+      const startIdx = isP1Turn ? 0 : 7;
+      const endIdx = isP1Turn ? 5 : 12;
+      const pits: number[] = [];
+      for (let i = startIdx; i <= endIdx; i++) {
+        if (boardData.board[i] > 0) {
+          pits.push(i);
+        }
+      }
+      return pits;
+    }
+
+    if (!isMyTurn) return [];
     const isP1 = yourColor === 0;
     const startIdx = isP1 ? 0 : 7;
     const endIdx = isP1 ? 5 : 12;
@@ -347,24 +409,30 @@ export function GamePage(): React.JSX.Element {
       }
     }
     return pits;
-  }, [boardData.board, isMyTurn, isAnimating, yourColor]);
+  }, [boardData.board, isMyTurn, isAnimating, yourColor, isLocalPvP, currentPlayerId]);
 
   // Oyuncu Bilgileri Eşleştirmesi
   const p1Info = useMemo(() => {
+    if (isLocalPvP) {
+      return { name: `${currentUser.username} (P1)`, elo: currentUser.elo };
+    }
     if (yourColor === 0) {
       return { name: currentUser.username, elo: currentUser.elo };
     } else {
       return { name: opponentUsername || 'Rakip', elo: opponentElo || 1000 };
     }
-  }, [yourColor, currentUser, opponentUsername, opponentElo]);
+  }, [yourColor, currentUser, opponentUsername, opponentElo, isLocalPvP]);
 
   const p2Info = useMemo(() => {
+    if (isLocalPvP) {
+      return { name: '2. Oyuncu (P2)', elo: 1000 };
+    }
     if (yourColor === 1) {
       return { name: currentUser.username, elo: currentUser.elo };
     } else {
       return { name: opponentUsername || 'Rakip', elo: opponentElo || 1000 };
     }
-  }, [yourColor, currentUser, opponentUsername, opponentElo]);
+  }, [yourColor, currentUser, opponentUsername, opponentElo, isLocalPvP]);
 
   // ELO Değişimi Hesaplama (modal için)
   const myEloChange = (): number => {
@@ -388,7 +456,7 @@ export function GamePage(): React.JSX.Element {
   };
 
   return (
-    <div className="game-layout">
+    <div className={`game-layout ${isLocalPvP ? 'local-pvp-layout' : ''}`}>
       {/* CİHAZ DÖNDÜRME UYARISI (MOBİL PORTRAIT İÇİN) */}
       <div className="orientation-warning-overlay">
         <div className="orientation-warning-card">
@@ -408,22 +476,22 @@ export function GamePage(): React.JSX.Element {
       {/* OYUN ÜST BARI (TRANSPARAN VE MINIMAL) */}
       <div className="game-top-bar">
         {/* Sol Oyuncu Bilgisi */}
-        <div className={`top-bar-player me ${isMyTurn ? 'active-turn' : ''}`}>
+        <div className={`top-bar-player me ${isP1Active ? 'active-turn' : ''}`}>
           <div className="player-avatar">
             <UserIcon />
           </div>
           <div className="player-meta">
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span className="player-name">{currentUser.username}</span>
-              {isMyTurn && <div className="active-turn-dot" title="Sıra Sizde" />}
+              <span className="player-name">{p1Info.name}</span>
+              {isP1Active && <div className="active-turn-dot" title="Sıra 1. Oyuncuda" />}
             </div>
-            <span className="player-elo">{currentUser.elo} ELO</span>
+            <span className="player-elo">{p1Info.elo} ELO</span>
           </div>
         </div>
 
         {/* Orta Bölüm: Başlık ve Zamanlayıcı */}
         <div className="top-bar-center">
-          <div className="game-title">Türk Mangalası</div>
+          <div className="game-title">{isLocalPvP ? 'Türk Mangalası (Yerel PvP)' : 'Türk Mangalası'}</div>
           <div className={`game-timer ${turnTimeLeft <= 5 ? 'danger' : ''}`}>
             <ClockIcon />
             <span>{formatTime(turnTimeLeft)}</span>
@@ -431,13 +499,13 @@ export function GamePage(): React.JSX.Element {
         </div>
 
         {/* Sağ Oyuncu Bilgisi */}
-        <div className={`top-bar-player opponent ${!isMyTurn ? 'active-turn' : ''}`}>
+        <div className={`top-bar-player opponent ${isP2Active ? 'active-turn' : ''}`}>
           <div className="player-meta">
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              {!isMyTurn && <div className="active-turn-dot" title="Sıra Rakipte" />}
-              <span className="player-name">{opponentUsername || 'Rakip'}</span>
+              {isP2Active && <div className="active-turn-dot" title="Sıra 2. Oyuncuda" />}
+              <span className="player-name">{p2Info.name}</span>
             </div>
-            <span className="player-elo">{opponentElo} ELO</span>
+            <span className="player-elo">{p2Info.elo} ELO</span>
           </div>
           <div className="player-avatar">
             <UserIcon />
@@ -450,7 +518,7 @@ export function GamePage(): React.JSX.Element {
         type="button"
         className="game-exit-btn"
         onClick={handleForfeitClick}
-        title="Oyundan Çekil"
+        title={isLocalPvP ? "Oyundan Çık" : "Oyundan Çekil"}
       >
         ✕
       </button>
@@ -465,30 +533,32 @@ export function GamePage(): React.JSX.Element {
         {isFullscreen ? "⤡" : "⛶"}
       </button>
 
-      {/* Sağ Kenardaki Floating Sohbet Kutusu */}
-      <div className="game-floating-actions">
-        <label className="sohbet-acik-checkbox" title="Sohbet Durumu">
-          <input
-            type="checkbox"
-            checked={chatEnabled}
-            onChange={(e): void => toggleChat(e.target.checked)}
-          />
-          <span>Sohbet Açık</span>
-        </label>
-        <button
-          type="button"
-          className="action-icon-btn"
-          onClick={() => {
-            const chatEl = document.querySelector('.chat-panel-container');
-            if (chatEl) {
-              chatEl.scrollIntoView({ behavior: 'smooth' });
-            }
-          }}
-          title="Sohbete Git"
-        >
-          💬
-        </button>
-      </div>
+      {/* Sağ Kenardaki Floating Sohbet Kutusu (Sadece Online Maçta) */}
+      {!isLocalPvP && (
+        <div className="game-floating-actions">
+          <label className="sohbet-acik-checkbox" title="Sohbet Durumu">
+            <input
+              type="checkbox"
+              checked={chatEnabled}
+              onChange={(e): void => toggleChat(e.target.checked)}
+            />
+            <span>Sohbet Açık</span>
+          </label>
+          <button
+            type="button"
+            className="action-icon-btn"
+            onClick={() => {
+              const chatEl = document.querySelector('.chat-panel-container');
+              if (chatEl) {
+                chatEl.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            title="Sohbete Git"
+          >
+            💬
+          </button>
+        </div>
+      )}
 
       {disconnectedPlayerId && (
         <div className="auth-error-alert connection-lost-alert">
@@ -499,9 +569,10 @@ export function GamePage(): React.JSX.Element {
 
       {gameError && <div className="auth-error-alert game-alert">{gameError}</div>}
 
-      <div className="game-content-container">
-        {/* SOL PANEL: CHAT */}
-        <div className="chat-panel-container">
+      <div className={`game-content-container ${isLocalPvP ? 'local-pvp-mode' : ''}`}>
+        {/* SOL PANEL: CHAT (Sadece Online Maçta) */}
+        {!isLocalPvP && (
+          <div className="chat-panel-container">
           <div className="chat-header">
             <h4>Canlı Sohbet</h4>
             <label className="chat-toggle-label">
@@ -560,6 +631,7 @@ export function GamePage(): React.JSX.Element {
             </button>
           </form>
         </div>
+        )}
 
         {/* ORTA PANEL: MANGALA TAHTASI */}
         <div className="board-panel-container">
@@ -579,8 +651,10 @@ export function GamePage(): React.JSX.Element {
 
       {/* Mobilde ekranın altında sırayı gösteren indicator */}
       <div className="mobile-turn-indicator-container">
-        <div className={`mobile-turn-indicator ${isMyTurn ? 'my-turn' : 'opponent-turn'}`}>
-          {isMyTurn ? 'Sıra Sizde' : 'Sıra Rakipte'}
+        <div className={`mobile-turn-indicator ${isP1Active ? 'my-turn' : 'opponent-turn'}`}>
+          {isLocalPvP
+            ? (isP1Active ? 'Sıra: 1. Oyuncu (Alt Sıra)' : 'Sıra: 2. Oyuncu (Üst Sıra)')
+            : (isMyTurn ? 'Sıra Sizde' : 'Sıra Rakipte')}
         </div>
       </div>
 
@@ -590,7 +664,15 @@ export function GamePage(): React.JSX.Element {
           <div className="auth-card game-over-modal">
             <h2 className="auth-title">Oyun Bitti</h2>
 
-            {gameOverDetails.winnerId === currentUser.id ? (
+            {isLocalPvP ? (
+              gameOverDetails.winnerId === 'p1' ? (
+                <div className="game-result-title win">Tebrikler, 1. Oyuncu Kazandı! 🎉</div>
+              ) : gameOverDetails.winnerId === 'p2' ? (
+                <div className="game-result-title win">Tebrikler, 2. Oyuncu Kazandı! 🎉</div>
+              ) : (
+                <div className="game-result-title draw">Oyun Berabere! 🤝</div>
+              )
+            ) : gameOverDetails.winnerId === currentUser.id ? (
               <div className="game-result-title win">Tebrikler, Kazandınız! 🎉</div>
             ) : !gameOverDetails.winnerId ? (
               <div className="game-result-title draw">Oyun Berabere! 🤝</div>
@@ -602,12 +684,14 @@ export function GamePage(): React.JSX.Element {
               {getEndReasonText(gameOverDetails.reason)}
             </p>
 
-            <div className="elo-change-panel">
-              <span className="elo-change-label">ELO Dereceniz:</span>
-              <span className={`elo-change-value ${myEloChange() >= 0 ? 'positive' : 'negative'}`}>
-                {myEloChange() >= 0 ? `+${myEloChange()}` : myEloChange()} ELO
-              </span>
-            </div>
+            {!isLocalPvP && (
+              <div className="elo-change-panel">
+                <span className="elo-change-label">ELO Dereceniz:</span>
+                <span className={`elo-change-value ${myEloChange() >= 0 ? 'positive' : 'negative'}`}>
+                  {myEloChange() >= 0 ? `+${myEloChange()}` : myEloChange()} ELO
+                </span>
+              </div>
+            )}
 
             <button
               type="button"
@@ -627,9 +711,13 @@ export function GamePage(): React.JSX.Element {
       {showForfeitConfirm && (
         <div className="modal-backdrop">
           <div className="auth-card game-over-modal">
-            <h2 className="auth-title" style={{ color: '#ff3b30' }}>Oyundan Çekil</h2>
+            <h2 className="auth-title" style={{ color: '#ff3b30' }}>
+              {isLocalPvP ? 'Oyundan Çık' : 'Oyundan Çekil'}
+            </h2>
             <p className="game-end-reason" style={{ textAlign: 'center', marginBottom: '24px' }}>
-              Oyundan çekilmek istediğinize emin misiniz? Bu işlem hükmen mağlup sayılmanıza ve ELO puanınızın düşmesine neden olacaktır.
+              {isLocalPvP
+                ? 'Yerel oyunu sonlandırıp lobiye dönmek istediğinize emin misiniz?'
+                : 'Oyundan çekilmek istediğinize emin misiniz? Bu işlem hükmen mağlup sayılmanıza ve ELO puanınızın düşmesine neden olacaktır.'}
             </p>
             <div className="modal-actions">
               <button
@@ -637,7 +725,7 @@ export function GamePage(): React.JSX.Element {
                 className="auth-button decline-invite-btn"
                 onClick={handleForfeitConfirm}
               >
-                Evet, Çekil
+                {isLocalPvP ? 'Evet, Lobiye Dön' : 'Evet, Çekil'}
               </button>
               <button
                 type="button"

@@ -23,6 +23,104 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-10-08] — GamePage Lock Hatası Düzeltmesi ve Yerel Bilgisayarda Çalıştırma
+
+**Tamamlanan Görev:**
+1. **GamePage.tsx ScreenOrientation Lock Hatası:**
+   - `GamePage.tsx` dosyasındaki mobil ekran yatay kilitleme kodunda (`window.screen.orientation.lock`) `LockableScreenOrientation` arayüzü tanımlanarak `any` kullanılmadan tam tip güvenliği sağlandı ve IDE/TypeScript hataları giderildi.
+2. **Vite @mangala/shared Alias Desteği:**
+   - `frontend/vite.config.ts` dosyasına `@mangala/shared` alias'ı eklenerek dev modundaki CJS/ESM ayrışması çözüldü.
+3. **Yerel Ortamın Başlatılması:**
+   - PostgreSQL konteyneri (`global-postgres`) doğrulandı, veritabanı seed komutu (`npx prisma db seed`) ile test kullanıcıları oluşturuldu.
+   - Backend NestJS servisi 3000 portunda (`npm run backend:dev`) arka planda başlatıldı.
+   - Frontend Vite servisi 5173 portunda (`npm run frontend:dev`) arka planda başlatıldı.
+   - Tarayıcı testi ve curl ile hem API hem UI başarıyla doğrulandı.
+4. **Yerel PvP Mangala Tahtası Ortalanması ve Boyutlandırılması:**
+   - CSS grid'de sohbet gizlendiğinde 320px'lik dar sol sütuna sıkışan tahta yapısı düzeltildi.
+   - `.local-pvp-mode` ve `.local-pvp-layout` kuralları eklenerek tahtanın tek başına tüm ekranda (~1240px) ortalı, büyük ve net render edilmesi sağlandı.
+5. **Yerel PvP Oyundan Çıkış ve Lobiye Dönüş:**
+   - `GamePage.tsx` onay modalı yerel PvP'ye uyarlandı ("Oyundan Çık", "Evet, Lobiye Dön").
+   - `game.store.ts` içinde `abandonGame` fonksiyonuna `isLocalPvP` kontrolü eklenerek doğrudan lobiye yönlendirme sağlandı.
+   - Sayfa unmount edilirken PixiJS ve GSAP animasyon döngüsünün tetiklediği null referans hatası (`MangalaBoard.ts` ve `MangalaReactBoard.tsx`) giderildi, tahta ve fizik ticker'ı güvenli şekilde imha edildi.
+6. **İki Tarayıcı ile Karşılıklı Çok Oyunculu (Online PvP) Testi:**
+   - İki bağımsız Chrome penceresiyle `player1` ve `player2` kullanıcıları lobiye bağlandı.
+   - Hızlı Maç kuyruğu üzerinden FIFO eşleştirmesi, WebSocket bağlantısı, tahtanın gerçek zamanlı animasyonlu taş dağıtımı ve iki yönlü canlı sohbet eksiksiz doğrulandı.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [frontend/src/components/GamePage.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/GamePage.tsx) [MODIFY] — `LockableScreenOrientation` ile tip güvenliği, `local-pvp-layout` sınıfı ve yerel çıkış modalı/yönlendirmesi.
+- [frontend/vite.config.ts](file:///home/biteker/Documents/mangala-prime/frontend/vite.config.ts) [MODIFY] — `@mangala/shared` alias tanımı.
+- [frontend/src/index.css](file:///home/biteker/Documents/mangala-prime/frontend/src/index.css) [MODIFY] — Yerel PvP tahta ortalama ve tam genişlik CSS kuralları.
+- [frontend/src/stores/game.store.ts](file:///home/biteker/Documents/mangala-prime/frontend/src/stores/game.store.ts) [MODIFY] — `abandonGame` fonksiyonunda `isLocalPvP` desteği.
+- [frontend/src/components/MangalaBoard/MangalaBoard.ts](file:///home/biteker/Documents/mangala-prime/frontend/src/components/MangalaBoard/MangalaBoard.ts) [MODIFY] — Güvenli `destroy`, fizik ticker temizliği ve GSAP tween sonlandırma.
+- [frontend/src/components/MangalaBoard/MangalaReactBoard.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/MangalaBoard/MangalaReactBoard.tsx) [MODIFY] — Unmount sırasında tahtanın güvenli imhası.
+
+**Test Sonuçları:** 74/74 test geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (`npm run build`).
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Canlı sunucuya (VPS) dağıtım veya kullanıcı talepleri doğrultusunda yeni geliştirmeler.
+**Commit:** `fix(frontend): handle local pvp exit to lobby and clean up pixi/gsap unmount`
+
+### Oturum [2026-09-09] — Acil Canlıya Geçiş Paketi: Local PvP, Güvenli Migration ve CORS Sertleştirmesi
+
+**Tamamlanan Görev:** 
+Canlıya çıkış öncesi tespit edilen 3 kritik gereksinim başarıyla tamamlandı:
+1. **Local PvP (Aynı Cihazda 2 Kişi Oynama) Modu:**
+   - `frontend/src/lib/game-engine.ts` kural motoru eklenerek Mangala Federasyonu kuralları frontend tarafında saf fonksiyon olarak uygulandı.
+   - `game.store.ts` içine `startLocalGame` ve yerel `makeMove` entegre edildi.
+   - `LobbyPage.tsx` üzerine "Tek Cihazda 2 Kişi Oyna (Yerel PvP)" butonu eklendi.
+   - `GamePage.tsx` üzerinde Local PvP sıra göstergeleri, P1/P2 kuyu kontrolleri, sonuç modalı ve layout desteği sağlandı.
+2. **Güvenli CI/CD Veritabanı Dağıtımı:**
+   - `.github/workflows/ci-cd.yml` içindeki `npx prisma db push --accept-data-loss` silindi, yerine veri kaybını önleyen `npx prisma migrate deploy` komutu entegre edildi.
+3. **CORS ve Ortam Değişkenleri Güvenliği:**
+   - `backend/src/main.ts` içindeki gevşek CORS, `process.env.CORS_ORIGIN` whitelist yapısına kavuşturuldu.
+   - `backend/.env.example` içine `JWT_SECRET`, `JWT_REFRESH_SECRET`, `CORS_ORIGIN` üretim değişkenleri eklendi.
+4. **Kozmetik İyileştirmeler:**
+   - `frontend/index.html` sayfa başlığı "Mangala Prime — Online & Yerel Türk Zeka Oyunu" ve SEO meta etiketleriyle güncellendi.
+   - `GamePage.tsx` fullscreen yardımcı fonksiyonundaki `any` tipleri giderildi.
+Monorepo derlemesi (`npm run build`) ve tüm 74 birim testi (`npm run test`) başarıyla doğrulandı.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [frontend/src/lib/game-engine.ts](file:///home/biteker/Documents/mangala-prime/frontend/src/lib/game-engine.ts) [NEW] — Saf Mangala kural motoru.
+- [frontend/src/stores/game.store.ts](file:///home/biteker/Documents/mangala-prime/frontend/src/stores/game.store.ts) [MODIFY] — Local PvP state ve yerel hamle desteği.
+- [frontend/src/components/LobbyPage.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/LobbyPage.tsx) [MODIFY] — Yerel PvP butonu.
+- [frontend/src/components/GamePage.tsx](file:///home/biteker/Documents/mangala-prime/frontend/src/components/GamePage.tsx) [MODIFY] — Local PvP sıra/modal yönetimi ve any tip temizliği.
+- [frontend/src/index.css](file:///home/biteker/Documents/mangala-prime/frontend/src/index.css) [MODIFY] — Local PvP ortalanmış tahta stilleri.
+- [.github/workflows/ci-cd.yml](file:///home/biteker/Documents/mangala-prime/.github/workflows/ci-cd.yml) [MODIFY] — `prisma migrate deploy` komutu.
+- [backend/src/main.ts](file:///home/biteker/Documents/mangala-prime/backend/src/main.ts) [MODIFY] — Dinamik CORS whitelist.
+- [backend/.env.example](file:///home/biteker/Documents/mangala-prime/backend/.env.example) [MODIFY] — Üretim ortam değişkenleri.
+- [frontend/index.html](file:///home/biteker/Documents/mangala-prime/frontend/index.html) [MODIFY] — Başlık ve SEO etiketleri.
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (Monorepo `npm run build` başarıyla tamamlandı).
+**Açık Sorunlar:** Yok. Canlı sunucu UAT testi yapılabilir.
+**Bir Sonraki Görev:** Canlı sunucuda (Hetzner VPS) doğrulamaların yapılması veya `develop` branch'ine PR açılması.
+**Commit:** `feat: implement local pvp mode, safe db migrations and cors hardening for production readiness`
+**Branch:** `feature/fix-test-and-backlog`
+
+---
+
+### Oturum [2026-09-09] — Kapsamlı Proje Analizi, Test Düzeltmesi ve Production Backlog
+
+**Tamamlanan Görev:** 
+1. Projenin kaynak kodları, mimarisi, güvenlik açıkları, spec karşılaştırması ve yayınlanma kriterleri detaylı analiz edildi.
+2. `GAME_TURN_TIME_LIMIT_SECS` fallback süresinin 59 saniyeye çıkarılmasından sonra patlayan `game.service.spec.ts` birim testi, `service.getTurnTimeLimit() * 1000` dinamik limitine bağlanarak düzeltildi.
+3. Yayına çıkış için gereken tüm güvenlik (CORS, Helmet, Throttler, JWT env), oynanış (Local PvP, Leaderboard, Bot) ve UX eksiklikleri `docs/production-backlog.md` dokümanında önceliklendirilerek kayıt altına alındı.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- [backend/src/game/game.service.spec.ts](file:///home/biteker/Documents/mangala-prime/backend/src/game/game.service.spec.ts) [MODIFY] — `advanceTimersByTimeAsync` çağrısı dinamik time limit ile güncellendi.
+- [docs/production-backlog.md](file:///home/biteker/Documents/mangala-prime/docs/production-backlog.md) [NEW] — Öncelikli eksikler ve yayın yol haritası dokümante edildi.
+- [.antigravity/context/current-state.md](file:///home/biteker/Documents/mangala-prime/.antigravity/context/current-state.md) [MODIFY] — Proje durumu güncellendi.
+- [.antigravity/context/next-task.md](file:///home/biteker/Documents/mangala-prime/.antigravity/context/next-task.md) [MODIFY] — Sıradaki görev tanımlandı.
+
+**Test Sonuçları:** 74/74 Jest testleri başarıyla geçti (`npm run test`).
+**Derleme:** ✅ Hatasız (Monorepo `npm run build` başarıyla tamamlandı).
+**Açık Sorunlar:** `docs/production-backlog.md` dosyasında listelenen güvenlik ve oynanış maddeleri geliştirilmeyi bekliyor.
+**Bir Sonraki Görev:** Kullanıcı tercihine göre Güvenlik Sertleştirmesi (Paket A) veya Local PvP Modu (Paket B) geliştirilmesi.
+**Commit:** `fix(test): align turn timeout test with configurable turn limit`
+**Branch:** `feature/fix-test-and-backlog`
+
+---
+
 ### Oturum [2026-06-10] — PixiJS Tahta Ardışık Dağıtım ve Fiziksel Yerleşim Animasyon Düzeltmesi
 
 **Tamamlanan Görev:** PixiJS Mangala tahtasında sequential sowing (ardışık taş dağıtma) ve landing (kuyuya düşüş) animasyonlarının erken sonlanıp taşların kuyuya ışınlanması (teleport) sorunu başarıyla çözüldü:
