@@ -60,7 +60,7 @@ Yayın Hazırlığı: ██████░░░░ %60  (mimari denetimde krit
 - **Mimari Yol Haritası:** `docs/architecture-roadmap.md` (2026-10-30) — bağlayıcı görev listesi (T-01…T-16). Görevler bu sırayla yürütülür.
 - **🔴 KRİTİK (B-01):** `POST /test-match` kimlik doğrulamasız, canlıda açık. → T-02
 - **🔴 KRİTİK (B-02):** JWT secret'larında hardcoded fallback (6 yer). → T-01
-- **🔴 KRİTİK (B-03):** Gerçek DB şifresi `.env.example` ve git geçmişinde. → T-03 (insan: şifre rotasyonu)
+- **✅ ÇÖZÜLDÜ (B-03 / T-03):** VPS ve yerel Postgres şifreleri değiştirildi, repo dosyalarındaki sızmış şifre temizlendi.
 - **🟠 (B-04/B-07):** WS gateway CORS `origin: '*'`; `lobby.gateway.ts` içinde `as any`, ESLint'te `no-explicit-any` kapalı. → T-04, T-06
 - **Mimari Kararlar:** K-1…K-7 tamamı 2026-10-31'de onaylandı (K-4: yalnızca şifre rotasyonu). T-01 başlatılabilir.
 

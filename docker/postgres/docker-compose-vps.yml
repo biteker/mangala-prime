@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=400B1teker
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-change_me_in_production}
       - POSTGRES_MULTIPLE_DATABASES=mangala_db
     volumes:
       - postgres_data:/var/lib/postgresql
