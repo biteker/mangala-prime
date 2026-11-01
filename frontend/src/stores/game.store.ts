@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from './auth.store';
-import { GameEndReason } from '@mangala/shared';
+import { GameEndReason, applyMove, createInitialBoard } from '@mangala/shared';
 import type {
   BoardState,
   Player,
@@ -13,7 +13,6 @@ import type {
   GameChatTogglePayload,
   GameErrorPayload,
 } from '@mangala/shared';
-import { processLocalMove } from '../lib/game-engine';
 
 export interface ChatMessage {
   sender: 'me' | 'opponent';
@@ -255,7 +254,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       socket: null,
       isLocalPvP: true,
       matchId: 'local-match',
-      board: [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0],
+      board: createInitialBoard(),
       currentPlayerId: 'p1',
       turnTimeLeft: 59,
       opponentUsername: '2. Oyuncu (Misafir)',
@@ -276,7 +275,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (state.isLocalPvP) {
       const currentPlayer: Player = state.currentPlayerId === 'p2' ? 1 : 0;
       try {
-        const result = processLocalMove(state.board, pitIndex, currentPlayer);
+        const result = applyMove(state.board, pitIndex, currentPlayer);
         if (result.gameOver) {
           set({
             board: result.newBoard,

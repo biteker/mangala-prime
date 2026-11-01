@@ -606,7 +606,7 @@ flowchart LR
 | T-07 | ✅ Prisma config tekilleştirme (Tamamlandı) | A | P2 | Ajan | — | — |
 | T-10 | ✅ Release + UAT + git hijyeni (Tamamlandı) | C | P0 | Ajan + İnsan | Faz A | — |
 | T-12 | ✅ Doküman senkronizasyonu (Tamamlandı) | C | P3 | Ajan | T-10 | K-5 |
-| T-08 | Ortak oyun motoru | B | P2 | Ajan | T-10 | K-1 |
+| T-08 | ✅ Ortak oyun motoru (Tamamlandı) | B | P2 | Ajan | T-10 | K-1 |
 | T-11 | WS exception filter | B | P2 | Ajan | T-06 | — |
 | T-09 | Frontend testleri | B | P2 | Ajan | T-08 | — |
 | T-13 | Liderlik + Profil UI | D | P3 | Ajan | T-09 | — |

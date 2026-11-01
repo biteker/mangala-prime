@@ -23,6 +23,27 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-01] — T-08: Ortak (Shared) Saf Oyun Motoru
+
+**Tamamlanan Görev:** Geçiş öncesinde backend (`GameEngineService.processMove`) ve frontend (`processLocalMove`) motorları 1.000 rastgele maç (39.001 hamle) üzerinden diferansiyel test ile karşılaştırıldı (`divergences: 0`). Ardından saf, dış bağımlılıksız Mangala kural motoru (`applyMove`, `getLegalMoves`, `createInitialBoard`, `MangalaRuleError`) `@mangala/shared` paketi altında `shared/engine/mangala-engine.ts` içine taşındı. Backend `GameEngineService` ince bir NestJS adaptörüne dönüştürüldü, frontend `frontend/src/lib/game-engine.ts` silinerek `game.store.ts` doğrudan ortak motora bağlandı.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `shared/engine/mangala-engine.ts` — Yeni: Saf Mangala oyun motoru (`applyMove`, `getLegalMoves`, `createInitialBoard`, `MangalaRuleError`)
+- `shared/engine/index.ts` & `shared/index.ts` — Yeni: Barrel export dosyaları
+- `shared/tsconfig.json` & `frontend/vite.config.ts` — `@mangala/shared` kök barrel yapısı ve derleme kapsamı güncellendi
+- `backend/src/game/game-engine.service.ts` — `applyMove` çağıran ve `MangalaRuleError`'ı `BadRequestException`'a dönüştüren ince adaptör
+- `backend/src/game/game-engine.spec.ts` — 8 zorunlu kural testi + `getLegalMoves`, immutability ve `MangalaRuleError` birim testleri (toplam 15 motor testi)
+- `frontend/src/stores/game.store.ts` — `applyMove` ve `createInitialBoard` entegrasyonu
+- `frontend/src/lib/game-engine.ts` — Silindi (kod tekrarı sıfırlandı)
+
+**Test Sonuçları:** 97/97 test geçti (14 test suite)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki adım T-11 (WebSocket Exception Filter).
+**Bir Sonraki Görev:** T-11 — WebSocket Exception Filter
+**Commit:** refactor(engine): extract pure mangala engine into @mangala/shared (T-08)
+**PR:** feature/shared-game-engine → develop
+
+---
+
 ### Oturum [2026-11-01] — T-10 & T-12: v1.0.0 Release, Git Hijyeni ve Doküman Senkronizasyonu
 
 **Tamamlanan Görev:** `develop` → `main` Release PR'ı (#32) merge edilerek `v1.0.0` sürüm etiketi (`git tag -a v1.0.0`) oluşturuldu ve `origin`'e gönderildi. Yerelde ve `origin` üzerinde merge edilmiş/eski 19 adet `feature/*` ve `pixijs` branch'i silinerek depoda yalnızca `main` ve `develop` bırakıldı. Canlı sunucu (`https://mangala-prime.egitimhaber.gen.tr/health`) üzerinde `200 OK`, CSP/HSTS başlıkları ve `/test-match` (404) doğrulandı. Ardından T-12 kapsamında `AGENTS.md`, `docs/spec.md`, `.antigravity/skills/prisma.md`, `docs/production-backlog.md` ve `REVIEW_CHECKLIST.md` dosyalarındaki eski SQLite/LibSQL/PM2/CSS-tahta referansları gerçek mimariyle (PostgreSQL 16 + `@prisma/adapter-pg`, PixiJS v8 + GSAP + Web Audio, Docker + GHCR + `prisma migrate deploy`, K-1/K-2/K-5 klasör yapısı) senkronize edildi.
