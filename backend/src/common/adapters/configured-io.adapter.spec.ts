@@ -11,7 +11,10 @@ describe('ConfiguredIoAdapter', () => {
     port: 3000,
     jwtSecret: 'a_very_secure_jwt_secret_at_least_32_chars_long_1',
     jwtRefreshSecret: 'a_very_secure_refresh_secret_at_least_32_chars_2',
-    corsOrigins: ['https://mangala-prime.egitimhaber.gen.tr', 'http://localhost:5173'],
+    corsOrigins: [
+      'https://mangala-prime.egitimhaber.gen.tr',
+      'http://localhost:5173',
+    ],
     turnTimeLimitSecs: 59,
     databaseUrl: 'postgresql://postgres:password@localhost:5432/mangala_db',
   };
@@ -39,7 +42,10 @@ describe('ConfiguredIoAdapter', () => {
       expect.objectContaining({
         namespace: '/game',
         cors: {
-          origin: ['https://mangala-prime.egitimhaber.gen.tr', 'http://localhost:5173'],
+          origin: [
+            'https://mangala-prime.egitimhaber.gen.tr',
+            'http://localhost:5173',
+          ],
           credentials: true,
         },
       }),
@@ -59,7 +65,10 @@ describe('ConfiguredIoAdapter', () => {
     // Assert
     expect(superSpy).toHaveBeenCalledWith(0, {
       cors: {
-        origin: ['https://mangala-prime.egitimhaber.gen.tr', 'http://localhost:5173'],
+        origin: [
+          'https://mangala-prime.egitimhaber.gen.tr',
+          'http://localhost:5173',
+        ],
         credentials: true,
       },
     });

@@ -22,16 +22,22 @@ const DEFAULT_DEV_CORS_ORIGIN = 'http://localhost:5173';
 export function loadAppConfig(env: NodeJS.ProcessEnv): AppConfig {
   const rawNodeEnv = env.NODE_ENV?.trim() || 'development';
   const nodeEnv: NodeEnvironment =
-    rawNodeEnv === 'production' || rawNodeEnv === 'test' ? rawNodeEnv : 'development';
+    rawNodeEnv === 'production' || rawNodeEnv === 'test'
+      ? rawNodeEnv
+      : 'development';
 
   const databaseUrl = env.DATABASE_URL?.trim();
   if (!databaseUrl) {
-    throw new Error('Config validation error: DATABASE_URL is required and cannot be empty.');
+    throw new Error(
+      'Config validation error: DATABASE_URL is required and cannot be empty.',
+    );
   }
 
   const jwtSecret = env.JWT_SECRET?.trim();
   if (!jwtSecret) {
-    throw new Error('Config validation error: JWT_SECRET is required and cannot be empty.');
+    throw new Error(
+      'Config validation error: JWT_SECRET is required and cannot be empty.',
+    );
   }
   if (jwtSecret.length < MIN_SECRET_LENGTH) {
     throw new Error(
@@ -41,7 +47,9 @@ export function loadAppConfig(env: NodeJS.ProcessEnv): AppConfig {
 
   const jwtRefreshSecret = env.JWT_REFRESH_SECRET?.trim();
   if (!jwtRefreshSecret) {
-    throw new Error('Config validation error: JWT_REFRESH_SECRET is required and cannot be empty.');
+    throw new Error(
+      'Config validation error: JWT_REFRESH_SECRET is required and cannot be empty.',
+    );
   }
   if (jwtRefreshSecret.length < MIN_SECRET_LENGTH) {
     throw new Error(
@@ -65,7 +73,9 @@ export function loadAppConfig(env: NodeJS.ProcessEnv): AppConfig {
       .filter((origin) => origin.length > 0);
 
     if (parsedOrigins.length === 0) {
-      throw new Error('Config validation error: CORS_ORIGIN cannot be empty when specified.');
+      throw new Error(
+        'Config validation error: CORS_ORIGIN cannot be empty when specified.',
+      );
     }
     corsOrigins = Object.freeze(parsedOrigins);
   } else if (nodeEnv === 'production') {
@@ -77,7 +87,10 @@ export function loadAppConfig(env: NodeJS.ProcessEnv): AppConfig {
   }
 
   let turnTimeLimitSecs = DEFAULT_TURN_LIMIT_SECS;
-  if (env.GAME_TURN_TIME_LIMIT_SECS !== undefined && env.GAME_TURN_TIME_LIMIT_SECS.trim() !== '') {
+  if (
+    env.GAME_TURN_TIME_LIMIT_SECS !== undefined &&
+    env.GAME_TURN_TIME_LIMIT_SECS.trim() !== ''
+  ) {
     const parsedLimit = Number(env.GAME_TURN_TIME_LIMIT_SECS.trim());
     if (
       !Number.isInteger(parsedLimit) ||
@@ -95,7 +108,9 @@ export function loadAppConfig(env: NodeJS.ProcessEnv): AppConfig {
   if (env.PORT !== undefined && env.PORT.trim() !== '') {
     const parsedPort = Number(env.PORT.trim());
     if (!Number.isInteger(parsedPort) || parsedPort < 1 || parsedPort > 65535) {
-      throw new Error('Config validation error: PORT must be a valid TCP port (1-65535).');
+      throw new Error(
+        'Config validation error: PORT must be a valid TCP port (1-65535).',
+      );
     }
     port = parsedPort;
   }

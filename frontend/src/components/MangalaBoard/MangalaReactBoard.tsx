@@ -51,8 +51,10 @@ export const MangalaReactBoard: React.FC<MangalaReactBoardProps> = ({
   const onPitClickedRef = useRef(onPitClicked);
   const onAnimationCompleteRef = useRef(onAnimationComplete);
 
-  onPitClickedRef.current = onPitClicked;
-  onAnimationCompleteRef.current = onAnimationComplete;
+  useEffect(() => {
+    onPitClickedRef.current = onPitClicked;
+    onAnimationCompleteRef.current = onAnimationComplete;
+  }, [onPitClicked, onAnimationComplete]);
 
   // 1. Initial mounting of PixiJS Application
   useEffect(() => {

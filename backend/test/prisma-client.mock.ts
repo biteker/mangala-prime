@@ -3,7 +3,7 @@ export class PrismaClient {
   constructor() {}
   async $connect(): Promise<void> {}
   async $disconnect(): Promise<void> {}
-  $transaction(promises: any[]): Promise<any[]> {
+  $transaction<T>(promises: Array<Promise<T>>): Promise<T[]> {
     return Promise.all(promises);
   }
 }

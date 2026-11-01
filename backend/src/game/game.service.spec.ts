@@ -4,14 +4,10 @@ import { GameEngineService } from './game-engine.service';
 import { EloService } from '../elo/elo.service';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { APP_CONFIG, loadAppConfig } from '../common/config/app-config';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
-import { GameEndReason } from '@mangala/shared';
+import { NotFoundException } from '@nestjs/common';
 
 describe('GameService', () => {
   let service: GameService;
-  let gameEngine: GameEngineService;
-  let eloService: EloService;
-  let prisma: PrismaService;
 
   const mockPrisma = {
     user: {
@@ -42,9 +38,6 @@ describe('GameService', () => {
     }).compile();
 
     service = module.get<GameService>(GameService);
-    gameEngine = module.get<GameEngineService>(GameEngineService);
-    eloService = module.get<EloService>(EloService);
-    prisma = module.get<PrismaService>(PrismaService);
 
     jest.clearAllMocks();
     jest.useFakeTimers();
@@ -85,7 +78,9 @@ describe('GameService', () => {
       mockPrisma.user.findUnique.mockResolvedValueOnce(null);
 
       // Act & Assert
-      await expect(service.initializeGame('match-1', 'p1', 'p2')).rejects.toThrow(NotFoundException);
+      await expect(
+        service.initializeGame('match-1', 'p1', 'p2'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -105,18 +100,27 @@ describe('GameService', () => {
       const room = service.getRoom(matchId)!;
       room.player1SocketId = 'socket-p1';
 
-      const validation = await service.validateMove('socket-p1', { matchId, pitIndex: 2 });
+      const validation = await service.validateMove('socket-p1', {
+        matchId,
+        pitIndex: 2,
+      });
       expect(validation.valid).toBe(true);
     });
 
     it('should_return_invalid_if_room_does_not_exist', async () => {
-      const validation = await service.validateMove('socket-p1', { matchId: 'wrong-match', pitIndex: 2 });
+      const validation = await service.validateMove('socket-p1', {
+        matchId: 'wrong-match',
+        pitIndex: 2,
+      });
       expect(validation.valid).toBe(false);
       expect(validation.reason).toBe('Maç bulunamadı.');
     });
 
     it('should_return_invalid_if_player_not_in_match', async () => {
-      const validation = await service.validateMove('socket-outsider', { matchId, pitIndex: 2 });
+      const validation = await service.validateMove('socket-outsider', {
+        matchId,
+        pitIndex: 2,
+      });
       expect(validation.valid).toBe(false);
       expect(validation.reason).toBe('Bu maçta oyuncu değilsiniz.');
     });
@@ -127,7 +131,10 @@ describe('GameService', () => {
       room.player2SocketId = 'socket-p2';
       room.currentPlayer = 1; // It is P2's turn
 
-      const validation = await service.validateMove('socket-p1', { matchId, pitIndex: 2 });
+      const validation = await service.validateMove('socket-p1', {
+        matchId,
+        pitIndex: 2,
+      });
       expect(validation.valid).toBe(false);
       expect(validation.reason).toBe('Sıra sizde değil.');
     });
@@ -137,9 +144,14 @@ describe('GameService', () => {
       room.player1SocketId = 'socket-p1';
 
       // Player 1 can only move from index 0 to 5
-      const validation = await service.validateMove('socket-p1', { matchId, pitIndex: 8 });
+      const validation = await service.validateMove('socket-p1', {
+        matchId,
+        pitIndex: 8,
+      });
       expect(validation.valid).toBe(false);
-      expect(validation.reason).toBe('Kendi bölgenizdeki bir kuyudan hamle yapmalısınız.');
+      expect(validation.reason).toBe(
+        'Kendi bölgenizdeki bir kuyudan hamle yapmalısınız.',
+      );
     });
 
     it('should_return_invalid_if_selected_pit_is_empty', async () => {
@@ -147,7 +159,10 @@ describe('GameService', () => {
       room.player1SocketId = 'socket-p1';
       room.board[2] = 0; // Empty pit
 
-      const validation = await service.validateMove('socket-p1', { matchId, pitIndex: 2 });
+      const validation = await service.validateMove('socket-p1', {
+        matchId,
+        pitIndex: 2,
+      });
       expect(validation.valid).toBe(false);
       expect(validation.reason).toBe('Seçilen kuyu boş.');
     });
@@ -215,7 +230,12 @@ describe('GameService', () => {
       expect(result.winnerId).toBe(p1Id);
       expect(result.p1EloChange).toBe(15);
       expect(result.p2EloChange).toBe(-15);
-      expect(mockEloService.updateEloScores).toHaveBeenCalledWith(matchId, p1Id, p2Id, 'p1_win');
+      expect(mockEloService.updateEloScores).toHaveBeenCalledWith(
+        matchId,
+        p1Id,
+        p2Id,
+        'p1_win',
+      );
       expect(service.getRoom(matchId)).toBeUndefined(); // Room cleaned up
     });
   });
@@ -252,7 +272,10 @@ describe('GameService', () => {
     it('should_trigger_abandon_if_reconnect_window_expires', async () => {
       const room = service.getRoom(matchId)!;
       room.player1SocketId = 'socket-p1';
-      mockEloService.updateEloScores.mockResolvedValue({ p1EloChange: -15, p2EloChange: 15 });
+      mockEloService.updateEloScores.mockResolvedValue({
+        p1EloChange: -15,
+        p2EloChange: 15,
+      });
 
       // Disconnect
       await service.handlePlayerDisconnect('socket-p1');
@@ -261,7 +284,12 @@ describe('GameService', () => {
       await jest.advanceTimersByTimeAsync(60000);
 
       // Assert
-      expect(mockEloService.updateEloScores).toHaveBeenCalledWith(matchId, p1Id, p2Id, 'p1_forfeit');
+      expect(mockEloService.updateEloScores).toHaveBeenCalledWith(
+        matchId,
+        p1Id,
+        p2Id,
+        'p1_forfeit',
+      );
       expect(service.getRoom(matchId)).toBeUndefined();
     });
 
@@ -295,14 +323,22 @@ describe('GameService', () => {
     });
 
     it('should_apply_forfeit_when_turn_timer_expires', async () => {
-      mockEloService.updateEloScores.mockResolvedValue({ p1EloChange: -15, p2EloChange: 15 });
+      mockEloService.updateEloScores.mockResolvedValue({
+        p1EloChange: -15,
+        p2EloChange: 15,
+      });
 
       // Act: Fast forward to turn time limit
       const timeLimitMs = service.getTurnTimeLimit() * 1000;
       await jest.advanceTimersByTimeAsync(timeLimitMs);
 
       // Assert
-      expect(mockEloService.updateEloScores).toHaveBeenCalledWith(matchId, p1Id, p2Id, 'p1_forfeit');
+      expect(mockEloService.updateEloScores).toHaveBeenCalledWith(
+        matchId,
+        p1Id,
+        p2Id,
+        'p1_forfeit',
+      );
       expect(service.getRoom(matchId)).toBeUndefined();
     });
   });

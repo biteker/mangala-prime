@@ -8,7 +8,9 @@ export class SlidingWindowLimiter {
     private readonly pruneIntervalOps = 100,
   ) {
     if (limit <= 0 || windowMs <= 0) {
-      throw new Error('SlidingWindowLimiter: limit and windowMs must be positive numbers.');
+      throw new Error(
+        'SlidingWindowLimiter: limit and windowMs must be positive numbers.',
+      );
     }
   }
 

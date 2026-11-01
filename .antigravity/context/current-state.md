@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/helmet-throttler
+Aktif Branch: feature/strict-lint-gate
 
 ---
 
@@ -8,7 +8,7 @@ Aktif Branch: feature/helmet-throttler
 
 ```
 Faz 1 MVP: ██████████ %100
-Yayın Hazırlığı: █████████░ %86  (T-01..T-05 tamamlandı — bkz. docs/architecture-roadmap.md)
+Yayın Hazırlığı: █████████░ %90  (T-01..T-06 tamamlandı — bkz. docs/architecture-roadmap.md)
 ```
 
 ---
@@ -62,15 +62,16 @@ Yayın Hazırlığı: █████████░ %86  (T-01..T-05 tamamland�
 - **✅ ÇÖZÜLDÜ (B-02 / T-01):** Tipli `AppConfig` ve fail-fast doğrulama eklendi; tüm JWT fallback secret'ları kaldırıldı.
 - **✅ ÇÖZÜLDÜ (B-03 / T-03):** VPS ve yerel Postgres şifreleri değiştirildi, repo dosyalarındaki sızmış şifre temizlendi.
 - **✅ ÇÖZÜLDÜ (B-04 / B-05 / T-04):** `ConfiguredIoAdapter` ile HTTP ve WebSocket CORS politikası `AppConfig.corsOrigins` altında birleştirildi.
-- **🟠 (B-07):** `lobby.gateway.ts` içinde `as any`, ESLint'te `no-explicit-any` kapalı. → T-06
-- **Mimari Kararlar:** K-1…K-7 tamamı 2026-10-31'de onaylandı (K-4: yalnızca şifre rotasyonu). T-01 başlatılabilir.
+- **✅ ÇÖZÜLDÜ (B-06 / T-05):** `helmet` CSP, HTTP `@nestjs/throttler` ve WS `SlidingWindowLimiter` devreye alındı.
+- **✅ ÇÖZÜLDÜ (B-07 / T-06):** Kod tabanındaki tüm `any` kullanımları kaldırıldı, ESLint `no-explicit-any: error` ve CI `npm run lint` kapısı eklendi.
+- **Mimari Kararlar:** K-1…K-7 tamamı 2026-10-31'de onaylandı (K-4: yalnızca şifre rotasyonu).
 
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-01 — T-05: Helmet ve Rate Limiting
+Oturum 2026-11-01 — T-06: `any` Temizliği ve Lint Kapısı
 
 ### Yapılanlar
-- `helmet` (PixiJS/WS uyumlu CSP) ve `@nestjs/throttler` kuruldu; `trust proxy: 1` açıldı.
-- `/auth/login`, `/auth/register`, `/auth/refresh` ve WS bağlantı/hamle/sohbet kanallarına hız sınırlandırması (`SlidingWindowLimiter`) eklendi.
-- 91/91 birim testi ve monorepo build doğrulandı. Sıradaki görev: T-06.
+- `extractErrorCode` yardımcı fonksiyonu ve birim testleri yazıldı; tüm `any` tipleri kaldırıldı.
+- Backend ve frontend ESLint yapılandırmalarında `@typescript-eslint/no-explicit-any: 'error'` açıldı ve tüm lint hataları sıfırlandı.
+- CI iş akışına `npm run lint` kapısı eklendi; 94/94 birim testi ve monorepo build doğrulandı. Sıradaki görev: T-07.

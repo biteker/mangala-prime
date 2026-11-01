@@ -1,14 +1,32 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { GameGateway } from './game.gateway';
+import { GameGateway, type AuthenticatedGameSocket } from './game.gateway';
 import { GameService } from './game.service';
 import { JwtService } from '@nestjs/jwt';
-import { Socket, Server } from 'socket.io';
-import { GameEndReason } from '@mangala/shared';
+import { Server } from 'socket.io';
+import { GameEndReason, type GameMovePayload } from '@mangala/shared';
+
+interface MockGameSocket {
+  id: string;
+  handshake?: {
+    auth: Record<string, string>;
+    query: Record<string, string>;
+    headers?: Record<string, string>;
+    address?: string;
+  };
+  data: Record<string, string>;
+  join?: jest.Mock;
+  disconnect?: jest.Mock;
+  emit?: jest.Mock;
+  to?: jest.Mock;
+}
+
+interface MockGameServer {
+  to: jest.Mock;
+  emit: jest.Mock;
+}
 
 describe('GameGateway', () => {
   let gateway: GameGateway;
-  let gameService: GameService;
-  let jwtService: JwtService;
 
   const mockGameService = {
     setServer: jest.fn(),
@@ -37,14 +55,12 @@ describe('GameGateway', () => {
     }).compile();
 
     gateway = module.get<GameGateway>(GameGateway);
-    gameService = module.get<GameService>(GameService);
-    jwtService = module.get<JwtService>(JwtService);
 
     jest.clearAllMocks();
   });
 
   describe('handleConnection', () => {
-    let mockSocket: any;
+    let mockSocket: MockGameSocket;
 
     beforeEach(() => {
       mockSocket = {
@@ -61,26 +77,36 @@ describe('GameGateway', () => {
 
     it('should_authorize_and_connect_successfully_with_valid_token', async () => {
       // Arrange
-      mockJwtService.verifyAsync.mockResolvedValue({ sub: 'user-1', username: 'user1' });
+      mockJwtService.verifyAsync.mockResolvedValue({
+        sub: 'user-1',
+        username: 'user1',
+      });
       mockGameService.getRoomForUser.mockReturnValue({ matchId: 'match-123' });
 
       // Act
-      await gateway.handleConnection(mockSocket as unknown as Socket);
+      await gateway.handleConnection(
+        mockSocket as unknown as AuthenticatedGameSocket,
+      );
 
       // Assert
-      expect(jwtService.verifyAsync).toHaveBeenCalledWith('valid-token');
+      expect(mockJwtService.verifyAsync).toHaveBeenCalledWith('valid-token');
       expect(mockSocket.data).toEqual({ userId: 'user-1', username: 'user1' });
-      expect(gameService.handlePlayerConnect).toHaveBeenCalledWith('user-1', 'socket-p1');
+      expect(mockGameService.handlePlayerConnect).toHaveBeenCalledWith(
+        'user-1',
+        'socket-p1',
+      );
       expect(mockSocket.join).toHaveBeenCalledWith('match-123');
       expect(mockSocket.disconnect).not.toHaveBeenCalled();
     });
 
     it('should_disconnect_if_token_is_missing', async () => {
       // Arrange
-      mockSocket.handshake.auth = {};
+      mockSocket.handshake!.auth = {};
 
       // Act
-      await gateway.handleConnection(mockSocket as unknown as Socket);
+      await gateway.handleConnection(
+        mockSocket as unknown as AuthenticatedGameSocket,
+      );
 
       // Assert
       expect(mockSocket.disconnect).toHaveBeenCalledWith(true);
@@ -91,7 +117,9 @@ describe('GameGateway', () => {
       mockJwtService.verifyAsync.mockRejectedValue(new Error('Invalid token'));
 
       // Act
-      await gateway.handleConnection(mockSocket as unknown as Socket);
+      await gateway.handleConnection(
+        mockSocket as unknown as AuthenticatedGameSocket,
+      );
 
       // Assert
       expect(mockSocket.disconnect).toHaveBeenCalledWith(true);
@@ -103,7 +131,7 @@ describe('GameGateway', () => {
       // Arrange
       const mockSocket = {
         id: 'socket-p1',
-      } as unknown as Socket;
+      } as unknown as AuthenticatedGameSocket;
 
       mockGameService.handlePlayerDisconnect.mockResolvedValue({
         matchId: 'match-123',
@@ -121,7 +149,9 @@ describe('GameGateway', () => {
       await gateway.handleDisconnect(mockSocket);
 
       // Assert
-      expect(gameService.handlePlayerDisconnect).toHaveBeenCalledWith('socket-p1');
+      expect(mockGameService.handlePlayerDisconnect).toHaveBeenCalledWith(
+        'socket-p1',
+      );
       expect(mockServer.to).toHaveBeenCalledWith('match-123');
       expect(mockServer.emit).toHaveBeenCalledWith('game:player_disconnected', {
         playerId: 'user-1',
@@ -131,8 +161,8 @@ describe('GameGateway', () => {
   });
 
   describe('handleMove', () => {
-    let mockSocket: any;
-    let mockServer: any;
+    let mockSocket: MockGameSocket;
+    let mockServer: MockGameServer;
 
     beforeEach(() => {
       mockSocket = {
@@ -149,25 +179,43 @@ describe('GameGateway', () => {
 
     it('should_emit_error_if_payload_validation_fails', async () => {
       // Arrange
-      const invalidPayload = { matchId: '', pitIndex: 100 }; // Invalid matchId (not UUID) and out of bound pitIndex
+      const invalidPayload: GameMovePayload = { matchId: '', pitIndex: 100 }; // Invalid matchId (not UUID) and out of bound pitIndex
       mockGameService.getRoom.mockReturnValue({ board: [4, 4, 4] });
 
       // Act
-      await gateway.handleMove(mockSocket as unknown as Socket, invalidPayload as any);
+      await gateway.handleMove(
+        mockSocket as unknown as AuthenticatedGameSocket,
+        invalidPayload,
+      );
 
       // Assert
-      expect(mockSocket.emit).toHaveBeenCalledWith('game:error', expect.objectContaining({
-        error: { code: 'INVALID_MOVE', message: 'Geçersiz hamle parametreleri.' },
-      }));
+      expect(mockSocket.emit).toHaveBeenCalledWith(
+        'game:error',
+        expect.objectContaining({
+          error: {
+            code: 'INVALID_MOVE',
+            message: 'Geçersiz hamle parametreleri.',
+          },
+        }),
+      );
     });
 
     it('should_emit_error_if_move_is_rules_invalid', async () => {
       // Arrange
-      const payload = { matchId: '550e8400-e29b-41d4-a716-446655440000', pitIndex: 2 };
-      mockGameService.validateMove.mockResolvedValue({ valid: false, reason: 'Sıra sizde değil.' });
+      const payload = {
+        matchId: '550e8400-e29b-41d4-a716-446655440000',
+        pitIndex: 2,
+      };
+      mockGameService.validateMove.mockResolvedValue({
+        valid: false,
+        reason: 'Sıra sizde değil.',
+      });
 
       // Act
-      await gateway.handleMove(mockSocket as unknown as Socket, payload);
+      await gateway.handleMove(
+        mockSocket as unknown as AuthenticatedGameSocket,
+        payload,
+      );
 
       // Assert
       expect(mockSocket.emit).toHaveBeenCalledWith('game:error', {
@@ -177,7 +225,10 @@ describe('GameGateway', () => {
 
     it('should_broadcast_state_update_on_successful_move', async () => {
       // Arrange
-      const payload = { matchId: '550e8400-e29b-41d4-a716-446655440000', pitIndex: 2 };
+      const payload = {
+        matchId: '550e8400-e29b-41d4-a716-446655440000',
+        pitIndex: 2,
+      };
       mockGameService.validateMove.mockResolvedValue({ valid: true });
       mockGameService.processMove.mockResolvedValue({
         newBoard: [4, 4, 0],
@@ -186,7 +237,10 @@ describe('GameGateway', () => {
       });
 
       // Act
-      await gateway.handleMove(mockSocket as unknown as Socket, payload);
+      await gateway.handleMove(
+        mockSocket as unknown as AuthenticatedGameSocket,
+        payload,
+      );
 
       // Assert
       expect(mockServer.to).toHaveBeenCalledWith(payload.matchId);
@@ -199,7 +253,10 @@ describe('GameGateway', () => {
 
     it('should_broadcast_game_over_when_game_ends', async () => {
       // Arrange
-      const payload = { matchId: '550e8400-e29b-41d4-a716-446655440000', pitIndex: 5 };
+      const payload = {
+        matchId: '550e8400-e29b-41d4-a716-446655440000',
+        pitIndex: 5,
+      };
       mockGameService.validateMove.mockResolvedValue({ valid: true });
       mockGameService.processMove.mockResolvedValue({
         newBoard: [0, 0, 26],
@@ -211,7 +268,10 @@ describe('GameGateway', () => {
       });
 
       // Act
-      await gateway.handleMove(mockSocket as unknown as Socket, payload);
+      await gateway.handleMove(
+        mockSocket as unknown as AuthenticatedGameSocket,
+        payload,
+      );
 
       // Assert
       expect(mockServer.to).toHaveBeenCalledWith(payload.matchId);
@@ -229,12 +289,12 @@ describe('GameGateway', () => {
   describe('handleReconnect', () => {
     it('should_reconnect_successfully_and_emit_ack', async () => {
       // Arrange
-      const mockSocket = {
+      const mockSocket: MockGameSocket = {
         id: 'socket-p1-new',
         data: { userId: 'user-1', username: 'user1' },
         join: jest.fn(),
         emit: jest.fn(),
-      } as unknown as Socket;
+      };
 
       mockGameService.handleReconnect.mockResolvedValue({
         matchId: 'match-123',
@@ -248,10 +308,19 @@ describe('GameGateway', () => {
       });
 
       // Act
-      await gateway.handleReconnect(mockSocket, { matchId: 'match-123' });
+      await gateway.handleReconnect(
+        mockSocket as unknown as AuthenticatedGameSocket,
+        {
+          matchId: 'match-123',
+        },
+      );
 
       // Assert
-      expect(gameService.handleReconnect).toHaveBeenCalledWith('user-1', 'match-123', 'socket-p1-new');
+      expect(mockGameService.handleReconnect).toHaveBeenCalledWith(
+        'user-1',
+        'match-123',
+        'socket-p1-new',
+      );
       expect(mockSocket.join).toHaveBeenCalledWith('match-123');
       expect(mockSocket.emit).toHaveBeenCalledWith('game:reconnect_ack', {
         board: [4, 4, 4],
@@ -265,7 +334,7 @@ describe('GameGateway', () => {
   });
 
   describe('chat_and_toggle', () => {
-    let mockSocket: any;
+    let mockSocket: MockGameSocket;
 
     beforeEach(() => {
       mockSocket = {
@@ -276,15 +345,22 @@ describe('GameGateway', () => {
       };
     });
 
-    it('should_forward_chat_toggle_to_opponent', async () => {
+    it('should_forward_chat_toggle_to_opponent', () => {
       // Act
-      await gateway.handleChatToggle(mockSocket as unknown as Socket, {
-        matchId: 'match-123',
-        chatEnabled: false,
-      });
+      gateway.handleChatToggle(
+        mockSocket as unknown as AuthenticatedGameSocket,
+        {
+          matchId: 'match-123',
+          chatEnabled: false,
+        },
+      );
 
       // Assert
-      expect(gameService.toggleChat).toHaveBeenCalledWith('match-123', 'user-1', false);
+      expect(mockGameService.toggleChat).toHaveBeenCalledWith(
+        'match-123',
+        'user-1',
+        false,
+      );
       expect(mockSocket.to).toHaveBeenCalledWith('match-123');
       expect(mockSocket.emit).toHaveBeenCalledWith('game:chat_toggle', {
         matchId: 'match-123',
@@ -292,19 +368,23 @@ describe('GameGateway', () => {
       });
     });
 
-    it('should_sanitize_and_forward_chat_message', async () => {
+    it('should_sanitize_and_forward_chat_message', () => {
       // Act
-      await gateway.handleChatMessage(mockSocket as unknown as Socket, {
-        matchId: 'match-123',
-        message: '<script>alert("xss")</script>hello',
-        type: 'text',
-      });
+      gateway.handleChatMessage(
+        mockSocket as unknown as AuthenticatedGameSocket,
+        {
+          matchId: 'match-123',
+          message: '<script>alert("xss")</script>hello',
+          type: 'text',
+        },
+      );
 
       // Assert
       expect(mockSocket.to).toHaveBeenCalledWith('match-123');
       expect(mockSocket.emit).toHaveBeenCalledWith('game:message', {
         matchId: 'match-123',
-        message: '&lt;script&gt;alert(&quot;xss&quot;)&lt;&#x2F;script&gt;hello',
+        message:
+          '&lt;script&gt;alert(&quot;xss&quot;)&lt;&#x2F;script&gt;hello',
         type: 'text',
       });
     });

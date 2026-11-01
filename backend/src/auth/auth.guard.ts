@@ -1,6 +1,7 @@
 import { Injectable, ExecutionContext, SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
+import type { Request } from 'express';
 import { Observable } from 'rxjs';
 
 export const IS_PUBLIC_KEY = 'isPublic';
@@ -24,9 +25,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
 
     if (context.getType() === 'http') {
-      const request = context.switchToHttp().getRequest();
-      const reqPath = request.path || '';
-      const isApi = reqPath.startsWith('/auth') || reqPath.startsWith('/users') || reqPath.startsWith('/api');
+      const request = context.switchToHttp().getRequest<Request>();
+      const reqPath = typeof request.path === 'string' ? request.path : '';
+      const isApi =
+        reqPath.startsWith('/auth') ||
+        reqPath.startsWith('/users') ||
+        reqPath.startsWith('/api');
       if (!isApi) {
         return true;
       }

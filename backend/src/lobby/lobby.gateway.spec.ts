@@ -1,13 +1,33 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { LobbyGateway } from './lobby.gateway';
+import { LobbyGateway, type AuthenticatedLobbySocket } from './lobby.gateway';
 import { LobbyService } from './lobby.service';
 import { JwtService } from '@nestjs/jwt';
-import { Socket, Server } from 'socket.io';
+import { Server } from 'socket.io';
+import type { LobbyInviteSendPayload } from '@mangala/shared';
+
+interface MockLobbySocket {
+  id: string;
+  handshake?: {
+    auth: Record<string, string>;
+    query: Record<string, string>;
+    address?: string;
+    headers?: Record<string, string>;
+  };
+  data: Record<string, string>;
+  disconnect?: jest.Mock;
+  emit?: jest.Mock;
+  broadcast?: {
+    emit: jest.Mock;
+  };
+}
+
+interface MockLobbyServer {
+  to?: jest.Mock;
+  emit: jest.Mock;
+}
 
 describe('LobbyGateway', () => {
   let gateway: LobbyGateway;
-  let lobbyService: LobbyService;
-  let jwtService: JwtService;
 
   const mockLobbyService = {
     setServer: jest.fn(),
@@ -36,15 +56,13 @@ describe('LobbyGateway', () => {
     }).compile();
 
     gateway = module.get<LobbyGateway>(LobbyGateway);
-    lobbyService = module.get<LobbyService>(LobbyService);
-    jwtService = module.get<JwtService>(JwtService);
 
     jest.clearAllMocks();
   });
 
   describe('handleConnection', () => {
-    let mockSocket: any;
-    let mockServer: any;
+    let mockSocket: MockLobbySocket;
+    let mockServer: MockLobbyServer;
 
     beforeEach(() => {
       mockSocket = {
@@ -69,31 +87,50 @@ describe('LobbyGateway', () => {
 
     it('should_authorize_and_connect_successfully_with_valid_token', async () => {
       // Arrange
-      mockJwtService.verifyAsync.mockResolvedValue({ sub: 'user-1', username: 'user1' });
+      mockJwtService.verifyAsync.mockResolvedValue({
+        sub: 'user-1',
+        username: 'user1',
+      });
       mockLobbyService.getPlayerElo.mockResolvedValue(1050);
 
       // Act
-      await gateway.handleConnection(mockSocket as unknown as Socket);
+      await gateway.handleConnection(
+        mockSocket as unknown as AuthenticatedLobbySocket,
+      );
 
       // Assert
-      expect(jwtService.verifyAsync).toHaveBeenCalledWith('valid-token');
-      expect(mockSocket.data).toEqual({ userId: 'user-1', username: 'user1', ip: '192.168.1.100' });
-      expect(lobbyService.addUser).toHaveBeenCalledWith('user-1', 'user1', 'socket-p1', '192.168.1.100');
-      expect(mockSocket.broadcast.emit).toHaveBeenCalledWith('lobby:user_status', {
+      expect(mockJwtService.verifyAsync).toHaveBeenCalledWith('valid-token');
+      expect(mockSocket.data).toEqual({
         userId: 'user-1',
-        status: 'lobby',
         username: 'user1',
-        elo: 1050,
+        ip: '192.168.1.100',
       });
+      expect(mockLobbyService.addUser).toHaveBeenCalledWith(
+        'user-1',
+        'user1',
+        'socket-p1',
+        '192.168.1.100',
+      );
+      expect(mockSocket.broadcast!.emit).toHaveBeenCalledWith(
+        'lobby:user_status',
+        {
+          userId: 'user-1',
+          status: 'lobby',
+          username: 'user1',
+          elo: 1050,
+        },
+      );
       expect(mockSocket.disconnect).not.toHaveBeenCalled();
     });
 
     it('should_disconnect_if_token_is_missing', async () => {
       // Arrange
-      mockSocket.handshake.auth = {};
+      mockSocket.handshake!.auth = {};
 
       // Act
-      await gateway.handleConnection(mockSocket as unknown as Socket);
+      await gateway.handleConnection(
+        mockSocket as unknown as AuthenticatedLobbySocket,
+      );
 
       // Assert
       expect(mockSocket.disconnect).toHaveBeenCalledWith(true);
@@ -105,7 +142,7 @@ describe('LobbyGateway', () => {
       // Arrange
       const mockSocket = {
         id: 'socket-p1',
-      } as unknown as Socket;
+      } as unknown as AuthenticatedLobbySocket;
 
       mockLobbyService.removeUser.mockResolvedValue('user-1');
 
@@ -118,14 +155,17 @@ describe('LobbyGateway', () => {
       await gateway.handleDisconnect(mockSocket);
 
       // Assert
-      expect(lobbyService.removeUser).toHaveBeenCalledWith('socket-p1');
-      expect(mockServer.emit).toHaveBeenCalledWith('lobby:user_status', { userId: 'user-1', status: 'offline' });
+      expect(mockLobbyService.removeUser).toHaveBeenCalledWith('socket-p1');
+      expect(mockServer.emit).toHaveBeenCalledWith('lobby:user_status', {
+        userId: 'user-1',
+        status: 'offline',
+      });
     });
   });
 
   describe('handleQueueJoin', () => {
-    let mockSocket: any;
-    let mockServer: any;
+    let mockSocket: MockLobbySocket;
+    let mockServer: MockLobbyServer;
 
     beforeEach(() => {
       mockSocket = {
@@ -148,7 +188,9 @@ describe('LobbyGateway', () => {
       });
 
       // Act
-      await gateway.handleQueueJoin(mockSocket as unknown as Socket);
+      await gateway.handleQueueJoin(
+        mockSocket as unknown as AuthenticatedLobbySocket,
+      );
 
       // Assert
       expect(mockSocket.emit).toHaveBeenCalledWith('lobby:error', {
@@ -162,17 +204,31 @@ describe('LobbyGateway', () => {
         success: true,
         matchDetails: {
           matchId: 'match-123',
-          player1: { userId: 'user-1', socketId: 'socket-p1', username: 'user1' },
-          player2: { userId: 'user-2', socketId: 'socket-p2', username: 'user2' },
+          player1: {
+            userId: 'user-1',
+            socketId: 'socket-p1',
+            username: 'user1',
+          },
+          player2: {
+            userId: 'user-2',
+            socketId: 'socket-p2',
+            username: 'user2',
+          },
           isFriendly: false,
         },
       });
 
-      mockLobbyService.getOnlineUser.mockReturnValueOnce({}).mockReturnValueOnce({});
-      mockLobbyService.getPlayerElo.mockResolvedValueOnce(1200).mockResolvedValueOnce(1100);
+      mockLobbyService.getOnlineUser
+        .mockReturnValueOnce({})
+        .mockReturnValueOnce({});
+      mockLobbyService.getPlayerElo
+        .mockResolvedValueOnce(1200)
+        .mockResolvedValueOnce(1100);
 
       // Act
-      await gateway.handleQueueJoin(mockSocket as unknown as Socket);
+      await gateway.handleQueueJoin(
+        mockSocket as unknown as AuthenticatedLobbySocket,
+      );
 
       // Assert
       expect(mockServer.to).toHaveBeenCalledWith('socket-p1');
@@ -193,8 +249,8 @@ describe('LobbyGateway', () => {
   });
 
   describe('handleInviteSend', () => {
-    let mockSocket: any;
-    let mockServer: any;
+    let mockSocket: MockLobbySocket;
+    let mockServer: MockLobbyServer;
 
     beforeEach(() => {
       mockSocket = {
@@ -211,15 +267,26 @@ describe('LobbyGateway', () => {
 
     it('should_emit_error_if_invite_payload_validation_fails', async () => {
       // Arrange
-      const invalidPayload = { targetUserId: 'invalid-id' }; // Not a UUID
+      const invalidPayload: LobbyInviteSendPayload = {
+        targetUserId: 'invalid-id',
+      }; // Not a UUID
 
       // Act
-      await gateway.handleInviteSend(mockSocket as unknown as Socket, invalidPayload as any);
+      await gateway.handleInviteSend(
+        mockSocket as unknown as AuthenticatedLobbySocket,
+        invalidPayload,
+      );
 
       // Assert
-      expect(mockSocket.emit).toHaveBeenCalledWith('lobby:error', expect.objectContaining({
-        error: { code: 'INVALID_PARAMS', message: 'Geçersiz davet parametreleri.' },
-      }));
+      expect(mockSocket.emit).toHaveBeenCalledWith(
+        'lobby:error',
+        expect.objectContaining({
+          error: {
+            code: 'INVALID_PARAMS',
+            message: 'Geçersiz davet parametreleri.',
+          },
+        }),
+      );
     });
 
     it('should_forward_invite_to_target_player_on_success', async () => {
@@ -229,18 +296,26 @@ describe('LobbyGateway', () => {
       mockLobbyService.getOnlineUser.mockReturnValue({ socketId: 'socket-p2' });
 
       // Act
-      await gateway.handleInviteSend(mockSocket as unknown as Socket, payload);
+      await gateway.handleInviteSend(
+        mockSocket as unknown as AuthenticatedLobbySocket,
+        payload,
+      );
 
       // Assert
-      expect(lobbyService.sendInvite).toHaveBeenCalledWith('user-1', payload.targetUserId);
+      expect(mockLobbyService.sendInvite).toHaveBeenCalledWith(
+        'user-1',
+        payload.targetUserId,
+      );
       expect(mockServer.to).toHaveBeenCalledWith('socket-p2');
-      expect(mockServer.emit).toHaveBeenCalledWith('lobby:invite_send', { inviterUserId: 'user-1' });
+      expect(mockServer.emit).toHaveBeenCalledWith('lobby:invite_send', {
+        inviterUserId: 'user-1',
+      });
     });
   });
 
   describe('handleInviteResponse', () => {
-    let mockSocket: any;
-    let mockServer: any;
+    let mockSocket: MockLobbySocket;
+    let mockServer: MockLobbyServer;
 
     beforeEach(() => {
       mockSocket = {
@@ -263,13 +338,22 @@ describe('LobbyGateway', () => {
         player1: { userId: 'user-1', socketId: 'socket-p1', username: 'user1' },
         player2: { userId: 'user-2', socketId: 'socket-p2', username: 'user2' },
       });
-      mockLobbyService.getPlayerElo.mockResolvedValueOnce(1200).mockResolvedValueOnce(1100);
+      mockLobbyService.getPlayerElo
+        .mockResolvedValueOnce(1200)
+        .mockResolvedValueOnce(1100);
 
       // Act
-      await gateway.handleInviteResponse(mockSocket as unknown as Socket, payload);
+      await gateway.handleInviteResponse(
+        mockSocket as unknown as AuthenticatedLobbySocket,
+        payload,
+      );
 
       // Assert
-      expect(lobbyService.handleInviteResponse).toHaveBeenCalledWith('user-1', 'user-2', true);
+      expect(mockLobbyService.handleInviteResponse).toHaveBeenCalledWith(
+        'user-1',
+        'user-2',
+        true,
+      );
       expect(mockServer.to).toHaveBeenCalledWith('socket-p1');
       expect(mockServer.to).toHaveBeenCalledWith('socket-p2');
       expect(mockServer.emit).toHaveBeenCalledWith('game:match_found', {
@@ -293,10 +377,17 @@ describe('LobbyGateway', () => {
       mockLobbyService.getOnlineUser.mockReturnValue({ socketId: 'socket-p1' });
 
       // Act
-      await gateway.handleInviteResponse(mockSocket as unknown as Socket, payload);
+      await gateway.handleInviteResponse(
+        mockSocket as unknown as AuthenticatedLobbySocket,
+        payload,
+      );
 
       // Assert
-      expect(lobbyService.handleInviteResponse).toHaveBeenCalledWith('user-1', 'user-2', false);
+      expect(mockLobbyService.handleInviteResponse).toHaveBeenCalledWith(
+        'user-1',
+        'user-2',
+        false,
+      );
       expect(mockServer.to).toHaveBeenCalledWith('socket-p1');
       expect(mockServer.emit).toHaveBeenCalledWith('lobby:invite_response', {
         targetUserId: 'user-2',

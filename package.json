@@ -9,6 +9,7 @@
   "scripts": {
     "backend:dev": "npm run start:dev -w backend",
     "frontend:dev": "npm run dev -w frontend",
+    "lint": "npm run lint -w backend && npm run lint -w frontend",
     "build": "npm run build -w shared && npm run build -w backend && npm run build -w frontend",
     "test": "npm run test -w backend && npm run test -w frontend"
   },

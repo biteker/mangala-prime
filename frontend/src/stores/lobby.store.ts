@@ -4,7 +4,6 @@ import { useAuthStore } from './auth.store';
 import type {
   LobbyUserStatusPayload,
   LobbyInviteTimeoutPayload,
-  LobbyQueueTimeoutPayload,
   LobbyErrorPayload,
   GameMatchFoundPayload,
 } from '@mangala/shared';
@@ -116,7 +115,7 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
       }
     });
 
-    newSocket.on('lobby:queue_timeout', (_payload: LobbyQueueTimeoutPayload) => {
+    newSocket.on('lobby:queue_timeout', () => {
       set({ isInQueue: false });
     });
 

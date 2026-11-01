@@ -3,7 +3,11 @@ import { BoardState, Player, MoveResult } from '@mangala/shared';
 
 @Injectable()
 export class GameEngineService {
-  processMove(board: BoardState, pitIndex: number, currentPlayer: Player): MoveResult {
+  processMove(
+    board: BoardState,
+    pitIndex: number,
+    currentPlayer: Player,
+  ): MoveResult {
     // 1. Validasyonlar
     if (board.length !== 14) {
       throw new BadRequestException({
@@ -63,7 +67,7 @@ export class GameEngineService {
 
       while (remainingStones > 0) {
         currentPit = (currentPit + 1) % 14;
-        
+
         // Rakip hazinesine denk gelirse atla
         if (currentPit === opponentTreasury) {
           continue;
@@ -78,7 +82,7 @@ export class GameEngineService {
     const capturedPits: number[] = [];
 
     // 3. Özel Kuralların Uygulanması
-    
+
     // Kural A: Hazine Kuralı (Ek Hamle)
     if (currentPit === ownTreasury) {
       extraTurn = true;
@@ -101,7 +105,10 @@ export class GameEngineService {
     if (currentPit >= playerStartPit && currentPit <= playerEndPit) {
       // Son taşın düştüğü kuyu kendi boş kuyumuz olmalı (önceden 0'dı, şimdi dağıtımla 1 oldu)
       // Ancak başlangıçta tek taş varsa ve kendi kuyumuz boşalmışsa, currentPit === pitIndex olamaz
-      if (newBoard[currentPit] === 1 && (pitIndex !== currentPit || stones === 1)) {
+      if (
+        newBoard[currentPit] === 1 &&
+        (pitIndex !== currentPit || stones === 1)
+      ) {
         const oppositePit = 12 - currentPit;
         if (newBoard[oppositePit] > 0) {
           const capturedCount = newBoard[currentPit] + newBoard[oppositePit];
@@ -114,20 +121,26 @@ export class GameEngineService {
     }
 
     // Kural D: Bölge Temizleme
-    const p1PitsEmpty = newBoard.slice(0, 6).reduce((sum, val) => sum + val, 0) === 0;
-    const p2PitsEmpty = newBoard.slice(7, 13).reduce((sum, val) => sum + val, 0) === 0;
+    const p1PitsEmpty =
+      newBoard.slice(0, 6).reduce((sum, val) => sum + val, 0) === 0;
+    const p2PitsEmpty =
+      newBoard.slice(7, 13).reduce((sum, val) => sum + val, 0) === 0;
 
     if (p1PitsEmpty || p2PitsEmpty) {
       if (p1PitsEmpty) {
         // P1 kendi tarafını ilk bitirdi, P2'nin tüm taşlarını kazanır
-        const remainingP2Stones = newBoard.slice(7, 13).reduce((sum, val) => sum + val, 0);
+        const remainingP2Stones = newBoard
+          .slice(7, 13)
+          .reduce((sum, val) => sum + val, 0);
         newBoard[6] += remainingP2Stones;
         for (let i = 7; i <= 12; i++) {
           newBoard[i] = 0;
         }
       } else {
         // P2 kendi tarafını ilk bitirdi, P1'in tüm taşlarını kazanır
-        const remainingP1Stones = newBoard.slice(0, 6).reduce((sum, val) => sum + val, 0);
+        const remainingP1Stones = newBoard
+          .slice(0, 6)
+          .reduce((sum, val) => sum + val, 0);
         newBoard[13] += remainingP1Stones;
         for (let i = 0; i <= 5; i++) {
           newBoard[i] = 0;
@@ -138,12 +151,14 @@ export class GameEngineService {
     // 4. Oyun Bitiş ve Kazanan Kontrolü
     const p1Treasury = newBoard[6];
     const p2Treasury = newBoard[13];
-    
+
     // Her iki bölge de boşsa veya bir oyuncu 25 taşa ulaşmışsa oyun biter
-    const totalBoardPitsStones = newBoard.slice(0, 6).reduce((sum, val) => sum + val, 0) + 
-                                 newBoard.slice(7, 13).reduce((sum, val) => sum + val, 0);
-    
-    const gameOver = totalBoardPitsStones === 0 || p1Treasury >= 25 || p2Treasury >= 25;
+    const totalBoardPitsStones =
+      newBoard.slice(0, 6).reduce((sum, val) => sum + val, 0) +
+      newBoard.slice(7, 13).reduce((sum, val) => sum + val, 0);
+
+    const gameOver =
+      totalBoardPitsStones === 0 || p1Treasury >= 25 || p2Treasury >= 25;
 
     let winner: Player | undefined = undefined;
     if (gameOver) {
@@ -157,7 +172,7 @@ export class GameEngineService {
 
     return {
       newBoard,
-      nextPlayer: extraTurn ? currentPlayer : ((currentPlayer === 0 ? 1 : 0) as Player),
+      nextPlayer: extraTurn ? currentPlayer : currentPlayer === 0 ? 1 : 0,
       extraTurn,
       gameOver,
       winner,

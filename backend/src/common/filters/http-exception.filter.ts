@@ -60,11 +60,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const responseObj = exceptionResponse as StructuredErrorResponse;
         if (Array.isArray(responseObj.message)) {
           errorMessage = responseObj.message.join(', ');
-        } else if (typeof responseObj.message === 'string' && responseObj.message.length > 0) {
+        } else if (
+          typeof responseObj.message === 'string' &&
+          responseObj.message.length > 0
+        ) {
           errorMessage = responseObj.message;
         }
 
-        if (typeof responseObj.code === 'string' && responseObj.code.length > 0) {
+        if (
+          typeof responseObj.code === 'string' &&
+          responseObj.code.length > 0
+        ) {
           errorCode = responseObj.code;
         }
       }

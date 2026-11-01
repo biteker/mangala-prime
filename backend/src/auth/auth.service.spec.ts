@@ -8,8 +8,6 @@ import * as bcrypt from 'bcrypt';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let prisma: PrismaService;
-  let jwt: JwtService;
 
   const mockPrisma = {
     user: {
@@ -35,8 +33,6 @@ describe('AuthService', () => {
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    prisma = module.get<PrismaService>(PrismaService);
-    jwt = module.get<JwtService>(JwtService);
 
     jest.clearAllMocks();
   });
@@ -57,14 +53,19 @@ describe('AuthService', () => {
 
       // Assert
       expect(result).toEqual({ userId: 'some-uuid', username: 'testuser' });
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({ where: { username: 'testuser' } });
+      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
+        where: { username: 'testuser' },
+      });
       expect(mockPrisma.user.create).toHaveBeenCalled();
     });
 
     it('should_throw_conflict_exception_if_username_already_exists', async () => {
       // Arrange
       const dto = { username: 'testuser', password: 'password123' };
-      mockPrisma.user.findUnique.mockResolvedValue({ id: 'existing-id', username: 'testuser' });
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'existing-id',
+        username: 'testuser',
+      });
 
       // Act & Assert
       await expect(service.register(dto)).rejects.toThrow(ConflictException);
@@ -81,14 +82,19 @@ describe('AuthService', () => {
         username: 'testuser',
         passwordHash: hash,
       });
-      mockJwt.signAsync.mockResolvedValueOnce('access-token').mockResolvedValueOnce('refresh-token');
+      mockJwt.signAsync
+        .mockResolvedValueOnce('access-token')
+        .mockResolvedValueOnce('refresh-token');
       mockPrisma.user.update.mockResolvedValue({});
 
       // Act
       const result = await service.login(dto);
 
       // Assert
-      expect(result).toEqual({ accessToken: 'access-token', refreshToken: 'refresh-token' });
+      expect(result).toEqual({
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+      });
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
         where: { id: 'some-uuid' },
         data: { refreshToken: 'refresh-token' },
@@ -123,20 +129,28 @@ describe('AuthService', () => {
     it('should_rotate_tokens_successfully', async () => {
       // Arrange
       const oldRefreshToken = 'old-refresh';
-      mockJwt.verify.mockReturnValue({ sub: 'some-uuid', username: 'testuser' });
+      mockJwt.verify.mockReturnValue({
+        sub: 'some-uuid',
+        username: 'testuser',
+      });
       mockPrisma.user.findUnique.mockResolvedValue({
         id: 'some-uuid',
         username: 'testuser',
         refreshToken: oldRefreshToken,
       });
-      mockJwt.signAsync.mockResolvedValueOnce('new-access').mockResolvedValueOnce('new-refresh');
+      mockJwt.signAsync
+        .mockResolvedValueOnce('new-access')
+        .mockResolvedValueOnce('new-refresh');
       mockPrisma.user.update.mockResolvedValue({});
 
       // Act
       const result = await service.refreshTokens(oldRefreshToken);
 
       // Assert
-      expect(result).toEqual({ accessToken: 'new-access', refreshToken: 'new-refresh' });
+      expect(result).toEqual({
+        accessToken: 'new-access',
+        refreshToken: 'new-refresh',
+      });
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
         where: { id: 'some-uuid' },
         data: { refreshToken: 'new-refresh' },
@@ -146,7 +160,10 @@ describe('AuthService', () => {
     it('should_throw_unauthorized_if_refresh_token_does_not_match_stored', async () => {
       // Arrange
       const oldRefreshToken = 'old-refresh';
-      mockJwt.verify.mockReturnValue({ sub: 'some-uuid', username: 'testuser' });
+      mockJwt.verify.mockReturnValue({
+        sub: 'some-uuid',
+        username: 'testuser',
+      });
       mockPrisma.user.findUnique.mockResolvedValue({
         id: 'some-uuid',
         username: 'testuser',
@@ -154,7 +171,9 @@ describe('AuthService', () => {
       });
 
       // Act & Assert
-      await expect(service.refreshTokens(oldRefreshToken)).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshTokens(oldRefreshToken)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 });

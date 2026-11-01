@@ -107,9 +107,9 @@ export function GamePage(): React.JSX.Element {
     lastMove: LastMoveDetails | null;
   }>({ board, lastMove: null });
   const [isAnimating, setIsAnimating] = useState(false);
-  const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [showForfeitConfirm, setShowForfeitConfirm] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const showGameOverModal = Boolean(gameOverDetails && !isAnimating);
 
   const handleForfeitClick = (): void => {
     setShowForfeitConfirm(true);
@@ -269,15 +269,6 @@ export function GamePage(): React.JSX.Element {
     setBoardData(prev => ({ ...prev, lastMove: null }));
   };
 
-  // Oyun sonu modalını animasyon tamamlanana kadar erteleyen mekanizma
-  useEffect(() => {
-    if (gameOverDetails && !isAnimating) {
-      setShowGameOverModal(true);
-    } else if (!gameOverDetails) {
-      setShowGameOverModal(false);
-    }
-  }, [gameOverDetails, isAnimating]);
-
   // Otomatik sayfa yönlendirme ve bağlantı yönetimi
   useEffect(() => {
     if (!matchId) {
@@ -319,13 +310,70 @@ export function GamePage(): React.JSX.Element {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const isMyTurn = isLocalPvP ? true : Boolean(currentUser && currentPlayerId === currentUser.id);
+  const isP1Active = isLocalPvP ? (currentPlayerId === 'p1') : isMyTurn;
+  const isP2Active = isLocalPvP ? (currentPlayerId === 'p2') : !isMyTurn;
+
+  // Tıklanabilir kuyular dizisi
+  const clickablePits = useMemo(() => {
+    if (isAnimating) return [];
+
+    if (isLocalPvP) {
+      const isP1Turn = currentPlayerId === 'p1';
+      const startIdx = isP1Turn ? 0 : 7;
+      const endIdx = isP1Turn ? 5 : 12;
+      const pits: number[] = [];
+      for (let i = startIdx; i <= endIdx; i++) {
+        if (boardData.board[i] > 0) {
+          pits.push(i);
+        }
+      }
+      return pits;
+    }
+
+    if (!isMyTurn) return [];
+    const isP1 = yourColor === 0;
+    const startIdx = isP1 ? 0 : 7;
+    const endIdx = isP1 ? 5 : 12;
+    const pits: number[] = [];
+    for (let i = startIdx; i <= endIdx; i++) {
+      if (boardData.board[i] > 0) {
+        pits.push(i);
+      }
+    }
+    return pits;
+  }, [boardData.board, isMyTurn, isAnimating, yourColor, isLocalPvP, currentPlayerId]);
+
+  // Oyuncu Bilgileri Eşleştirmesi
+  const p1Info = useMemo(() => {
+    const myUsername = currentUser?.username ?? 'Oyuncu 1';
+    const myElo = currentUser?.elo ?? 1000;
+    if (isLocalPvP) {
+      return { name: `${myUsername} (P1)`, elo: myElo };
+    }
+    if (yourColor === 0) {
+      return { name: myUsername, elo: myElo };
+    } else {
+      return { name: opponentUsername || 'Rakip', elo: opponentElo || 1000 };
+    }
+  }, [yourColor, currentUser, opponentUsername, opponentElo, isLocalPvP]);
+
+  const p2Info = useMemo(() => {
+    const myUsername = currentUser?.username ?? 'Oyuncu 1';
+    const myElo = currentUser?.elo ?? 1000;
+    if (isLocalPvP) {
+      return { name: '2. Oyuncu (P2)', elo: 1000 };
+    }
+    if (yourColor === 1) {
+      return { name: myUsername, elo: myElo };
+    } else {
+      return { name: opponentUsername || 'Rakip', elo: opponentElo || 1000 };
+    }
+  }, [yourColor, currentUser, opponentUsername, opponentElo, isLocalPvP]);
+
   if (!currentUser) {
     return <div className="auth-card">Yükleniyor...</div>;
   }
-
-  const isMyTurn = isLocalPvP ? true : (currentPlayerId === currentUser.id);
-  const isP1Active = isLocalPvP ? (currentPlayerId === 'p1') : isMyTurn;
-  const isP2Active = isLocalPvP ? (currentPlayerId === 'p2') : !isMyTurn;
 
   // Hazır (preset) mesajlar listesi
   const PRESET_MESSAGES = [
@@ -380,59 +428,6 @@ export function GamePage(): React.JSX.Element {
 
     makeMove(pitIndex);
   };
-
-  // Tıklanabilir kuyular dizisi
-  const clickablePits = useMemo(() => {
-    if (isAnimating) return [];
-
-    if (isLocalPvP) {
-      const isP1Turn = currentPlayerId === 'p1';
-      const startIdx = isP1Turn ? 0 : 7;
-      const endIdx = isP1Turn ? 5 : 12;
-      const pits: number[] = [];
-      for (let i = startIdx; i <= endIdx; i++) {
-        if (boardData.board[i] > 0) {
-          pits.push(i);
-        }
-      }
-      return pits;
-    }
-
-    if (!isMyTurn) return [];
-    const isP1 = yourColor === 0;
-    const startIdx = isP1 ? 0 : 7;
-    const endIdx = isP1 ? 5 : 12;
-    const pits: number[] = [];
-    for (let i = startIdx; i <= endIdx; i++) {
-      if (boardData.board[i] > 0) {
-        pits.push(i);
-      }
-    }
-    return pits;
-  }, [boardData.board, isMyTurn, isAnimating, yourColor, isLocalPvP, currentPlayerId]);
-
-  // Oyuncu Bilgileri Eşleştirmesi
-  const p1Info = useMemo(() => {
-    if (isLocalPvP) {
-      return { name: `${currentUser.username} (P1)`, elo: currentUser.elo };
-    }
-    if (yourColor === 0) {
-      return { name: currentUser.username, elo: currentUser.elo };
-    } else {
-      return { name: opponentUsername || 'Rakip', elo: opponentElo || 1000 };
-    }
-  }, [yourColor, currentUser, opponentUsername, opponentElo, isLocalPvP]);
-
-  const p2Info = useMemo(() => {
-    if (isLocalPvP) {
-      return { name: '2. Oyuncu (P2)', elo: 1000 };
-    }
-    if (yourColor === 1) {
-      return { name: currentUser.username, elo: currentUser.elo };
-    } else {
-      return { name: opponentUsername || 'Rakip', elo: opponentElo || 1000 };
-    }
-  }, [yourColor, currentUser, opponentUsername, opponentElo, isLocalPvP]);
 
   // ELO Değişimi Hesaplama (modal için)
   const myEloChange = (): number => {

@@ -6,8 +6,6 @@ import { BadRequestException } from '@nestjs/common';
 
 describe('LobbyService', () => {
   let service: LobbyService;
-  let prisma: PrismaService;
-  let gameService: GameService;
 
   const mockPrisma = {
     user: {
@@ -32,8 +30,6 @@ describe('LobbyService', () => {
     }).compile();
 
     service = module.get<LobbyService>(LobbyService);
-    prisma = module.get<PrismaService>(PrismaService);
-    gameService = module.get<GameService>(GameService);
 
     jest.clearAllMocks();
     jest.useFakeTimers();
@@ -66,17 +62,34 @@ describe('LobbyService', () => {
       await service.addUser('user-2', 'user2', 'socket-2', '192.168.1.10'); // Same IP (Friendly)
 
       mockPrisma.user.findUnique
-        .mockResolvedValueOnce({ id: 'user-1', deviceFingerprint: 'fingerprint-1' })
-        .mockResolvedValueOnce({ id: 'user-2', deviceFingerprint: 'fingerprint-2' });
+        .mockResolvedValueOnce({
+          id: 'user-1',
+          deviceFingerprint: 'fingerprint-1',
+        })
+        .mockResolvedValueOnce({
+          id: 'user-2',
+          deviceFingerprint: 'fingerprint-2',
+        });
 
-      mockPrisma.match.create.mockResolvedValue({ id: 'match-123', isFriendly: true });
+      mockPrisma.match.create.mockResolvedValue({
+        id: 'match-123',
+        isFriendly: true,
+      });
 
       // Act
-      const result1 = await service.joinQueue('user-1', 'socket-1', '192.168.1.10');
+      const result1 = await service.joinQueue(
+        'user-1',
+        'socket-1',
+        '192.168.1.10',
+      );
       expect(result1.success).toBe(true);
       expect(result1.matchDetails).toBeUndefined(); // Still waiting in queue
 
-      const result2 = await service.joinQueue('user-2', 'socket-2', '192.168.1.10');
+      const result2 = await service.joinQueue(
+        'user-2',
+        'socket-2',
+        '192.168.1.10',
+      );
 
       // Assert
       expect(result2.success).toBe(true);
@@ -90,7 +103,11 @@ describe('LobbyService', () => {
           isFriendly: true,
         },
       });
-      expect(mockGameService.initializeGame).toHaveBeenCalledWith('match-123', 'user-1', 'user-2');
+      expect(mockGameService.initializeGame).toHaveBeenCalledWith(
+        'match-123',
+        'user-1',
+        'user-2',
+      );
     });
 
     it('should_block_queue_join_if_duplicate_fingerprint', async () => {
@@ -99,14 +116,24 @@ describe('LobbyService', () => {
       await service.addUser('user-2', 'user2', 'socket-2', '192.168.1.11');
 
       mockPrisma.user.findUnique
-        .mockResolvedValueOnce({ id: 'user-1', deviceFingerprint: 'same-fingerprint' })
-        .mockResolvedValueOnce({ id: 'user-2', deviceFingerprint: 'same-fingerprint' });
+        .mockResolvedValueOnce({
+          id: 'user-1',
+          deviceFingerprint: 'same-fingerprint',
+        })
+        .mockResolvedValueOnce({
+          id: 'user-2',
+          deviceFingerprint: 'same-fingerprint',
+        });
 
       // Act: Player 1 joins
       await service.joinQueue('user-1', 'socket-1', '192.168.1.10');
 
       // Act: Player 2 joins (should fail)
-      const result = await service.joinQueue('user-2', 'socket-2', '192.168.1.11');
+      const result = await service.joinQueue(
+        'user-2',
+        'socket-2',
+        '192.168.1.11',
+      );
 
       // Assert
       expect(result.success).toBe(false);
@@ -116,7 +143,10 @@ describe('LobbyService', () => {
     it('should_timeout_and_remove_player_from_queue_after_120_seconds', async () => {
       // Arrange
       await service.addUser('user-1', 'user1', 'socket-1', '192.168.1.10');
-      mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', deviceFingerprint: 'fp-1' });
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        deviceFingerprint: 'fp-1',
+      });
 
       // Act
       await service.joinQueue('user-1', 'socket-1', '192.168.1.10');
@@ -126,7 +156,11 @@ describe('LobbyService', () => {
 
       // Assert
       // User should be removed from the queue
-      const matchDetails = await service.joinQueue('user-2', 'socket-2', '192.168.1.11');
+      const matchDetails = await service.joinQueue(
+        'user-2',
+        'socket-2',
+        '192.168.1.11',
+      );
       expect(matchDetails.matchDetails).toBeUndefined(); // P1 already timed out, so P2 won't match
     });
   });
@@ -143,7 +177,11 @@ describe('LobbyService', () => {
       expect(sent).toBe(true);
 
       // Act: Accept invite
-      const matchResult = await service.handleInviteResponse('user-1', 'user-2', true);
+      const matchResult = await service.handleInviteResponse(
+        'user-1',
+        'user-2',
+        true,
+      );
 
       // Assert
       expect(matchResult).toBeDefined();
@@ -159,7 +197,9 @@ describe('LobbyService', () => {
       service.getOnlineUser('user-2')!.status = 'playing';
 
       // Act & Assert
-      await expect(service.sendInvite('user-1', 'user-2')).rejects.toThrow(BadRequestException);
+      await expect(service.sendInvite('user-1', 'user-2')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should_timeout_invite_after_30_seconds', async () => {
@@ -174,7 +214,11 @@ describe('LobbyService', () => {
       await jest.advanceTimersByTimeAsync(30000);
 
       // Act: Try to respond (should return null as invite is deleted)
-      const result = await service.handleInviteResponse('user-1', 'user-2', true);
+      const result = await service.handleInviteResponse(
+        'user-1',
+        'user-2',
+        true,
+      );
       expect(result).toBeNull();
     });
   });

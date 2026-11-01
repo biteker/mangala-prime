@@ -1,7 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
-import { ThrottlerModule, ThrottlerGuard, ThrottlerException } from '@nestjs/throttler';
+import {
+  ThrottlerModule,
+  ThrottlerGuard,
+  ThrottlerException,
+} from '@nestjs/throttler';
+import type { Server } from 'http';
 import request from 'supertest';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -57,17 +62,21 @@ describe('AuthController Rate Limiting & Error Format', () => {
 
   it('should_reject_6th_login_attempt_within_60s_with_429_RATE_LIMITED_format', async () => {
     // Arrange
-    const server = app.getHttpServer();
+    const server = app.getHttpServer() as Server;
     const loginPayload = { username: 'player1', password: 'password123' };
 
     // Act — first 5 requests within 60s are allowed
     for (let i = 0; i < 5; i++) {
-      const okResponse = await request(server).post('/auth/login').send(loginPayload);
+      const okResponse = await request(server)
+        .post('/auth/login')
+        .send(loginPayload);
       expect(okResponse.status).toBe(200);
     }
 
     // 6th request exceeds the 5 req / 60s throttle limit
-    const throttledResponse = await request(server).post('/auth/login').send(loginPayload);
+    const throttledResponse = await request(server)
+      .post('/auth/login')
+      .send(loginPayload);
 
     // Assert
     expect(throttledResponse.status).toBe(429);

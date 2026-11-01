@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { GameService } from '../game/game.service';
 import { Server } from 'socket.io';
@@ -63,7 +67,12 @@ export class LobbyService {
     return this.onlineUsers.get(userId);
   }
 
-  async addUser(userId: string, username: string, socketId: string, ip: string): Promise<void> {
+  async addUser(
+    userId: string,
+    username: string,
+    socketId: string,
+    ip: string,
+  ): Promise<void> {
     const elo = await this.getPlayerElo(userId);
     this.onlineUsers.set(userId, {
       userId,
@@ -75,7 +84,7 @@ export class LobbyService {
     });
   }
 
-  async removeUser(socketId: string): Promise<string | null> {
+  removeUser(socketId: string): Promise<string | null> {
     let disconnectedUserId: string | null = null;
 
     // Online listeden çıkar
@@ -93,28 +102,47 @@ export class LobbyService {
 
       // İlgili tüm davetleri temizle
       for (const [key, invite] of this.invites.entries()) {
-        if (invite.inviterId === disconnectedUserId || invite.targetId === disconnectedUserId) {
+        if (
+          invite.inviterId === disconnectedUserId ||
+          invite.targetId === disconnectedUserId
+        ) {
           clearTimeout(invite.timer);
           this.invites.delete(key);
         }
       }
     }
 
-    return disconnectedUserId;
+    return Promise.resolve(disconnectedUserId);
   }
 
-  async joinQueue(userId: string, socketId: string, ip: string): Promise<QueueJoinResult> {
+  async joinQueue(
+    userId: string,
+    socketId: string,
+    ip: string,
+  ): Promise<QueueJoinResult> {
     const user = this.onlineUsers.get(userId);
     if (!user) {
-      return { success: false, error: { code: 'NOT_FOUND', message: 'Kullanıcı online değil.' } };
+      return {
+        success: false,
+        error: { code: 'NOT_FOUND', message: 'Kullanıcı online değil.' },
+      };
     }
 
     if (user.status === 'playing') {
-      return { success: false, error: { code: 'ALREADY_PLAYING', message: 'Şu anda oyundasınız.' } };
+      return {
+        success: false,
+        error: { code: 'ALREADY_PLAYING', message: 'Şu anda oyundasınız.' },
+      };
     }
 
     if (this.queue.has(userId)) {
-      return { success: false, error: { code: 'ALREADY_IN_QUEUE', message: 'Zaten eşleşme sırasındasınız.' } };
+      return {
+        success: false,
+        error: {
+          code: 'ALREADY_IN_QUEUE',
+          message: 'Zaten eşleşme sırasındasınız.',
+        },
+      };
     }
 
     // 1. Fingerprint kontrolü
@@ -167,10 +195,13 @@ export class LobbyService {
           timer,
         });
       }
-    } catch (error) {
+    } catch {
       return {
         success: false,
-        error: { code: 'DATABASE_ERROR', message: 'Sıraya katılırken veritabanı hatası oluştu.' },
+        error: {
+          code: 'DATABASE_ERROR',
+          message: 'Sıraya katılırken veritabanı hatası oluştu.',
+        },
       };
     }
 
@@ -194,27 +225,31 @@ export class LobbyService {
     }
   }
 
-  async sendInvite(inviterId: string, targetId: string): Promise<boolean> {
+  sendInvite(inviterId: string, targetId: string): Promise<boolean> {
     const inviter = this.onlineUsers.get(inviterId);
     const target = this.onlineUsers.get(targetId);
 
     if (!inviter || !target) {
-      return false;
+      return Promise.resolve(false);
     }
 
     if (target.status === 'playing') {
-      throw new BadRequestException({
-        code: 'TARGET_PLAYING',
-        message: 'Davet edilen oyuncu şu anda başka bir maçta.',
-      });
+      return Promise.reject(
+        new BadRequestException({
+          code: 'TARGET_PLAYING',
+          message: 'Davet edilen oyuncu şu anda başka bir maçta.',
+        }),
+      );
     }
 
     const key = `${inviterId}:${targetId}`;
     if (this.invites.has(key)) {
-      throw new BadRequestException({
-        code: 'ALREADY_INVITED',
-        message: 'Bu oyuncuya zaten bekleyen bir davetiniz var.',
-      });
+      return Promise.reject(
+        new BadRequestException({
+          code: 'ALREADY_INVITED',
+          message: 'Bu oyuncuya zaten bekleyen bir davetiniz var.',
+        }),
+      );
     }
 
     const timer = setTimeout(() => {
@@ -227,7 +262,7 @@ export class LobbyService {
       timer,
     });
 
-    return true;
+    return Promise.resolve(true);
   }
 
   async handleInviteResponse(
@@ -285,7 +320,7 @@ export class LobbyService {
         player1: p1,
         player2: p2,
       };
-    } catch (error) {
+    } catch {
       throw new InternalServerErrorException({
         code: 'DATABASE_ERROR',
         message: 'Maç oluşturulurken veritabanı hatası oluştu.',
@@ -299,7 +334,7 @@ export class LobbyService {
         where: { id: userId },
       });
       return user?.eloScore ?? 1000;
-    } catch (err) {
+    } catch {
       return 1000;
     }
   }
@@ -316,7 +351,9 @@ export class LobbyService {
       return null;
     }
 
-    const sortedQueue = Array.from(this.queue.values()).sort((a, b) => a.joinedAt - b.joinedAt);
+    const sortedQueue = Array.from(this.queue.values()).sort(
+      (a, b) => a.joinedAt - b.joinedAt,
+    );
     const p1 = sortedQueue[0];
     const p2 = sortedQueue[1];
 
@@ -345,11 +382,19 @@ export class LobbyService {
 
       return {
         matchId: match.id,
-        player1: { userId: p1.userId, socketId: p1.socketId, username: p1.username },
-        player2: { userId: p2.userId, socketId: p2.socketId, username: p2.username },
+        player1: {
+          userId: p1.userId,
+          socketId: p1.socketId,
+          username: p1.username,
+        },
+        player2: {
+          userId: p2.userId,
+          socketId: p2.socketId,
+          username: p2.username,
+        },
         isFriendly,
       };
-    } catch (dbError) {
+    } catch {
       // Hata durumunda tekrar kuyruğa alınabilir veya drop edilir
       throw new InternalServerErrorException({
         code: 'DATABASE_ERROR',
@@ -389,7 +434,8 @@ export class LobbyService {
           this.server.to(inviter.socketId).emit('lobby:error', {
             error: {
               code: 'INVITE_TIMEOUT',
-              message: 'Gönderdiğiniz oyun daveti zaman aşımına uğradı (30 saniye).',
+              message:
+                'Gönderdiğiniz oyun daveti zaman aşımına uğradı (30 saniye).',
             },
           });
         }

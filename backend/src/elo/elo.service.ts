@@ -1,8 +1,15 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
 
 // Saf ELO hesaplama fonksiyonları (dış bağımlılık içermez)
-export function calculateExpectedScore(playerElo: number, opponentElo: number): number {
+export function calculateExpectedScore(
+  playerElo: number,
+  opponentElo: number,
+): number {
   return 1 / (1 + Math.pow(10, (opponentElo - playerElo) / 400));
 }
 
@@ -24,7 +31,7 @@ export function calculateDelta(
 ): number {
   const expected = calculateExpectedScore(playerElo, opponentElo);
   const kFactor = getKFactor(playerElo, totalMatches);
-  
+
   let actual = 0.5;
   if (outcome === 'WIN') {
     actual = 1.0;
@@ -94,8 +101,10 @@ export class EloService {
         // Friendly (aynı IP) maçlarda ELO değişmez
         p1Delta = 0;
         p2Delta = 0;
-        if (result === 'p1_win' || result === 'p1_forfeit') winnerId = player1Id;
-        else if (result === 'p2_win' || result === 'p2_forfeit') winnerId = player2Id;
+        if (result === 'p1_win' || result === 'p1_forfeit')
+          winnerId = player1Id;
+        else if (result === 'p2_win' || result === 'p2_forfeit')
+          winnerId = player2Id;
       } else if (result === 'p1_forfeit') {
         p1Delta = -15;
         p2Delta = 15;
@@ -107,16 +116,46 @@ export class EloService {
       } else {
         // Normal maç sonu
         if (result === 'p1_win') {
-          p1Delta = calculateDelta(p1.eloScore, p2.eloScore, 'WIN', p1TotalMatches);
-          p2Delta = calculateDelta(p2.eloScore, p1.eloScore, 'LOSS', p2TotalMatches);
+          p1Delta = calculateDelta(
+            p1.eloScore,
+            p2.eloScore,
+            'WIN',
+            p1TotalMatches,
+          );
+          p2Delta = calculateDelta(
+            p2.eloScore,
+            p1.eloScore,
+            'LOSS',
+            p2TotalMatches,
+          );
           winnerId = player1Id;
         } else if (result === 'p2_win') {
-          p1Delta = calculateDelta(p1.eloScore, p2.eloScore, 'LOSS', p1TotalMatches);
-          p2Delta = calculateDelta(p2.eloScore, p1.eloScore, 'WIN', p2TotalMatches);
+          p1Delta = calculateDelta(
+            p1.eloScore,
+            p2.eloScore,
+            'LOSS',
+            p1TotalMatches,
+          );
+          p2Delta = calculateDelta(
+            p2.eloScore,
+            p1.eloScore,
+            'WIN',
+            p2TotalMatches,
+          );
           winnerId = player2Id;
         } else if (result === 'draw') {
-          p1Delta = calculateDelta(p1.eloScore, p2.eloScore, 'DRAW', p1TotalMatches);
-          p2Delta = calculateDelta(p2.eloScore, p1.eloScore, 'DRAW', p2TotalMatches);
+          p1Delta = calculateDelta(
+            p1.eloScore,
+            p2.eloScore,
+            'DRAW',
+            p1TotalMatches,
+          );
+          p2Delta = calculateDelta(
+            p2.eloScore,
+            p1.eloScore,
+            'DRAW',
+            p2TotalMatches,
+          );
           winnerId = null;
         }
       }
@@ -182,7 +221,8 @@ export class EloService {
       }
       throw new InternalServerErrorException({
         code: 'INTERNAL_ERROR',
-        message: 'ELO derecelendirme güncellemesi sırasında veritabanı hatası oluştu.',
+        message:
+          'ELO derecelendirme güncellemesi sırasında veritabanı hatası oluştu.',
       });
     }
   }
