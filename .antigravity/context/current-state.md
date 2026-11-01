@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/prisma-config-single-source
+Aktif Branch: docs/architecture-sync
 
 ---
 
@@ -8,7 +8,7 @@ Aktif Branch: feature/prisma-config-single-source
 
 ```
 Faz 1 MVP: ██████████ %100
-Yayın Hazırlığı: ██████████ %95  (Faz A: T-01..T-07 tamamlandı — bkz. docs/architecture-roadmap.md)
+Yayın Hazırlığı: ██████████ %100 (v1.0.0 Yayınlandı — Faz A & Faz C tamamlandı, bkz. docs/architecture-roadmap.md)
 ```
 
 ---
@@ -65,14 +65,16 @@ Yayın Hazırlığı: ██████████ %95  (Faz A: T-01..T-07 tam
 - **✅ ÇÖZÜLDÜ (B-06 / T-05):** `helmet` CSP, HTTP `@nestjs/throttler` ve WS `SlidingWindowLimiter` devreye alındı.
 - **✅ ÇÖZÜLDÜ (B-07 / T-06):** Kod tabanındaki tüm `any` kullanımları kaldırıldı, ESLint `no-explicit-any: error` ve CI `npm run lint` kapısı eklendi.
 - **✅ ÇÖZÜLDÜ (B-09 / T-07):** `prisma/prisma.config.ts` silinerek kök `/prisma.config.ts` tek kaynak yapıldı; DB URL fallback'i kaldırıldı.
-- **Mimari Kararlar:** K-1…K-7 tamamı 2026-10-31'de onaylandı (K-4: yalnızca şifre rotasyonu).
+- **✅ ÇÖZÜLDÜ (B-12 / T-10):** `develop` → `main` (`v1.0.0`) release yapıldı ve 19 eski branch temizlendi.
+- **✅ ÇÖZÜLDÜ (B-13 / T-12):** `AGENTS.md`, `docs/spec.md`, `.antigravity/skills/prisma.md`, `REVIEW_CHECKLIST.md` ve `docs/production-backlog.md` gerçek mimariyle senkronize edildi.
+- **Mimari Kararlar:** K-1…K-7 tamamı 2026-10-31'de onaylandı.
 
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-01 — T-07: Prisma Config Tekilleştirme
+Oturum 2026-11-01 — T-10 & T-12: v1.0.0 Release, Git Hijyeni ve Doküman Senkronizasyonu
 
 ### Yapılanlar
-- `prisma/prisma.config.ts` silindi; kökteki `/prisma.config.ts` içinde `env('DATABASE_URL')` zorunlu kılındı ve fallback kaldırıldı.
-- `backend/package.json` içindeki mükerrer `prisma.seed` alanı temizlendi; CI ve `Dockerfile` `prisma generate` adımları güncellendi.
-- `npx prisma validate`, `npx prisma migrate deploy`, 94/94 birim testi ve monorepo build doğrulandı. Sıradaki görev: T-10.
+- `develop` → `main` PR #32 merge edildi, `v1.0.0` etiketi oluşturuldu ve 19 eski branch temizlendi.
+- Canlı sunucuda `GET /health` (`200 OK`), CSP/HSTS başlıkları ve `/test-match` (`404`) doğrulandı.
+- Tüm proje dokümanları (`AGENTS.md`, `docs/spec.md`, `prisma.md`, `REVIEW_CHECKLIST.md`, `production-backlog.md`) v1.0.0 mimarisiyle senkronize edildi. Sıradaki görev: T-08.
