@@ -1,0 +1,156 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: 'Geist', 'Geist Fallback';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --color-wood: var(--wood);
+  --color-wood-dark: var(--wood-dark);
+  --color-wood-light: var(--wood-light);
+  --color-gold: var(--gold);
+  --color-glass: var(--glass);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* Dark navy luxury background */
+  --background: #1a2744;
+  --foreground: #f5f0e8;
+  
+  /* Card colors - wood themed */
+  --card: #2a3654;
+  --card-foreground: #f5f0e8;
+  
+  /* Popover */
+  --popover: #2a3654;
+  --popover-foreground: #f5f0e8;
+  
+  /* Gold accent for premium feel */
+  --primary: #d4a853;
+  --primary-foreground: #1a2744;
+  
+  /* Secondary - muted navy */
+  --secondary: #243252;
+  --secondary-foreground: #f5f0e8;
+  
+  /* Muted colors */
+  --muted: #243252;
+  --muted-foreground: #8b9ab5;
+  
+  /* Accent - gold tint */
+  --accent: #3d4a66;
+  --accent-foreground: #f5f0e8;
+  
+  /* Destructive */
+  --destructive: #e74c3c;
+  
+  /* Borders and inputs */
+  --border: rgba(212, 168, 83, 0.2);
+  --input: rgba(245, 240, 232, 0.1);
+  --ring: #d4a853;
+  
+  /* Charts */
+  --chart-1: #10b981;
+  --chart-2: #3b82f6;
+  --chart-3: #ef4444;
+  --chart-4: #f59e0b;
+  --chart-5: #a855f7;
+  
+  /* Radius */
+  --radius: 0.75rem;
+  
+  /* Custom wood colors */
+  --wood: #6d4c2a;
+  --wood-dark: #4a3520;
+  --wood-light: #8b6a42;
+  --gold: #d4a853;
+  --glass: rgba(74, 53, 32, 0.6);
+  
+  /* Sidebar */
+  --sidebar: #243252;
+  --sidebar-foreground: #f5f0e8;
+  --sidebar-primary: #d4a853;
+  --sidebar-primary-foreground: #1a2744;
+  --sidebar-accent: #3d4a66;
+  --sidebar-accent-foreground: #f5f0e8;
+  --sidebar-border: rgba(212, 168, 83, 0.2);
+  --sidebar-ring: #d4a853;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans bg-background;
+  }
+}
+
+/* Custom marble colors */
+.marble-emerald {
+  background: radial-gradient(circle at 30% 30%, #6ee7b7, #10b981 40%, #047857 80%, #064e3b);
+}
+
+.marble-sapphire {
+  background: radial-gradient(circle at 30% 30%, #93c5fd, #3b82f6 40%, #1d4ed8 80%, #1e3a8a);
+}
+
+.marble-ruby {
+  background: radial-gradient(circle at 30% 30%, #fca5a5, #ef4444 40%, #dc2626 80%, #7f1d1d);
+}
+
+.marble-amber {
+  background: radial-gradient(circle at 30% 30%, #fcd34d, #f59e0b 40%, #d97706 80%, #78350f);
+}
+
+.marble-amethyst {
+  background: radial-gradient(circle at 30% 30%, #d8b4fe, #a855f7 40%, #7c3aed 80%, #4c1d95);
+}
+
+.marble-rose {
+  background: radial-gradient(circle at 30% 30%, #fda4af, #f43f5e 40%, #e11d48 80%, #881337);
+}

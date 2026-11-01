@@ -33,6 +33,7 @@ Aşağıdaki kurallar `docs/spec.md`'den türetilmiştir. Detay için ilgili bö
 
 - **Teknoloji yığını:** Değiştirilemez. → bkz. `docs/spec.md` AGENTS.md Teknoloji Yığını Tablosu
 - **`any` tipi:** TAMAMEN YASAK. TSC `--strict` modunda hatasız derlenmeli.
+- **Prisma 7 Standardı:** Projede Prisma 7+ kuruludur. `prisma.config.ts` içinde `earlyAccess` ve `client.adapter` alanları kesinlikle kullanılamaz. LibSQL vb. adaptörler doğrudan `PrismaService` instantiation sırasında tanımlanmalıdır.
 - **Her DTO:** `class-validator` dekoratörleriyle doğrulanmalı.
 - **Her public fonksiyonun** dönüş tipi açıkça belirtilmeli.
 - **Tüm Prisma sorguları** try-catch ile sarılmalı. → bkz. `.antigravity/skills/prisma.md`

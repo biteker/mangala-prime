@@ -14,14 +14,14 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
-    "rootDir": "src",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@shared/*": ["../shared/types/*"]
     },
     "strict": true,
+    "incremental": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true
-  },
-  "include": ["src/**/*"]
+  }
 }

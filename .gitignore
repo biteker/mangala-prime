@@ -5,6 +5,7 @@ node_modules/
 dist/
 build/
 .next/
+backend/src/generated/
 
 # Environment variables
 .env
@@ -20,6 +21,7 @@ prisma/*.db-journal
 # IDE
 .vscode/
 .idea/
+.obsidian/
 *.swp
 *.swo
 *~
@@ -37,3 +39,7 @@ npm-debug.log*
 
 # TypeScript cache
 *.tsbuildinfo
+
+# Scratch scripts
+scratch/
+

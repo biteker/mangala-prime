@@ -1,111 +1,2715 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+html.theme-wood,
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
+  --bg-primary: #f5eae0;
+  --bg-card: #e3ccb8;
+  --text-primary: #4e3629;
+  --text-secondary: #705446;
+  --border-color: #8c6a56;
+  --accent-color: #a67c52;
+  --accent-hover: #bfa38a;
+  --shadow-color: rgba(78, 54, 41, 0.15);
+  --input-bg: #faf7f2;
+  --alert-error-bg: #fee2e2;
+  --alert-error-text: #991b1b;
+  --alert-success-bg: #dcfce7;
+  --alert-success-text: #166534;
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+html.theme-neon {
+  --bg-primary: #0b0515;
+  --bg-card: rgba(22, 11, 36, 0.7);
+  --text-primary: #f3f0f7;
+  --text-secondary: #a69bb8;
+  --border-color: #bf5af2;
+  --accent-color: #ff375f;
+  --accent-hover: #ff5477;
+  --shadow-color: rgba(191, 90, 242, 0.25);
+  --input-bg: rgba(30, 16, 50, 0.8);
+  --alert-error-bg: rgba(239, 68, 68, 0.2);
+  --alert-error-text: #fca5a5;
+  --alert-success-bg: rgba(34, 197, 94, 0.2);
+  --alert-success-text: #86efac;
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
 }
 
 body {
   margin: 0;
+  font-family: var(--sans);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+/* Auth Container */
+.auth-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 40px 20px;
+}
+
+/* Auth Card */
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 36px;
+  box-shadow: 0 10px 30px -5px var(--shadow-color);
+  box-sizing: border-box;
+  backdrop-filter: blur(12px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+html.theme-neon .auth-card {
+  box-shadow: 0 0 25px var(--shadow-color);
+}
+
+.auth-title {
+  font-size: 26px;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 24px;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.form-input {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 15px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--shadow-color);
+}
+
+.auth-button {
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent-color);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.auth-button:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.auth-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.auth-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.auth-link-btn {
+  background: none;
+  border: none;
+  color: var(--accent-color);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+  text-decoration: underline;
+}
+
+.auth-link-btn:hover {
+  color: var(--accent-hover);
+}
+
+/* Alerts */
+.auth-error-alert {
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--alert-error-bg);
+  color: var(--alert-error-text);
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  animation: fadeIn 0.2s ease;
+}
+
+.auth-success-alert {
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--alert-success-bg);
+  color: var(--alert-success-text);
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  animation: fadeIn 0.2s ease;
+}
+
+/* Theme Switcher Header */
+.app-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-card);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.brand {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.theme-toggle-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px var(--shadow-color);
+}
+
+/* Spinner */
+.spinner-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
-h2 {
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Lobi Arayüzü Düzeni */
+.lobby-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 28px;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .lobby-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lobby-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.lobby-sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dashboard Kartları */
+.dashboard-card,
+.sidebar-card,
+.info-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 4px 20px var(--shadow-color);
+  backdrop-filter: blur(8px);
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.dashboard-title {
   font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: var(--text-primary);
 }
-p {
+
+.dashboard-desc {
+  font-size: 15px;
+  line-height: 145%;
+  color: var(--text-secondary);
+  margin-top: 0;
+  margin-bottom: 24px;
+}
+
+.start-queue-btn {
+  width: 100%;
+  max-width: 240px;
+  padding: 14px 28px;
+  font-size: 16px;
+}
+
+/* Sıra Bekleme Arayüzü */
+.queue-active-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.queue-spinner-ring {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 3px solid var(--border-color);
+}
+
+.ring-pulse {
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 3px solid var(--accent-color);
+  border-top-color: transparent;
+  animation: spin 1.5s linear infinite;
+}
+
+.queue-timer-text {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.queue-status-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-secondary);
   margin: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+.cancel-queue-btn {
+  background-color: var(--text-secondary);
+  padding: 10px 24px;
+  font-size: 14px;
 }
 
-code {
+.cancel-queue-btn:hover:not(:disabled) {
+  background-color: var(--text-primary);
+}
+
+/* Lobi Uyarıları */
+.lobby-alert {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  margin: 0;
+}
+
+.alert-close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  font-weight: bold;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+/* Nasıl Oynanır Kartı */
+.info-card h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.info-card ul {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 145%;
+  color: var(--text-secondary);
+}
+
+/* Sidebar Listesi */
+.sidebar-title {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.sidebar-search {
+  width: 100%;
+  margin-bottom: 18px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.online-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.no-users-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin: 16px 0;
+}
+
+.online-user-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s ease;
+}
+
+.online-user-item:hover {
+  transform: translateX(2px);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-name {
   font-size: 15px;
-  line-height: 135%;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.user-elo {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.user-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.status-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.status-badge.lobby {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--alert-success-text);
+}
+
+.status-badge.playing {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--alert-error-text);
+}
+
+.challenge-btn {
+  background: var(--accent-color);
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.challenge-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.challenge-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Modallar & Davetler */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+.invite-modal {
+  max-width: 360px;
+  padding: 28px;
+  text-align: center;
+}
+
+.invite-desc {
+  font-size: 15px;
+  line-height: 145%;
+  color: var(--text-secondary);
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.invite-timer-ring {
+  width: 60px;
+  height: 60px;
+  border: 3px solid var(--border-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  border-top-color: var(--accent-color);
+  animation: spin 2s linear infinite;
+}
+
+.invite-countdown {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  animation: pulse 1s ease infinite alternate;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.accept-invite-btn {
+  flex: 1;
+  background: var(--alert-success-text);
+}
+
+.accept-invite-btn:hover:not(:disabled) {
+  background: #15803d;
+}
+
+.decline-invite-btn {
+  flex: 1;
+  background: var(--alert-error-text);
+}
+
+.decline-invite-btn:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+@keyframes pulse {
+  from {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+
+  to {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+/* Oyun Arayüzü Düzeni */
+.game-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+/* Oyun Header Paneli */
+.game-header-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px 24px;
+  box-shadow: 0 4px 15px var(--shadow-color);
+  backdrop-filter: blur(8px);
+}
+
+.player-badge {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  width: 220px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 10px 16px;
+  box-sizing: border-box;
+}
+
+.player-badge.opponent {
+  flex-direction: row-reverse;
+}
+
+.player-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-color);
+  flex-shrink: 0;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.player-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.player-badge.opponent .player-info {
+  align-items: flex-end;
+}
+
+.player-username {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.player-elo-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  color: var(--accent-color);
+}
+
+.player-elo-info {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.active-turn-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #4cd964;
+  box-shadow: 0 0 8px #4cd964;
+  animation: pulse 1s infinite alternate;
+  flex-shrink: 0;
+}
+
+.timer-panel {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 8px 16px;
+  color: var(--accent-color);
+}
+
+.timer-seconds {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+  transition: color 0.2s ease;
+}
+
+.timer-seconds.danger {
+  color: #ff3b30;
+  animation: pulse 0.5s ease infinite alternate;
+}
+
+.turn-status-text {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  display: none;
+  /* Hide standard text on desktop to keep timer compact */
+}
+
+/* Bağlantı Koptu Uyarısı */
+.connection-lost-alert {
+  padding: 12px 18px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Oyun İçerik Alanı */
+.game-content-container {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+  align-items: stretch;
+}
+
+@media (max-width: 1023px) {
+  .game-content-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .chat-panel-container {
+    order: 2;
+    height: 280px;
+  }
+
+  .board-panel-container {
+    order: 1;
+    padding: 16px;
+  }
+}
+
+/* SOL PANEL: CHAT */
+.chat-panel-container {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 15px var(--shadow-color);
+  backdrop-filter: blur(8px);
+  height: 480px;
+  box-sizing: border-box;
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.chat-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.chat-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.chat-messages-box {
+  flex: 1;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--input-bg);
+  padding: 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.no-messages-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin: auto;
+}
+
+.chat-bubble-wrapper {
+  display: flex;
+  width: 100%;
+}
+
+.chat-bubble-wrapper.me {
+  justify-content: flex-end;
+}
+
+.chat-bubble-wrapper.opponent {
+  justify-content: flex-start;
+}
+
+.chat-bubble {
+  max-width: 80%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 140%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-sizing: border-box;
+}
+
+.chat-bubble-wrapper.me .chat-bubble {
+  background: var(--accent-color);
+  color: #ffffff;
+  border-bottom-right-radius: 2px;
+}
+
+.chat-bubble-wrapper.opponent .chat-bubble {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-bottom-left-radius: 2px;
+  border: 1px solid var(--border-color);
+}
+
+.chat-bubble.preset {
+  font-style: italic;
+}
+
+.bubble-sender-name {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.bubble-text {
+  word-break: break-word;
+}
+
+.chat-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.preset-msg-btn {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
   padding: 4px 8px;
-  background: var(--code-bg);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preset-msg-btn:hover:not(:disabled) {
+  border-color: var(--accent-color);
+  color: var(--text-primary);
+}
+
+.preset-msg-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chat-input-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 10px 16px;
+  font-size: 13px;
+  border-radius: 20px;
+}
+
+.chat-send-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50% !important;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  flex-shrink: 0;
+  margin-top: 0;
+}
+
+/* ORTA PANEL: MANGALA TAHTASI */
+.board-panel-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 4px 15px var(--shadow-color);
+  backdrop-filter: blur(8px);
+  min-width: 0;
+  min-height: 0;
+}
+
+.mangala-board {
+  display: grid;
+  grid-template-columns: 100px 1fr 100px;
+  gap: 20px;
+  width: 100%;
+  max-width: 720px;
+  background: rgba(139, 90, 43, 0.1);
+  border: 4px solid var(--border-color);
+  border-radius: 16px;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+/* Temaya Göre Board Görünümü */
+html.theme-wood .mangala-board {
+  background: #fdf6ec;
+  /* Açık ahşap tahta tonu */
+  box-shadow: inset 0 0 20px rgba(78, 54, 41, 0.2);
+}
+
+html.theme-neon .mangala-board {
+  background: rgba(22, 11, 36, 0.5);
+  box-shadow: 0 0 20px rgba(191, 90, 242, 0.1);
+}
+
+/* Hazneler (Treasuries) */
+.treasury {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  border: 2px solid var(--border-color);
+  border-radius: 40px;
+  padding: 16px 8px;
+  background: var(--input-bg);
+  min-height: 260px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.treasury-label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.treasury .stone-count {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+/* Kuyular Paneli */
+.pits-grid {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 36px;
+}
+
+.pits-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Kuyular (Pits) */
+.pit {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  background: var(--input-bg);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pit-index-label {
+  position: absolute;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.top-pit .pit-index-label {
+  top: -15px;
+}
+
+.bottom-pit .pit-index-label {
+  bottom: -15px;
+}
+
+.pit .stone-count {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-primary);
+  z-index: 2;
+  background: var(--bg-card);
+  padding: 1px 5px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  pointer-events: none;
+  transform: translateY(-8px);
+}
+
+/* Tıklanabilir Kuyu Stilleri */
+.pit.bottom-pit.active {
+  cursor: pointer;
+}
+
+.pit.bottom-pit.active:hover {
+  border-color: var(--accent-color);
+  transform: scale(1.05);
+  box-shadow: 0 0 12px var(--shadow-color);
+}
+
+html.theme-neon .pit.bottom-pit.active:hover {
+  box-shadow: 0 0 15px var(--accent-color);
+}
+
+/* Görsel Taş Tasarımı */
+.stone-dots-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: center;
+  gap: 3px;
+  width: 44px;
+  height: 30px;
+  position: absolute;
+  bottom: 8px;
+  pointer-events: none;
+}
+
+.stone-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+html.theme-wood .stone-dot {
+  background: #ccd0cf;
+  /* Doğal taş tonu */
+  border: 1px solid #999;
+  box-shadow: inset 1px 1px 1px #fff, 1px 1px 1px rgba(0, 0, 0, 0.15);
+}
+
+html.theme-neon .stone-dot {
+  background: var(--accent-color);
+  /* Fütüristik parlayan neon taş */
+  box-shadow: 0 0 6px var(--accent-color);
+}
+
+.stone-more-text {
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  line-height: 1;
+}
+
+/* OYUN SONU MODALI */
+.game-over-modal {
+  max-width: 420px;
+  text-align: center;
+  padding: 40px;
+}
+
+.game-result-title {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.game-result-title.win {
+  color: var(--alert-success-text);
+  animation: pulse 1s ease infinite alternate;
+}
+
+.game-result-title.lose {
+  color: var(--alert-error-text);
+}
+
+.game-result-title.draw {
+  color: var(--text-primary);
+}
+
+.game-end-reason {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 145%;
+  margin-top: 0;
+  margin-bottom: 24px;
+}
+
+.elo-change-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  padding: 12px 20px;
+  border-radius: 10px;
+  margin-bottom: 28px;
+}
+
+.elo-change-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.elo-change-value {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.elo-change-value.positive {
+  color: var(--alert-success-text);
+}
+
+.elo-change-value.negative {
+  color: var(--alert-error-text);
+}
+
+.return-lobby-btn {
+  width: 100%;
+}
+
+/* Animasyon ve Giriş Kilidi Stilleri (Aşama 13) */
+@keyframes drop-pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  30% {
+    transform: scale(1.16);
+    border-color: var(--accent-color);
+  }
+
+  70% {
+    transform: scale(1.16);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 15px var(--accent-color);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-drop {
+  animation: drop-pulse 0.25s ease-out;
+  z-index: 10;
+}
+
+.mangala-board.input-locked {
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+.mangala-board.input-locked .pit.bottom-pit.active {
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+  border-color: var(--border-color) !important;
+}
+
+/* ================================================
+   TEMA 3: RUSTİK AHŞAP (theme-rustic)
+   Referans: Gerçekçi ceviz tahta, renkli cam bilyeler,
+   koyu mavi dokulu arka plan
+   ================================================ */
+
+html.theme-rustic {
+  --bg-primary: #1a2744;
+  --bg-card: #5a3318;
+  --text-primary: #f5e6d0;
+  --text-secondary: #c9a87c;
+  --border-color: #3d2415;
+  --accent-color: #d4a055;
+  --accent-hover: #e8b96a;
+  --shadow-color: rgba(30, 15, 5, 0.5);
+  --input-bg: rgba(40, 25, 15, 0.7);
+  --alert-error-bg: rgba(180, 50, 50, 0.3);
+  --alert-error-text: #ff9a9a;
+  --alert-success-bg: rgba(50, 160, 80, 0.3);
+  --alert-success-text: #7ddd9a;
+  --sans: 'Georgia', 'Times New Roman', serif;
+  --mono: ui-monospace, Consolas, monospace;
+}
+
+/* Rustik — Arka Plan Dokusu */
+html.theme-rustic body {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(30, 50, 80, 0.4) 0%, transparent 70%),
+    radial-gradient(ellipse at 80% 50%, rgba(20, 40, 70, 0.3) 0%, transparent 70%),
+    repeating-linear-gradient(0deg,
+      transparent,
+      transparent 2px,
+      rgba(255, 255, 255, 0.01) 2px,
+      rgba(255, 255, 255, 0.01) 4px),
+    #1a2744;
+}
+
+/* Rustik — Auth Kart */
+html.theme-rustic .auth-card {
+  background:
+    linear-gradient(135deg, #6b4226 0%, #5a3318 40%, #4a2810 100%);
+  border: 2px solid #3d2415;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 200, 140, 0.1);
+}
+
+/* Rustik — Header */
+html.theme-rustic .app-header {
+  background:
+    linear-gradient(180deg, #4a2810 0%, #3d2415 100%);
+  border-bottom: 2px solid #2a1508;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Rustik — Dashboard ve Sidebar Kartlar */
+html.theme-rustic .dashboard-card,
+html.theme-rustic .sidebar-card,
+html.theme-rustic .info-card {
+  background:
+    linear-gradient(145deg, #5a3318 0%, #4a2810 100%);
+  border: 2px solid #3d2415;
+  box-shadow:
+    0 6px 24px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 200, 140, 0.08);
+}
+
+/* Rustik — Chat Paneli */
+html.theme-rustic .chat-panel-container {
+  background:
+    linear-gradient(180deg, #4a2810 0%, #3d2010 100%);
+  border: 2px solid #2a1508;
+}
+
+/* Rustik — Board Panel */
+html.theme-rustic .board-panel-container {
+  background:
+    radial-gradient(ellipse at center, rgba(30, 50, 80, 0.3) 0%, transparent 70%),
+    #1a2744;
+  border: none;
+  box-shadow: none;
+  padding: 16px;
+}
+
+/* Rustik — Mangala Tahta (Gerçekçi Ahşap Doku) */
+html.theme-rustic .mangala-board {
+  background:
+    linear-gradient(160deg,
+      #7a4a2a 0%,
+      #6b3e20 15%,
+      #7a4a2a 30%,
+      #5e3318 45%,
+      #6b3e20 55%,
+      #7a4a2a 70%,
+      #5e3318 85%,
+      #6b3e20 100%);
+  border: 6px solid #3d2415;
+  border-radius: 24px;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.6),
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    inset 0 2px 4px rgba(255, 200, 140, 0.15),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  position: relative;
+}
+
+/* Rustik — Mangala yazısı efekti */
+html.theme-rustic .mangala-board::after {
+  content: 'Mangala';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Georgia', serif;
+  font-size: 28px;
+  font-weight: bold;
+  color: rgba(100, 60, 30, 0.25);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Rustik — Kuyular (Oyulmuş Efekti) */
+html.theme-rustic .pit {
+  background:
+    radial-gradient(ellipse at center, #2a1508 0%, #1e0f04 60%, #150a02 100%);
+  border: 2px solid #1a0d03;
+  box-shadow:
+    inset 0 4px 12px rgba(0, 0, 0, 0.7),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(255, 200, 140, 0.1);
+  z-index: 1;
+}
+
+html.theme-rustic .pit .stone-count {
+  background: rgba(60, 35, 15, 0.9);
+  border: 1px solid #2a1508;
+  color: #f5e6d0;
+}
+
+/* Rustik — Tıklanabilir Kuyular Hover */
+html.theme-rustic .pit.bottom-pit.active:hover {
+  border-color: #d4a055;
+  box-shadow:
+    inset 0 4px 12px rgba(0, 0, 0, 0.7),
+    0 0 16px rgba(212, 160, 85, 0.4),
+    0 0 8px rgba(212, 160, 85, 0.2);
+}
+
+/* Rustik — Hazneler (Uzun Oval Oyulmuş) */
+html.theme-rustic .treasury {
+  background:
+    radial-gradient(ellipse at center, #2a1508 0%, #1e0f04 60%, #150a02 100%);
+  border: 2px solid #1a0d03;
+  box-shadow:
+    inset 0 6px 16px rgba(0, 0, 0, 0.7),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(255, 200, 140, 0.1);
+}
+
+html.theme-rustic .treasury .stone-count {
+  color: #f5e6d0;
+}
+
+/* Rustik — Renkli Cam Bilye Taşlar */
+html.theme-rustic .stone-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  box-shadow:
+    inset -1px -1px 2px rgba(0, 0, 0, 0.3),
+    inset 2px 2px 3px rgba(255, 255, 255, 0.4),
+    0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+html.theme-rustic .stone-dot:nth-child(6n+1) {
+  background: radial-gradient(circle at 35% 35%, #ff7777 0%, #cc2222 70%, #991111 100%);
+}
+
+html.theme-rustic .stone-dot:nth-child(6n+2) {
+  background: radial-gradient(circle at 35% 35%, #77aaff 0%, #2266cc 70%, #114499 100%);
+}
+
+html.theme-rustic .stone-dot:nth-child(6n+3) {
+  background: radial-gradient(circle at 35% 35%, #77dd77 0%, #22aa44 70%, #117733 100%);
+}
+
+html.theme-rustic .stone-dot:nth-child(6n+4) {
+  background: radial-gradient(circle at 35% 35%, #ffdd55 0%, #ccaa22 70%, #997711 100%);
+}
+
+html.theme-rustic .stone-dot:nth-child(6n+5) {
+  background: radial-gradient(circle at 35% 35%, #ff99cc 0%, #dd4488 70%, #aa2266 100%);
+}
+
+html.theme-rustic .stone-dot:nth-child(6n+6) {
+  background: radial-gradient(circle at 35% 35%, #bb88ff 0%, #7744cc 70%, #552299 100%);
+}
+
+/* Rustik — Oyuncu Badge */
+html.theme-rustic .player-role-indicator {
+  color: #d4a055;
+}
+
+/* Rustik — Timer Tehlike */
+html.theme-rustic .timer-seconds.danger {
+  color: #ff6b4a;
+  text-shadow: 0 0 8px rgba(255, 107, 74, 0.5);
+}
+
+/* Rustik — Oyun Sonu Modal */
+html.theme-rustic .game-over-modal {
+  background:
+    linear-gradient(145deg, #5a3318 0%, #4a2810 100%);
+  border: 3px solid #3d2415;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
+}
+
+/* Rustik — Modal Backdrop */
+html.theme-rustic .modal-backdrop {
+  background: rgba(10, 15, 30, 0.7);
+}
+
+/* Rustik — Animasyonlar */
+html.theme-rustic .animate-drop {
+  box-shadow:
+    inset 0 4px 12px rgba(0, 0, 0, 0.7),
+    0 0 20px rgba(212, 160, 85, 0.5) !important;
+}
+
+/* Rustik — Butonlar */
+html.theme-rustic .auth-button {
+  background: linear-gradient(180deg, #d4a055 0%, #b8843d 100%);
+  color: #2a1508;
+  font-weight: 700;
+  border: 1px solid #a07030;
+}
+
+html.theme-rustic .auth-button:hover:not(:disabled) {
+  background: linear-gradient(180deg, #e8b96a 0%, #d4a055 100%);
+}
+
+/* Rustik — Form Inputs */
+html.theme-rustic .form-input {
+  background: rgba(30, 18, 8, 0.8);
+  border: 1px solid #4a2810;
+  color: #f5e6d0;
+}
+
+html.theme-rustic .form-input:focus {
+  border-color: #d4a055;
+  box-shadow: 0 0 0 3px rgba(212, 160, 85, 0.2);
+}
+
+/* Rustik — Online Listesi */
+html.theme-rustic .online-user-item {
+  background: rgba(40, 25, 15, 0.6);
+  border: 1px solid #3d2415;
+}
+
+/* Rustik — Preset Mesaj Butonları */
+html.theme-rustic .preset-msg-btn {
+  background: rgba(40, 25, 15, 0.6);
+  border: 1px solid #4a2810;
+  color: #c9a87c;
+}
+
+html.theme-rustic .preset-msg-btn:hover:not(:disabled) {
+  border-color: #d4a055;
+  color: #f5e6d0;
+}
+
+/* Rustik — Sıra Bekleme Spinner */
+html.theme-rustic .queue-spinner-ring {
+  border-color: #3d2415;
+}
+
+html.theme-rustic .ring-pulse {
+  border-color: #d4a055;
+  border-top-color: transparent;
+}
+
+/* ================================================
+   TEMA 4: RUSTİK v0.app (theme-pixijs)
+   Referans: Lüks lacivert arka plan, radial geçişler,
+   glassmorphism paneller ve parlak 3D cam bilyeler.
+   ================================================ */
+
+html.theme-pixijs {
+  --bg-primary: #1a2744;
+  --bg-card: rgba(74, 53, 32, 0.4);
+  --text-primary: #f5f0e8;
+  --text-secondary: #8b9ab5;
+  --border-color: rgba(212, 168, 83, 0.2);
+  --accent-color: #d4a853;
+  --accent-hover: #e8c072;
+  --shadow-color: rgba(0, 0, 0, 0.4);
+  --input-bg: rgba(245, 240, 232, 0.1);
+  --alert-error-bg: rgba(231, 76, 60, 0.2);
+  --alert-error-text: #e74c3c;
+  --alert-success-bg: rgba(16, 185, 129, 0.2);
+  --alert-success-text: #10b981;
+  --sans: 'Geist', 'Geist Fallback', system-ui, sans-serif;
+  --mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
+}
+
+/* Rustik v0 — Arka Plan */
+html.theme-pixijs body {
+  background: radial-gradient(ellipse at 50% 30%, #243252 0%, #1a2744 50%, #131d33 100%);
+}
+
+/* Rustik v0 — Auth Kartı ve Diğer Kartlar */
+html.theme-pixijs .auth-card,
+html.theme-pixijs .dashboard-card,
+html.theme-pixijs .sidebar-card,
+html.theme-pixijs .info-card {
+  background: rgba(74, 53, 32, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(139, 106, 66, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Rustik v0 — Header */
+html.theme-pixijs .app-header {
+  background: linear-gradient(135deg, #5c4033 0%, #4a3020 50%, #3d2518 100%);
+  border-bottom: 1px solid rgba(139, 106, 66, 0.3);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Rustik v0 — Sohbet Paneli */
+html.theme-pixijs .chat-panel-container {
+  background: rgba(74, 53, 32, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(139, 106, 66, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Rustik v0 — Board Panel Container */
+html.theme-pixijs .board-panel-container {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* Rustik v0 — Mangala Tahtası */
+html.theme-pixijs .mangala-board {
+  background: linear-gradient(145deg, #7a5c3a 0%, #5c4028 30%, #4a3020 60%, #3d2518 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(139, 106, 66, 0.5),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.4),
+    0 10px 40px rgba(0, 0, 0, 0.5),
+    0 4px 8px rgba(0, 0, 0, 0.3);
+  border: none;
+  position: relative;
+}
+
+/* Rustik v0 — Ahşap Doku Efekti */
+html.theme-pixijs .mangala-board::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  opacity: 0.1;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(90deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.1) 2px,
+      rgba(0, 0, 0, 0.1) 4px);
+  z-index: 0;
+}
+
+/* Rustik v0 — Kuyular */
+html.theme-pixijs .pit {
+  background: radial-gradient(circle at 50% 50%, #3d2a1a 0%, #2a1d12 60%, #1a1208 100%);
+  box-shadow:
+    inset 0 4px 8px rgba(0, 0, 0, 0.6),
+    inset 0 -2px 4px rgba(139, 106, 66, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.4);
+  border: none;
+  z-index: 1;
+}
+
+/* Rustik v0 — Kuyu Taş Sayısı Rozeti */
+html.theme-pixijs .pit .stone-count {
+  background: #243252;
+  border: 1px solid rgba(212, 168, 83, 0.3);
+  color: #f5f0e8;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Rustik v0 — Aktif Kuyu Hover */
+html.theme-pixijs .pit.bottom-pit.active:hover {
+  transform: scale(1.05);
+  box-shadow:
+    inset 0 4px 8px rgba(0, 0, 0, 0.6),
+    0 0 12px rgba(212, 168, 83, 0.5);
+}
+
+/* Rustik v0 — Hazneler */
+html.theme-pixijs .treasury {
+  background: radial-gradient(ellipse at 50% 50%, #3d2a1a 0%, #2a1d12 50%, #1a1208 100%);
+  box-shadow:
+    inset 0 6px 12px rgba(0, 0, 0, 0.7),
+    inset 0 -4px 8px rgba(139, 106, 66, 0.3),
+    0 4px 8px rgba(0, 0, 0, 0.5);
+  border: none;
+}
+
+html.theme-pixijs .treasury .stone-count {
+  color: #f5f0e8;
+}
+
+/* Rustik v0 — 3D Cam Bilye Taşlar */
+html.theme-pixijs .stone-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  box-shadow:
+    inset -2px -2px 4px rgba(0, 0, 0, 0.4),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Emerald */
+html.theme-pixijs .stone-dot:nth-child(6n+1) {
+  background: radial-gradient(circle at 30% 30%, #6ee7b7, #10b981 40%, #047857 80%, #064e3b);
+}
+
+/* Sapphire */
+html.theme-pixijs .stone-dot:nth-child(6n+2) {
+  background: radial-gradient(circle at 30% 30%, #93c5fd, #3b82f6 40%, #1d4ed8 80%, #1e3a8a);
+}
+
+/* Ruby */
+html.theme-pixijs .stone-dot:nth-child(6n+3) {
+  background: radial-gradient(circle at 30% 30%, #fca5a5, #ef4444 40%, #dc2626 80%, #7f1d1d);
+}
+
+/* Amber */
+html.theme-pixijs .stone-dot:nth-child(6n+4) {
+  background: radial-gradient(circle at 30% 30%, #fcd34d, #f59e0b 40%, #d97706 80%, #78350f);
+}
+
+/* Amethyst */
+html.theme-pixijs .stone-dot:nth-child(6n+5) {
+  background: radial-gradient(circle at 30% 30%, #d8b4fe, #a855f7 40%, #7c3aed 80%, #4c1d95);
+}
+
+/* Rose */
+html.theme-pixijs .stone-dot:nth-child(6n+6) {
+  background: radial-gradient(circle at 30% 30%, #fda4af, #f43f5e 40%, #e11d48 80%, #881337);
+}
+
+/* Rustik v0 — Oyuncu Bilgisi Badge */
+html.theme-pixijs .player-badge {
+  background: linear-gradient(135deg, #5c4033 0%, #4a3020 50%, #3d2518 100%) !important;
+  box-shadow:
+    inset 0 1px 2px rgba(139, 106, 66, 0.4),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.4),
+    0 4px 8px rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(139, 106, 66, 0.2) !important;
+}
+
+html.theme-pixijs .player-badge.me {
+  border: 2px solid #d4a853 !important;
+  box-shadow:
+    0 0 20px rgba(212, 168, 83, 0.3),
+    inset 0 1px 2px rgba(139, 106, 66, 0.4) !important;
+}
+
+html.theme-pixijs .player-avatar {
+  background: linear-gradient(135deg, #8b6a42 0%, #6d4c2a 100%);
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3);
+  color: #f5f0e8;
+  border: none;
+}
+
+html.theme-pixijs .player-elo-container {
+  color: #d4a853;
+}
+
+html.theme-pixijs .active-turn-dot {
+  background-color: #4ade80;
+  box-shadow: 0 0 10px #4ade80;
+}
+
+/* Rustik v0 — Zamanlayıcı ve Süre */
+html.theme-pixijs .timer-panel {
+  background: linear-gradient(135deg, rgba(212, 168, 83, 0.3) 0%, rgba(212, 168, 83, 0.1) 100%) !important;
+  box-shadow: 0 0 20px rgba(212, 168, 83, 0.3);
+  border: 1px solid rgba(212, 168, 83, 0.3) !important;
+  color: #d4a853;
+}
+
+html.theme-pixijs .timer-seconds {
+  color: #d4a853;
+}
+
+html.theme-pixijs .timer-seconds.danger {
+  color: #e74c3c;
+  text-shadow: 0 0 8px rgba(231, 76, 60, 0.5);
+}
+
+/* Rustik v0 — Butonlar */
+html.theme-pixijs .auth-button {
+  background: linear-gradient(180deg, #d4a853 0%, #b88b3d 100%);
+  color: #1a2744;
+  font-weight: 700;
+  border: 1px solid rgba(212, 168, 83, 0.3);
+}
+
+html.theme-pixijs .auth-button:hover:not(:disabled) {
+  background: linear-gradient(180deg, #e8c072 0%, #d4a853 100%);
+}
+
+/* Rustik v0 — Form Kontrolleri */
+html.theme-pixijs .form-input {
+  background: rgba(245, 240, 232, 0.05);
+  border: 1px solid rgba(212, 168, 83, 0.2);
+  color: #f5f0e8;
+}
+
+html.theme-pixijs .form-input:focus {
+  border-color: #d4a853;
+  box-shadow: 0 0 0 3px rgba(212, 168, 83, 0.25);
+}
+
+/* Rustik v0 — Sohbet Baloncukları */
+html.theme-pixijs .chat-messages-box {
+  border-color: rgba(212, 168, 83, 0.2);
+}
+
+html.theme-pixijs .chat-bubble-wrapper.me .chat-bubble {
+  background: #d4a853;
+  color: #1a2744;
+}
+
+html.theme-pixijs .chat-bubble-wrapper.opponent .chat-bubble {
+  background: #243252;
+  color: #f5f0e8;
+}
+
+/* Rustik v0 — Hazır Mesaj Butonları */
+html.theme-pixijs .preset-msg-btn {
+  background: rgba(36, 50, 82, 0.5);
+  border: 1px solid rgba(212, 168, 83, 0.2);
+  color: #f5f0e8;
+}
+
+html.theme-pixijs .preset-msg-btn:hover:not(:disabled) {
+  background: #243252;
+  border-color: #d4a853;
+}
+
+/* Rustik v0 — Online Kullanıcı Kartı */
+html.theme-pixijs .online-user-item {
+  background: rgba(36, 50, 82, 0.4);
+  border: 1px solid rgba(212, 168, 83, 0.2);
+}
+
+/* Rustik v0 — Spinner */
+html.theme-pixijs .queue-spinner-ring {
+  border-color: rgba(212, 168, 83, 0.2);
+}
+
+html.theme-pixijs .ring-pulse {
+  border-color: #d4a853;
+  border-top-color: transparent;
+}
+
+/* Rustik v0 — Oyun Sonu Modal */
+html.theme-pixijs .game-over-modal {
+  background: rgba(74, 53, 32, 0.95);
+  border: 2px solid rgba(212, 168, 83, 0.3);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+html.theme-pixijs .modal-backdrop {
+  background: rgba(19, 29, 51, 0.85);
+}
+
+html.theme-pixijs .elo-change-panel {
+  background: rgba(245, 240, 232, 0.05);
+  border: 1px solid rgba(212, 168, 83, 0.2);
+}
+
+/* Rustik v0 — Mobil Turn Indicator */
+html.theme-pixijs .mobile-turn-indicator {
+  background: rgba(74, 53, 32, 0.9);
+  border: 1px solid rgba(212, 168, 83, 0.3);
+  color: #d4a853;
+}
+
+/* ================================================
+   MOBİL-ÖNCELİKLİ DÜZENLEMELERİ
+   ================================================ */
+
+@media (max-width: 768px) {
+
+  /* Header stays horizontal but compact */
+  .game-header-panel {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+
+  .player-badge {
+    width: auto;
+    flex: 1;
+    min-width: 0;
+    padding: 6px 10px;
+    gap: 8px;
+  }
+
+  .player-badge.opponent {
+    flex-direction: row-reverse;
+  }
+
+  .player-avatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  .player-username {
+    font-size: 13px;
+  }
+
+  .player-elo-info {
+    font-size: 10px;
+  }
+
+  .timer-panel {
+    padding: 4px 10px;
+    gap: 4px;
+  }
+
+  .timer-seconds {
+    font-size: 16px;
+  }
+
+  /* Oyun İçerik: tek sütun, tahta üstte chat altta */
+  .game-content-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Mobilde chat paneli tahtanın altına */
+  .chat-panel-container {
+    order: 2;
+    height: 220px !important;
+    /* Limit height to fit screen */
+    padding: 12px;
+  }
+
+  .chat-messages-box {
+    flex: 1;
+    height: 80px !important;
+  }
+
+  .board-panel-container {
+    order: 1;
+    padding: 8px;
+  }
+
+  /* Tahta küçültme */
+  .mangala-board {
+    grid-template-columns: 64px 1fr 64px;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .pit {
+    width: 46px;
+    height: 46px;
+  }
+
+  .pit .stone-count {
+    font-size: 11px;
+    padding: 0 3px;
+    transform: translateY(-5px);
+  }
+
+  .pit-index-label {
+    font-size: 8px;
+  }
+
+  .pits-row {
+    gap: 4px;
+  }
+
+  .pits-grid {
+    gap: 20px;
+  }
+
+  /* Hazneler */
+  .treasury {
+    min-height: 150px;
+    padding: 8px 4px;
+    border-radius: 24px;
+  }
+
+  .treasury .stone-count {
+    font-size: 14px;
+  }
+
+  .treasury-label {
+    font-size: 8px;
+  }
+
+  /* Stone dots mobilde küçük */
+  .stone-dots-container {
+    width: 32px;
+    height: 20px;
+    bottom: 2px;
+  }
+
+  .stone-dot {
+    width: 5px;
+    height: 5px;
+  }
+
+  .stone-more-text {
+    font-size: 8px;
+  }
+
+  /* Mobilde turn indicator */
+  .mobile-turn-indicator-container {
+    display: flex;
+    justify-content: center;
+    position: fixed;
+    bottom: 12px;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    pointer-events: none;
+  }
+
+  .mobile-turn-indicator {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+@media (max-width: 480px) {
+  .mangala-board {
+    grid-template-columns: 50px 1fr 50px;
+    gap: 4px;
+    padding: 8px;
+  }
+
+  .pit {
+    width: 38px;
+    height: 38px;
+  }
+
+  .pit .stone-count {
+    font-size: 10px;
+    transform: translateY(-4px);
+  }
+
+  .pits-row {
+    gap: 2px;
+  }
+
+  .treasury {
+    min-height: 120px;
+    border-radius: 20px;
+  }
+
+  .chat-panel-container {
+    height: 180px !important;
+  }
+
+  .chat-messages-box {
+    height: 50px !important;
+  }
+
+  .player-username {
+    font-size: 11px;
+  }
+}
+
+/* Board Canvas Konteyner */
+.mangala-board-canvas-container {
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 16 / 9;
+  min-height: 320px; /* PC'de taşmayı önlemek için 450px'den 320px'e düşürüldü */
+}
+.mangala-board-canvas-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: pan-y !important;
+}
+@media (max-width: 1023px) {
+  .mangala-board-canvas-container {
+    min-height: 220px;
+  }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .mangala-board-canvas-container {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    aspect-ratio: auto !important;
+  }
+}
+
+/* Mobildeki Sıra Göstergesi - Masaüstünde Gizle */
+.mobile-turn-indicator-container {
+  display: none;
+}
+@media (max-width: 1023px) {
+  .mobile-turn-indicator-container {
+    display: flex;
+    justify-content: center;
+    position: fixed;
+    bottom: 12px;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    pointer-events: none;
+  }
+}
+
+/* Dikey ekran uyarısı */
+.orientation-warning-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, #1f1035 0%, #080310 100%);
+  z-index: 99999;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px;
+  box-sizing: border-box;
+  color: #f3f0f7;
+}
+
+.orientation-warning-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 40px 24px;
+  max-width: 320px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.orientation-warning-icon {
+  width: 80px;
+  height: 80px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.orientation-warning-icon svg {
+  width: 40px;
+  height: 40px;
+  fill: none;
+  stroke: #ff375f;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: rotatePhone 2.5s ease-in-out infinite;
+}
+
+.orientation-warning-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: #fff;
+}
+
+.orientation-warning-text {
+  font-size: 14px;
+  color: #a69bb8;
+  line-height: 1.5;
+  margin: 0;
+}
+
+@keyframes rotatePhone {
+  0% {
+    transform: rotate(0deg);
+  }
+  30% {
+    transform: rotate(90deg);
+  }
+  70% {
+    transform: rotate(90deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* Sadece mobil dikey ekranda uyarıyı göster */
+@media (max-width: 950px) and (orientation: portrait) {
+  .orientation-warning-overlay {
+    display: flex;
+  }
+}
+
+/* Yatay Mod (Landscape) İyileştirmeleri */
+@media (max-height: 520px) and (orientation: landscape) {
+  .game-layout {
+    padding: 6px !important;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    overflow-y: auto !important; /* Dikey kaydırmaya izin ver */
+  }
+
+  .game-header-panel {
+    padding: 4px 10px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .player-badge {
+    padding: 4px 8px !important;
+    gap: 6px !important;
+  }
+
+  .player-avatar {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  .player-username {
+    font-size: 11px !important;
+  }
+
+  .timer-panel {
+    padding: 2px 8px !important;
+  }
+
+  .timer-seconds {
+    font-size: 14px !important;
+  }
+
+  .game-content-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    flex: none !important;
+    min-height: 0;
+  }
+
+  .board-panel-container {
+    order: 1 !important;
+    padding: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: calc(100vh - 65px) !important; /* İlk ekranı kaplasın */
+    min-height: 0 !important;
+    box-sizing: border-box;
+  }
+
+  .chat-panel-container {
+    order: 2 !important;
+    height: 380px !important; /* Tahtanın altında kaydırılınca görünecek chat alanı */
+    padding: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    box-sizing: border-box;
+  }
+
+  .chat-messages-box {
+    flex: 1 !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  .chat-presets {
+    margin-bottom: 6px !important;
+    gap: 4px !important;
+  }
+
+  .preset-msg-btn {
+    padding: 2px 4px !important;
+    font-size: 9px !important;
+  }
+
+  .chat-input-form {
+    gap: 4px !important;
+  }
+
+  .chat-input {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+  }
+
+  .chat-send-btn {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .mangala-board {
+    transform: scale(0.95);
+    transform-origin: center;
+    margin: 0 auto;
+    max-width: 680px !important;
+    padding: 10px !important;
+  }
+
+  .pit {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  .pit .stone-count {
+    font-size: 11px !important;
+    transform: translateY(-4px) !important;
+  }
+
+  .pits-grid {
+    gap: 20px !important;
+  }
+
+  .treasury {
+    min-height: 140px !important;
+  }
+}
+
+/* Game Page Main Wrapper (full width/height without padding) */
+.game-page-main {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Transparan Üst Menü / Player Bar */
+.game-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 12px 24px;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 10;
+}
+
+.top-bar-player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+  min-width: 180px;
+}
+
+.top-bar-player.me {
+  justify-content: flex-start;
+}
+
+.top-bar-player.opponent {
+  justify-content: flex-end;
+}
+
+.top-bar-player.active-turn {
+  background: rgba(76, 217, 100, 0.1);
+  border-color: rgba(76, 217, 100, 0.4);
+  box-shadow: 0 0 10px rgba(76, 217, 100, 0.2);
+}
+
+.top-bar-player .player-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-color, #ff375f);
+}
+
+.top-bar-player.active-turn .player-avatar {
+  border-color: #4cd964;
+  box-shadow: 0 0 8px rgba(76, 217, 100, 0.5);
+}
+
+.top-bar-player .player-meta {
+  display: flex;
+  flex-direction: column;
+  color: #f3f0f7;
+}
+
+.top-bar-player.opponent .player-meta {
+  align-items: flex-end;
+}
+
+.top-bar-player .player-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.top-bar-player .player-elo {
+  font-size: 11px;
+  color: #a69bb8;
+  font-weight: 500;
+}
+
+/* Üst Bar Orta Kısım: Başlık & Zamanlayıcı */
+.top-bar-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.top-bar-center .game-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.top-bar-center .game-timer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-family: var(--mono);
+  font-size: 14px;
+  color: #4cd964;
+  font-weight: 700;
+}
+
+.top-bar-center .game-timer.danger {
+  color: #ff3b30;
+  background: rgba(255, 59, 48, 0.1);
+  border-color: rgba(255, 59, 48, 0.3);
+  animation: pulse 0.5s ease infinite alternate;
+}
+
+/* Kırmızı Çıkış (X) Butonu */
+.game-exit-btn {
+  position: absolute;
+  top: 72px;
+  left: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ff3b30;
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(255, 59, 48, 0.3);
+  z-index: 100;
+  transition: all 0.2s ease;
+}
+
+.game-exit-btn:hover {
+  transform: scale(1.1);
+  background: #ff453a;
+  box-shadow: 0 6px 15px rgba(255, 59, 48, 0.5);
+}
+
+/* Tam Ekran (Fullscreen) Butonu */
+.game-fullscreen-btn {
+  position: absolute;
+  top: 120px; /* Exit butonunun hemen altında */
+  left: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent-color, #d4a853);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(212, 168, 83, 0.3);
+  z-index: 100;
+  transition: all 0.2s ease;
+}
+
+.game-fullscreen-btn:hover {
+  transform: scale(1.1);
+  background: var(--accent-hover, #e8c072);
+  box-shadow: 0 6px 15px rgba(212, 168, 83, 0.5);
+}
+
+/* Sağ Kenardaki Floating Sohbet Arayüzü */
+.game-floating-actions {
+  position: absolute;
+  top: 72px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 100;
+}
+
+.sohbet-acik-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px 12px;
+  border-radius: 18px;
+  font-size: 12px;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sohbet-acik-checkbox input {
+  margin: 0;
+  cursor: pointer;
+}
+
+.action-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+}
+
+/* Oyun Tahtası Kart Arka Planını Transparan Yap */
+.game-layout .board-panel-container {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  padding: 0 !important;
+}
+
+/* PixiJS Tema Arka Planı (Premium Desenli Mavi Doku) */
+html.theme-pixijs .game-layout {
+  background: radial-gradient(circle at center, #1b263b 0%, #0f172a 100%);
+  background-image: 
+    radial-gradient(circle at center, #1e293b 0%, #0f172a 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%231e293b' fill-opacity='0.15'%3E%3Cpath fill-rule='evenodd' d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm1-61c3.16 0 6-2.84 6-6s-2.84-6-6-6-6 2.84-6 6 2.84 6 6 6zm-.667 30C39.296 59 47 51.296 47 41.667c0-9.63-7.704-17.334-17.333-17.334C20.037 24.333 12.333 32.037 12.333 41.667 12.333 51.296 20.037 59 29.667 59z'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Mobil / Yatay Düzeltmeler */
+@media (max-height: 520px) and (orientation: landscape) {
+  .game-layout {
+    padding: 0 !important;
+    height: 100vh !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    overflow-y: auto !important; /* Dikey kaydırmaya izin ver */
+  }
+
+  .game-top-bar {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%) !important;
+    border-bottom: none !important;
+    padding: 6px 16px !important;
+    z-index: 100 !important;
+  }
+  
+  .top-bar-player {
+    min-width: 140px !important;
+    padding: 3px 8px !important;
+    gap: 8px !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+  }
+  
+  .top-bar-player .player-avatar {
+    width: 24px !important;
+    height: 24px !important;
+  }
+  
+  .top-bar-player .player-name {
+    font-size: 12px !important;
+  }
+
+  .top-bar-player .player-elo {
+    font-size: 9px !important;
+  }
+
+  .top-bar-center .game-title {
+    font-size: 13px !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  }
+
+  .top-bar-center .game-timer {
+    padding: 2px 8px !important;
+    font-size: 11px !important;
+  }
+  
+  .game-exit-btn {
+    top: 48px !important;
+    left: 16px !important;
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+    z-index: 100 !important;
+  }
+
+  .game-fullscreen-btn {
+    top: 88px !important; /* Exit butonunun hemen altında (48px + 32px + 8px gap) */
+    left: 16px !important;
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 13px !important;
+    z-index: 100 !important;
+  }
+
+  .game-floating-actions {
+    top: 48px !important;
+    right: 16px !important;
+    z-index: 100 !important;
+  }
+  
+  .sohbet-acik-checkbox {
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+  }
+  
+  .action-icon-btn {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 13px !important;
+  }
+
+  .game-content-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    flex: none !important;
+    min-height: 0;
+    margin-top: 0 !important;
+  }
+
+  .board-panel-container {
+    order: 1 !important;
+    padding: 46px 0 10px 0 !important; /* Üst barın kapladığı alanı kurtarmak için üst padding */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 100vh !important; /* Ekran yüksekliğinin %100'ünü kaplasın */
+    min-height: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .chat-panel-container {
+    order: 2 !important;
+    height: 360px !important;
+    padding: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* Local PvP Mode */
+.game-layout.local-pvp-layout {
+  max-width: 1240px;
+}
+
+.game-content-container.local-pvp-mode {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.game-content-container.local-pvp-mode .board-panel-container {
+  max-width: 100% !important;
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.game-content-container.local-pvp-mode .mangala-board-canvas-container {
+  width: 100% !important;
+  max-width: 1200px !important;
+  aspect-ratio: 1400 / 600 !important;
+  min-height: 460px !important;
 }

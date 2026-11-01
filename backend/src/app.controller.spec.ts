@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { ExecutionContext, CallHandler } from '@nestjs/common';
+import { of, firstValueFrom } from 'rxjs';
 
 describe('AppController', () => {
   let appController: AppController;
@@ -8,15 +10,32 @@ describe('AppController', () => {
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
-      providers: [AppService],
     }).compile();
 
     appController = app.get<AppController>(AppController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
-    });
+  it('should_return_ok_status_from_health_endpoint', async () => {
+    // Arrange
+    const interceptor = new ResponseInterceptor<{ status: 'ok' }>();
+    const mockContext = {} as ExecutionContext;
+    const next: CallHandler<{ status: 'ok' }> = {
+      handle: () => of(appController.getHealth()),
+    };
+
+    // Act
+    const rawResult = appController.getHealth();
+    const wrappedResult = await firstValueFrom(
+      interceptor.intercept(mockContext, next),
+    );
+
+    // Assert
+    expect(rawResult).toEqual({ status: 'ok' });
+    expect(wrappedResult).toEqual({ data: { status: 'ok' } });
+  });
+
+  it('should_not_expose_createTestMatch_debug_method', () => {
+    // Assert
+    expect('createTestMatch' in appController).toBe(false);
   });
 });

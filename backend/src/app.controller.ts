@@ -1,12 +1,17 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { SkipThrottle } from '@nestjs/throttler';
+import { Public } from './auth/auth.guard';
+
+export interface HealthCheckResponse {
+  readonly status: 'ok';
+}
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
-
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @Public()
+  @SkipThrottle()
+  @Get('health')
+  getHealth(): HealthCheckResponse {
+    return { status: 'ok' };
   }
 }
