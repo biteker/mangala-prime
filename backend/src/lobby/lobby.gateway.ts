@@ -16,7 +16,7 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import type { LobbyInviteSendPayload, LobbyInviteResponsePayload } from '@mangala/shared';
 
-@WebSocketGateway({ namespace: '/lobby', cors: { origin: '*' } })
+@WebSocketGateway({ namespace: '/lobby' })
 export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
   @WebSocketServer()
   server!: Server;

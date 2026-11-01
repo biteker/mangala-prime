@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/remove-debug-endpoints
+Aktif Branch: feature/unified-cors
 
 ---
 
@@ -8,7 +8,7 @@ Aktif Branch: feature/remove-debug-endpoints
 
 ```
 Faz 1 MVP: ██████████ %100
-Yayın Hazırlığı: ███████░░░ %74  (T-01, T-02 ve T-03 tamamlandı — bkz. docs/architecture-roadmap.md)
+Yayın Hazırlığı: ████████░░ %80  (T-01, T-02, T-03 ve T-04 tamamlandı — bkz. docs/architecture-roadmap.md)
 ```
 
 ---
@@ -61,15 +61,16 @@ Yayın Hazırlığı: ███████░░░ %74  (T-01, T-02 ve T-03 ta
 - **✅ ÇÖZÜLDÜ (B-01 / B-14 / T-02):** `POST /test-match` ve `ws-test.html` kaldırıldı; `GET /health` eklendi.
 - **✅ ÇÖZÜLDÜ (B-02 / T-01):** Tipli `AppConfig` ve fail-fast doğrulama eklendi; tüm JWT fallback secret'ları kaldırıldı.
 - **✅ ÇÖZÜLDÜ (B-03 / T-03):** VPS ve yerel Postgres şifreleri değiştirildi, repo dosyalarındaki sızmış şifre temizlendi.
-- **🟠 (B-04/B-07):** WS gateway CORS `origin: '*'`; `lobby.gateway.ts` içinde `as any`, ESLint'te `no-explicit-any` kapalı. → T-04, T-06
+- **✅ ÇÖZÜLDÜ (B-04 / B-05 / T-04):** `ConfiguredIoAdapter` ile HTTP ve WebSocket CORS politikası `AppConfig.corsOrigins` altında birleştirildi.
+- **🟠 (B-07):** `lobby.gateway.ts` içinde `as any`, ESLint'te `no-explicit-any` kapalı. → T-06
 - **Mimari Kararlar:** K-1…K-7 tamamı 2026-10-31'de onaylandı (K-4: yalnızca şifre rotasyonu). T-01 başlatılabilir.
 
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-01 — T-02: Test Endpoint'i ve Debug Artıklarının Kaldırılması
+Oturum 2026-11-01 — T-04: Birleşik CORS Politikası (HTTP + WebSocket)
 
 ### Yapılanlar
-- `POST /test-match` debug endpoint'i ve `ws-test.html` tamamen kaldırıldı (`grep test-match|testplayer` → 0 sonuç).
-- `GET /health` endpoint'i ve birim testleri eklendi; `prisma/seed.ts` içine production koruması eklendi.
-- 82/82 birim testi ve monorepo build doğrulandı. Sıradaki görev: T-04.
+- `ConfiguredIoAdapter` oluşturuldu ve `main.ts` içinde WebSocket adapter olarak bağlandı.
+- `GameGateway` ve `LobbyGateway` üzerindeki `origin: '*'` kaldırıldı (`grep origin: '*'|origin: true` → 0 sonuç).
+- 84/84 birim testi ve monorepo build doğrulandı. Sıradaki görev: T-05.

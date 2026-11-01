@@ -600,7 +600,7 @@ flowchart LR
 | T-01 | ✅ Tipli Config + Secret Fail-Fast (Tamamlandı) | A | P0 | Ajan | — | K-2 |
 | T-02 | ✅ Debug endpoint kaldırma + /health (Tamamlandı) | A | P0 | Ajan | T-01 | K-3 |
 | T-03 | ✅ Sızan şifre rotasyonu (Tamamlandı) | A | P0 | **İnsan + Ajan** | — | K-4 |
-| T-04 | Birleşik CORS (HTTP + WS) | A | P1 | Ajan | T-01 | K-2 |
+| T-04 | ✅ Birleşik CORS (HTTP + WS) (Tamamlandı) | A | P1 | Ajan | T-01 | K-2 |
 | T-05 | Helmet + Rate limiting | A | P1 | Ajan | T-04 | K-6 |
 | T-06 | `any` temizliği + lint kapısı | A | P1 | Ajan | T-02, T-05 | — |
 | T-07 | Prisma config tekilleştirme | A | P2 | Ajan | — | — |

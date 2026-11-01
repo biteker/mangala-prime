@@ -8,6 +8,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { loadAppConfig, AppConfig } from './common/config/app-config';
+import { ConfiguredIoAdapter } from './common/adapters/configured-io.adapter';
 import cookieParser from 'cookie-parser';
 
 async function bootstrap(): Promise<void> {
@@ -28,6 +29,8 @@ async function bootstrap(): Promise<void> {
     origin: [...config.corsOrigins],
     credentials: true,
   });
+
+  app.useWebSocketAdapter(new ConfiguredIoAdapter(app, config));
 
   app.useGlobalPipes(
     new ValidationPipe({

@@ -17,7 +17,7 @@ import { validate } from 'class-validator';
 import type { GameMovePayload, GameReconnectPayload, GameChatTogglePayload, GameMessagePayload } from '@mangala/shared';
 import { GameEndReason } from '@mangala/shared';
 
-@WebSocketGateway({ namespace: '/game', cors: { origin: '*' } })
+@WebSocketGateway({ namespace: '/game' })
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
   @WebSocketServer()
   server!: Server;
