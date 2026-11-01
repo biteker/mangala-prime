@@ -3,6 +3,7 @@ import { GameService } from './game.service';
 import { GameEngineService } from './game-engine.service';
 import { EloService } from '../elo/elo.service';
 import { PrismaService } from '../common/prisma/prisma.service';
+import { APP_CONFIG, loadAppConfig } from '../common/config/app-config';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { GameEndReason } from '@mangala/shared';
 
@@ -36,6 +37,7 @@ describe('GameService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: GameEngineService, useValue: mockGameEngine },
         { provide: EloService, useValue: mockEloService },
+        { provide: APP_CONFIG, useValue: loadAppConfig(process.env) },
       ],
     }).compile();
 

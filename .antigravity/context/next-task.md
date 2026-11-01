@@ -2,37 +2,36 @@
 
 ---
 
-## Görev: T-01 — Tipli Config Modülü ve Secret Fail-Fast
+## Görev: T-02 — Test Endpoint'i ve Debug Artıklarının Kaldırılması
 
-> **Tam tasarım:** `docs/architecture-roadmap.md` → Bölüm 4, **T-01**. Bu dosya özet bilgi verir; bağlayıcı olan roadmap dokümanıdır.
+> **Tam tasarım:** `docs/architecture-roadmap.md` → Bölüm 4, **T-02**. Bu dosya özet bilgi verir; bağlayıcı olan roadmap dokümanıdır.
 
 ### Ön Koşullar (Başlamadan Kontrol Et)
-- [x] **K-2** kararı onaylandı (2026-10-31).
-- [x] `feature/fix-test-and-backlog`, `feature/architecture-roadmap` ve T-03 `develop`'a merge edildi.
+- [x] **K-3** kararı onaylandı (2026-10-31).
+- [ ] T-01 (`feature/config-hardening`) `develop`'a merge edildi mi?
 
 ### Branch
-`feature/config-hardening` (base: güncel `origin/develop`)
+`feature/remove-debug-endpoints` (base: güncel `origin/develop`)
 
 ### Ne Yapılacak? (Özet)
-1. `backend/src/common/config/app-config.ts` → saf `loadAppConfig(env): AppConfig` fonksiyonu (JWT secret ≥ 32 karakter ve birbirinden farklı; production'da `CORS_ORIGIN` zorunlu; `DATABASE_URL` zorunlu; tur süresi 10–300 sn).
-2. `backend/src/common/config/config.module.ts` → `APP_CONFIG` global provider.
-3. `main.ts` içinde Nest başlamadan önce config doğrulanır; hata varsa `process.exit(1)`.
-4. Tüm `process.env.JWT_*`, `CORS_ORIGIN`, `GAME_TURN_TIME_LIMIT_SECS` okumaları ve `'fallback_...'` secret'ları kaldırılır; `APP_CONFIG` inject edilir. `JwtModule` `registerAsync` ile yapılandırılır.
-5. `backend/test/setup-env.ts` → Jest test env değerleri (`jest.setupFiles`).
-6. `backend/.env.example` → yalnızca placeholder değerler (gerçek şifre YOK).
+1. `AppController.createTestMatch` (`POST /test-match`) ve ona ait tüm gereksiz import ve constructor bağımlılıklarını (`GameService`, `PrismaService`, `AuthService`, `JwtService`) sil.
+2. `AppController` içine bir health endpoint ekle: `@Public() @Get('health')` → `{ status: 'ok' }` (ResponseInterceptor bunu `{ data: { status: 'ok' } }` olarak sarar). Dönüş tipini açıkça yaz.
+3. `backend/src/app.controller.spec.ts` dosyasını yeni health endpoint'ini test edecek şekilde güncelle (`GET /health` → `{ status: 'ok' }`).
+4. Kök dizindeki `ws-test.html` dosyasını sil.
+5. `.gitignore` içinde `.obsidian/` olduğundan emin ol (yoksa ekle).
+6. `prisma/seed.ts` dosyasını incele: production ortamında yanlışlıkla çalışmasını önlemek için `process.env.NODE_ENV === 'production'` ise seed'in çalışmayı reddetmesini veya uyarı verip çıkmasını sağla.
 
 ### İlgili Referanslar
-- Spec Bölüm 8, 11 · `.antigravity/skills/api-contract.md`, `.antigravity/skills/testing.md`
+- `docs/architecture-roadmap.md` Bölüm 4, T-02 · `.antigravity/skills/api-contract.md`, `.antigravity/skills/testing.md`
 
 ### Kabul Kriterleri
-- [ ] `grep -rn "fallback_" backend/src` → 0 sonuç
-- [ ] `grep -rnE "process\.env\.(JWT|CORS)" backend/src` → yalnızca `app-config.ts`
-- [ ] `app-config.spec.ts` içinde 7 zorunlu test (roadmap T-01 listesi) yazıldı ve geçti
-- [ ] `JWT_SECRET` olmadan `npm run start:prod` → anlaşılır hata + çıkış kodu 1
+- [ ] `grep -rn "test-match\|testplayer" backend/src` → 0 sonuç
+- [ ] `ws-test.html` silindi
+- [ ] `GET /health` → `{ status: 'ok' }` (interceptor ile `{ data: { status: 'ok' } }`), birim testi ile doğrulandı
 - [ ] `npm run test` ve `npm run build` yeşil
 
 ### Kapsam Dışı
-- Socket CORS (T-04), `/test-match` kaldırma (T-02), rate limiting (T-05)
+- Socket CORS (T-04), Helmet ve rate limiting (T-05), `lobby.gateway.ts` `any` temizliği (T-06)
 
 ### Sonraki Görev
-T-02 — Test Endpoint'i ve Debug Artıklarının Kaldırılması
+T-04 — Birleşik CORS Politikası (HTTP + WebSocket)

@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/architecture-roadmap
+Aktif Branch: feature/config-hardening
 
 ---
 
@@ -8,7 +8,7 @@ Aktif Branch: feature/architecture-roadmap
 
 ```
 Faz 1 MVP: ██████████ %100
-Yayın Hazırlığı: ██████░░░░ %60  (mimari denetimde kritik güvenlik bulguları — bkz. docs/architecture-roadmap.md)
+Yayın Hazırlığı: ███████░░░ %68  (T-01 ve T-03 tamamlandı — bkz. docs/architecture-roadmap.md)
 ```
 
 ---
@@ -59,7 +59,7 @@ Yayın Hazırlığı: ██████░░░░ %60  (mimari denetimde krit
 - **Backlog:** Detaylı yayın öncesi eksik listesi `docs/production-backlog.md` dokümanında listelenmiştir.
 - **Mimari Yol Haritası:** `docs/architecture-roadmap.md` (2026-10-30) — bağlayıcı görev listesi (T-01…T-16). Görevler bu sırayla yürütülür.
 - **🔴 KRİTİK (B-01):** `POST /test-match` kimlik doğrulamasız, canlıda açık. → T-02
-- **🔴 KRİTİK (B-02):** JWT secret'larında hardcoded fallback (6 yer). → T-01
+- **✅ ÇÖZÜLDÜ (B-02 / T-01):** Tipli `AppConfig` ve fail-fast doğrulama eklendi; tüm JWT fallback secret'ları kaldırıldı.
 - **✅ ÇÖZÜLDÜ (B-03 / T-03):** VPS ve yerel Postgres şifreleri değiştirildi, repo dosyalarındaki sızmış şifre temizlendi.
 - **🟠 (B-04/B-07):** WS gateway CORS `origin: '*'`; `lobby.gateway.ts` içinde `as any`, ESLint'te `no-explicit-any` kapalı. → T-04, T-06
 - **Mimari Kararlar:** K-1…K-7 tamamı 2026-10-31'de onaylandı (K-4: yalnızca şifre rotasyonu). T-01 başlatılabilir.
@@ -67,9 +67,10 @@ Yayın Hazırlığı: ██████░░░░ %60  (mimari denetimde krit
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-10-30 — Mimari Denetim ve Yol Haritası (Sistem Mimarı)
+Oturum 2026-11-01 — T-01: Tipli Config Modülü ve Secret Fail-Fast
 
 ### Yapılanlar
-- Kod tabanının mimari denetimi yapıldı; 14 bulgu (3 kritik) `docs/architecture-roadmap.md` Bölüm 1'e kaydedildi.
-- 7 onay gerektiren mimari karar (K-1…K-7) ve 16 görev (T-01…T-16) tasarlandı.
-- Kod değişikliği yapılmadı. Sıradaki görev: T-01.
+- `backend/src/common/config/app-config.ts` ve `config.module.ts` ile merkezi tipli config ve fail-fast başlangıç doğrulaması kuruldu.
+- Tüm hardcoded JWT fallback secret'ları kaldırıldı (`grep fallback_` → 0 sonuç).
+- `app-config.spec.ts` ile 7 zorunlu birim testi eklendi; toplam 81/81 test ve monorepo build doğrulandı.
+- Sıradaki görev: T-02.

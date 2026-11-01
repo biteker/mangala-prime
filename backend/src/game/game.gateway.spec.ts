@@ -68,7 +68,7 @@ describe('GameGateway', () => {
       await gateway.handleConnection(mockSocket as unknown as Socket);
 
       // Assert
-      expect(jwtService.verifyAsync).toHaveBeenCalledWith('valid-token', expect.any(Object));
+      expect(jwtService.verifyAsync).toHaveBeenCalledWith('valid-token');
       expect(mockSocket.data).toEqual({ userId: 'user-1', username: 'user1' });
       expect(gameService.handlePlayerConnect).toHaveBeenCalledWith('user-1', 'socket-p1');
       expect(mockSocket.join).toHaveBeenCalledWith('match-123');
