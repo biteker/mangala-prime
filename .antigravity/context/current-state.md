@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/config-hardening
+Aktif Branch: feature/remove-debug-endpoints
 
 ---
 
@@ -8,7 +8,7 @@ Aktif Branch: feature/config-hardening
 
 ```
 Faz 1 MVP: ██████████ %100
-Yayın Hazırlığı: ███████░░░ %68  (T-01 ve T-03 tamamlandı — bkz. docs/architecture-roadmap.md)
+Yayın Hazırlığı: ███████░░░ %74  (T-01, T-02 ve T-03 tamamlandı — bkz. docs/architecture-roadmap.md)
 ```
 
 ---
@@ -58,7 +58,7 @@ Yayın Hazırlığı: ███████░░░ %68  (T-01 ve T-03 tamamlan
 - **Karar:** Turn timer testi dinamik limit (`service.getTurnTimeLimit()`) ile çalışır.
 - **Backlog:** Detaylı yayın öncesi eksik listesi `docs/production-backlog.md` dokümanında listelenmiştir.
 - **Mimari Yol Haritası:** `docs/architecture-roadmap.md` (2026-10-30) — bağlayıcı görev listesi (T-01…T-16). Görevler bu sırayla yürütülür.
-- **🔴 KRİTİK (B-01):** `POST /test-match` kimlik doğrulamasız, canlıda açık. → T-02
+- **✅ ÇÖZÜLDÜ (B-01 / B-14 / T-02):** `POST /test-match` ve `ws-test.html` kaldırıldı; `GET /health` eklendi.
 - **✅ ÇÖZÜLDÜ (B-02 / T-01):** Tipli `AppConfig` ve fail-fast doğrulama eklendi; tüm JWT fallback secret'ları kaldırıldı.
 - **✅ ÇÖZÜLDÜ (B-03 / T-03):** VPS ve yerel Postgres şifreleri değiştirildi, repo dosyalarındaki sızmış şifre temizlendi.
 - **🟠 (B-04/B-07):** WS gateway CORS `origin: '*'`; `lobby.gateway.ts` içinde `as any`, ESLint'te `no-explicit-any` kapalı. → T-04, T-06
@@ -67,10 +67,9 @@ Yayın Hazırlığı: ███████░░░ %68  (T-01 ve T-03 tamamlan
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-01 — T-01: Tipli Config Modülü ve Secret Fail-Fast
+Oturum 2026-11-01 — T-02: Test Endpoint'i ve Debug Artıklarının Kaldırılması
 
 ### Yapılanlar
-- `backend/src/common/config/app-config.ts` ve `config.module.ts` ile merkezi tipli config ve fail-fast başlangıç doğrulaması kuruldu.
-- Tüm hardcoded JWT fallback secret'ları kaldırıldı (`grep fallback_` → 0 sonuç).
-- `app-config.spec.ts` ile 7 zorunlu birim testi eklendi; toplam 81/81 test ve monorepo build doğrulandı.
-- Sıradaki görev: T-02.
+- `POST /test-match` debug endpoint'i ve `ws-test.html` tamamen kaldırıldı (`grep test-match|testplayer` → 0 sonuç).
+- `GET /health` endpoint'i ve birim testleri eklendi; `prisma/seed.ts` içine production koruması eklendi.
+- 82/82 birim testi ve monorepo build doğrulandı. Sıradaki görev: T-04.

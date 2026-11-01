@@ -23,6 +23,25 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-01] — T-02: Test Endpoint'i ve Debug Artıklarının Kaldırılması
+
+**Tamamlanan Görev:** Kimlik doğrulamasız `POST /test-match` endpoint'i ve `ws-test.html` tamamen kaldırıldı. `AppController` içine tip güvenli `@Public() @Get('health')` endpoint'i eklendi ve birim testleriyle doğrulandı. `prisma/seed.ts` içine production ortamında çalışmayı engelleyen güvenlik kontrolü eklendi, `.gitignore`'a `.obsidian/` tanımlandı.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `backend/src/app.controller.ts` — `POST /test-match` kaldırıldı; `@Public() @Get('health')` eklendi
+- `backend/src/app.controller.spec.ts` — `GET /health` ve `ResponseInterceptor` birim testleri yazıldı
+- `ws-test.html` — Silindi
+- `prisma/seed.ts` — `NODE_ENV === 'production'` güvenlik koruması eklendi
+- `.gitignore` — `.obsidian/` eklendi
+
+**Test Sonuçları:** 82/82 test geçti (10 test suite)
+**Derleme:** ✅ Hatasız (`shared`, `backend`, `frontend`)
+**Açık Sorunlar:** Yok. Sıradaki adım T-04 (Birleşik HTTP + WebSocket CORS politikası).
+**Bir Sonraki Görev:** T-04 — Birleşik CORS Politikası (HTTP + WebSocket)
+**Commit:** fix(security): remove public test-match endpoint and debug artifacts (T-02)
+**PR:** feature/remove-debug-endpoints → develop
+
+---
+
 ### Oturum [2026-11-01] — T-01: Tipli Config Modülü ve Secret Fail-Fast
 
 **Tamamlanan Görev:** `loadAppConfig` saf fonksiyonu ve global `ConfigModule` (`APP_CONFIG`) oluşturuldu. Sunucu başlangıcında (`main.ts`) fail-fast env doğrulaması eklendi. Tüm hardcoded JWT fallback secret'ları ve dağınık `process.env` okumaları kaldırılarak merkezi tipli yapılandırmaya geçirildi. Jest için `test/setup-env.ts` eklendi ve `app-config.spec.ts` ile 7 zorunlu birim testi yazıldı.
