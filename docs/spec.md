@@ -107,12 +107,12 @@ Local PvP aynı tarayıcı sekmesinde iki oyuncunun sırayla oynamasıdır:
 
 ## Bölüm 5 — Veritabanı Stratejisi
 
-### 5.1 Geçiş Planı
+### 5.1 Mimari ve Adaptör Standardı
 
-- **MVP:** SQLite (dosya tabanlı, kurulum kolaylığı)
-- **Faz 2:** PostgreSQL (eş zamanlı yazma kilitleri için)
-- **Faz 2:** Redis (in-memory oda yönetimi için)
-- Prisma modelleri database-agnostic kurgulanmıştır.
+- **Veritabanı:** PostgreSQL 16 (`@prisma/adapter-pg` + `pg` bağlantı havuzu)
+- **ORM:** Prisma 7+ (`provider = "prisma-client"`, `output = "../backend/src/generated/client"`)
+- **Yapılandırma:** Kök dizindeki tek kaynak `/prisma.config.ts` (`env('DATABASE_URL')`)
+- **Migration:** `npx prisma migrate dev` (geliştirme) ve `npx prisma migrate deploy` (üretim)
 
 ### 5.2 Prisma Şeması
 
@@ -259,6 +259,24 @@ Kuyruk zaman aşımı: **120 saniye**
 - **Device Fingerprinting:** FingerprintJS açık kaynak. Aynı cihazdan iki farklı hesap matchmaking kuyruğuna giremez.
 - **IP Politikası:** IP engellemesi uygulanmaz (okul ortamı istisnası). Aynı IP'den gelen maçlar Friendly olarak kaydedilir, ELO etkilenmez.
 
+### 8.3 Hız Sınırlandırma (Rate Limiting) ve Güvenlik Başlıkları (CSP)
+
+- **Reverse Proxy:** `app.getHttpAdapter().getInstance().set('trust proxy', 1)` (Nginx Proxy Manager arkasında gerçek istemci IP tespiti).
+- **CORS:** HTTP ve WebSocket (`/lobby`, `/game`) `ConfiguredIoAdapter` üzerinden `AppConfig.corsOrigins` beyaz listesini paylaşır (`origin: '*'` yasaktır).
+- **Helmet & CSP:** PixiJS v8 (WebGL/Canvas, blob worker) ve WebSocket (`wss:` / geliştirme ortamında `ws:`) ile uyumlu Content-Security-Policy başlıkları zorunludur.
+- **Rate Limit Tablosu:**
+
+| Hedef | Limit | Pencere | Anahtar |
+|-------|-------|---------|---------|
+| Global HTTP varsayılanı | 100 istek | 60 sn | IP |
+| `POST /auth/login` | 5 istek | 60 sn | IP |
+| `POST /auth/register` | 3 istek | 10 dk | IP |
+| `POST /auth/refresh` | 20 istek | 60 sn | IP |
+| `GET /health` | `@SkipThrottle()` | — | — |
+| WS bağlantı (`/lobby`, `/game`) | 20 bağlantı | 60 sn | IP |
+| WS `game:message` | 5 mesaj | 10 sn | userId |
+| WS `game:move` | 10 olay | 5 sn | userId |
+
 ---
 
 ## Bölüm 9 — Ürün Özellikleri ve UI/UX
@@ -269,12 +287,10 @@ Kuyruk zaman aşımı: **120 saniye**
 - Sağ üstte "Rakip Aranıyor... [İptal Et]" bileşeni aktifleşir
 - Bekleme sırasında kullanıcı lobi sohbeti ve diğer maçları izleyebilir
 
-### 9.2 Görsel Dil
+### 9.2 Görsel Dil ve Oyun Tahtası Motoru
 
-- **Mobile-First** tasarım (Tailwind CSS + shadcn/ui)
-- Oyun tahtası: **otantik ahşap doku**, derinlik hissi veren gölgelendirme (CSS gradyanları ve box-shadow ile pseudo-3D)
-- Taşlar: parıltılı 3D küre efekti (CSS radial-gradient + box-shadow), farklı renkler (mavi, sarı, pembe, yeşil, mor)
-- 3D kütüphane (Three.js vb.) kullanılmaz — tüm görsel efektler saf CSS ile sağlanır
+- **Tahta ve Fizik Motoru:** Oyun tahtası **PixiJS v8** (`MangalaBoard.ts`), **GSAP** parabolik uçuş animasyonları, özel 2D dairesel/kapsül mermer çarpışma fiziği (`physics.ts`) ve **Web Audio API** prosedürel ses sentezleyicisi (`audio.ts`) ile çalışır; React katmanına `MangalaReactBoard.tsx` sarmalayıcısı ile bağlanır.
+- **Görsel Detaylar:** Otantik ahşap/mermer doku, derinlik hissi veren gölgelendirme ve 5 farklı renkte parıltılı mermer taşlar.
 
 ### 9.3 Dokunmatik Hamle İlkesi
 
@@ -283,10 +299,9 @@ Geçerli kuyuya tıklandığı/dokunulduğu anda hamle backend'e gönderilir.
 
 ### 9.4 Ardışık Animasyon
 
-- Taşlar sırayla düşer (anlık güncelleme yok)
-- Her kuyu geçişinde 150-200ms gecikme
-- Kuyu hafifçe büyür/titrer, taş sayacı senkron artar
-- Animasyon süresince kullanıcı arayüzü tıklamalara kilitlenir
+- Taşlar 2.5D parabolik yörüngeyle sırayla kuyulara ekilir (anlık güncelleme yok)
+- Her taş düşüşünde prosedürel çarpışma sesi (`audio.ts`) ve mermer fiziği (`physics.ts`) tetiklenir
+- Animasyon süresince kullanıcı arayüzü tıklamalara kilitlenir (`isAnimating`)
 
 ### 9.5 Matchmaking Algoritması
 
@@ -324,10 +339,10 @@ Oyun motoru için 8 test senaryosu — detay için Bölüm 19'a bakın.
 
 ### 10.2 GitHub Actions Pipeline
 
-1. **Build:** Node.js kurulum, `npm ci`, TSC derleme
-2. **Test:** `npm run test:unit` — tek test başarısız olursa pipeline kırılır
-3. **Deploy:** Hetzner'a SSH + rsync
-4. **Migration:** `npx prisma db push` + PM2 zero-downtime restart
+1. **Hazırlık & Prisma:** Node.js 20 kurulumu, `npm ci`, `npx prisma generate` ve `npm run build -w shared`
+2. **Lint Kapısı:** `npm run lint` (`@typescript-eslint/no-explicit-any: error` dahil — tek hata bile pipeline'ı kırar)
+3. **Test & Derleme:** `npm run test` (Jest birim testleri) ve `npm run build` (`shared`, `backend`, `frontend`)
+4. **Docker & Deploy (`develop` / `main` push):** Docker Buildx ile çok aşamalı imajın derlenip GHCR'ye (`ghcr.io`) yüklenmesi, SSH üzerinden Hetzner VPS'te `docker compose pull && docker compose up -d` ve `docker exec mangala-backend npx prisma migrate deploy` çalıştırılması
 
 ---
 
@@ -443,6 +458,7 @@ Gerçek Skor: Galibiyet=1.0 | Beraberlik=0.5 | Yenilgi=0.0
 | `/users/leaderboard` | GET | Public | ELO sıralaması ilk 50 |
 | `/users/:username` | GET | Public | Kullanıcı profili |
 | `/matches/:id` | GET | Bearer | Maç detayı |
+| `/health` | GET | Public (`@SkipThrottle`) | Sağlık kontrolü (`{ data: { status: 'ok' } }`) |
 
 ### Sohbet Rate Limiting
 
@@ -479,21 +495,24 @@ Gerçek Skor: Galibiyet=1.0 | Beraberlik=0.5 | Yenilgi=0.0
 
 ```
 /shared/
+  /engine/                 ← Saf Mangala kural motoru (K-1 / T-08)
   /types/
     game.types.ts          ← Oyun tipleri (BoardState, Player, MoveResult, MatchStatus, GameEndReason)
     api-response.types.ts  ← ApiResponse<T>, ApiError, REST request/response tipleri
     socket-events.types.ts ← Tüm WebSocket event payload tipleri
+    index.ts
 ```
 
-> **Not:** `shared/` klasörü hem backend hem frontend tarafından import edilir.
-> Backend ve frontend kendi `tsconfig.json` dosyalarında `shared/` klasörüne path mapping tanımlar.
+> **Not:** `shared/` klasörü (`@mangala/shared` workspace paketi) hem backend hem frontend tarafından import edilir.
 > Backend-only tipler (GameRoom, timer vb.) `shared/` içinde yer almaz.
 
-### Çevre Değişkenleri Şablonları
+### Çevre Değişkenleri ve Veritabanı Yapılandırması
 
 ```
+/prisma.config.ts          ← Tek kaynak Prisma 7 yapılandırması
+/prisma/schema.prisma
+/prisma/seed.ts
 /backend/.env.example
-/frontend/.env.example
 ```
 
 ### Backend
@@ -530,54 +549,43 @@ Gerçek Skor: Galibiyet=1.0 | Beraberlik=0.5 | Yenilgi=0.0
     elo.service.ts
     elo.service.spec.ts
   /common/
+    /adapters/configured-io.adapter.ts      ← Birleşik HTTP + WS CORS adaptörü (K-2 / T-04)
+    /config/app-config.ts                   ← Tipli ortam değişkenleri ve fail-fast doğrulama (K-2 / T-01)
+    /config/config.module.ts
     /filters/http-exception.filter.ts
     /filters/ws-exception.filter.ts
+    /filters/error-code.util.ts             ← Tip daraltmalı hata kodu çıkarıcı (T-06)
+    /guards/sliding-window-limiter.ts       ← Saf WebSocket rate limiter (K-2 / T-05)
     /interceptors/response.interceptor.ts
     /prisma/prisma.service.ts
     /prisma/prisma.module.ts
-/prisma/schema.prisma
-/prisma/seed.ts
 ```
 
-### Frontend
+### Frontend (K-5 Onaylı Yapı)
 
 ```
 /frontend/src/
   /assets/
   /components/
-    /ui/
-    /board/
-      GameBoard.tsx
-      Pit.tsx
-      Stone.tsx
-      Treasury.tsx
-      AnimationController.tsx
-    /lobby/
-      LobbyPanel.tsx
-      MatchmakingIndicator.tsx
-      PlayerList.tsx
-    /auth/
-      LoginForm.tsx
-      RegisterForm.tsx
-    /layout/
-      AppShell.tsx
+    /MangalaBoard/
+      MangalaBoard.ts        ← PixiJS v8 + GSAP oyun tahtası
+      MangalaReactBoard.tsx  ← React-PixiJS köprü bileşeni
+      physics.ts             ← 2D mermer çarpışma fiziği
+      audio.ts               ← Web Audio API prosedürel ses sentezleyici
+    AuthGuard.tsx
+    LoginForm.tsx
+    RegisterForm.tsx
+    LobbyPage.tsx
+    GamePage.tsx
   /stores/
     auth.store.ts
     game.store.ts
     lobby.store.ts
-  /hooks/
-    useSocket.ts
-    useGameEngine.ts
-    useAnimationQueue.ts
-  /pages/
-    LoginPage.tsx
-    LobbyPage.tsx
-    GamePage.tsx
-    LeaderboardPage.tsx
+    theme.store.ts
   /lib/
-    api.ts
-    socket.ts
-    elo.utils.ts
+    api-client.ts
+    game-engine.ts
+    router.ts
 ```
 
 ---

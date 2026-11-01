@@ -20,15 +20,14 @@ Bu skill'i Prisma şeması, migration, veritabanı işlemleri ve yapılandırmas
 
 ## 2. Migration Stratejisi
 
-**MVP (SQLite):** `prisma db push` kullan — hızlı prototipleme için.  
-**Faz 2 (PostgreSQL):** `prisma migrate dev` kullan — versiyon kontrollü migration.
+**PostgreSQL 16 (`@prisma/adapter-pg`):** Versiyon kontrollü migration kullanılır (`prisma migrate dev` / `prisma migrate deploy`).
 
 ```bash
-# Şemayı veritabanına uygula (MVP)
-npx prisma db push
-
-# Migration oluştur (Faz 2)
+# Yeni migration oluştur (geliştirme ortamı)
 npx prisma migrate dev --name aciklayici_isim
+
+# Üretim ortamında bekleyen migration'ları uygula (veri kaybı olmadan)
+npx prisma migrate deploy
 
 # Client'ı yeniden üret
 npx prisma generate
@@ -118,12 +117,13 @@ Prisma v7 ile gelen bağlantı dizgileri (Connection Strings) ve migrasyon yolla
 - `prisma.config.ts` içinde `earlyAccess` veya `client: { adapter: ... }` kullanımı **yasaktır**.
 
 ```typescript
-import 'dotenv/config';
+import dotenv from 'dotenv';
 import path from 'node:path';
-import { defineConfig } from 'prisma/config';
+import { defineConfig, env } from 'prisma/config';
 
-const dbAbsPath = path.resolve(__dirname, 'prisma', 'dev.db');
-const dbUrl = process.env.DATABASE_URL || `file:${dbAbsPath}`;
+if (!process.env.DATABASE_URL) {
+  dotenv.config({ path: path.join(__dirname, 'backend', '.env') });
+}
 
 export default defineConfig({
   schema: path.join(__dirname, 'prisma', 'schema.prisma'),
@@ -131,7 +131,7 @@ export default defineConfig({
     seed: 'npx -y tsx prisma/seed.ts',
   },
   datasource: {
-    url: dbUrl,
+    url: env('DATABASE_URL'),
   },
 });
 ```
@@ -144,12 +144,13 @@ v7'de şema yazarken `prisma-client-js` yerine yeni nesil `prisma-client` kullan
 
 ```prisma
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 generator client {
-  provider = "prisma-client"
-  output   = "../backend/src/generated/client" // Çıktı klasörünü zorunlu olarak belirtiyoruz
+  provider     = "prisma-client"
+  output       = "../backend/src/generated/client"
+  moduleFormat = "cjs"
 }
 ```
 
@@ -162,32 +163,43 @@ Yeni generator şemayı belirtilen özel dizine yazdığı için, istemciyi proj
 
 // YENİ YÖNTEM (v7 - DOĞRU VE HIZLI):
 import { PrismaClient } from '../../generated/client/client.js';
-
-export const prisma = new PrismaClient();
 ```
 
 ---
 
 ## 7. `PrismaService` (NestJS Entegrasyonu)
 
-Adaptörler (örneğin SQLite için LibSQL adaptörü) doğrudan servis başlatılırken `super` çağrısına iletilmelidir. İthalat yolu yeni oluşturulan istemci dizinindeki `client.js` dosyasını hedeflemelidir.
+PostgreSQL adaptörü (`@prisma/adapter-pg` ve `pg.Pool`) doğrudan servis başlatılırken `super` çağrısına iletilmelidir. İthalat yolu yeni oluşturulan istemci dizinindeki `client.js` dosyasını hedeflemelidir.
 
 ```typescript
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '../../generated/client/client.js'; // Özel üretilen client konumu
-import { PrismaLibSql } from '@prisma/adapter-libsql';
-import * as path from 'path';
-
-function createAdapter(): PrismaLibSql {
-  const dbAbsPath = path.resolve(process.cwd(), '..', 'prisma', 'dev.db');
-  const dbUrl = process.env['DATABASE_URL'] ?? `file:${dbAbsPath}`;
-  return new PrismaLibSql({ url: dbUrl });
-}
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Optional,
+  Inject,
+} from '@nestjs/common';
+import { PrismaClient } from '../../generated/client/client.js';
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
+import { APP_CONFIG, type AppConfig } from '../config/app-config';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-  constructor() {
-    super({ adapter: createAdapter() });
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
+  private pool: pg.Pool;
+
+  constructor(@Optional() @Inject(APP_CONFIG) config?: AppConfig) {
+    const dbUrl = config?.databaseUrl ?? process.env.DATABASE_URL;
+    if (!dbUrl) {
+      throw new Error('DATABASE_URL environment variable is not defined!');
+    }
+    const pool = new pg.Pool({ connectionString: dbUrl });
+    const adapter = new PrismaPg(pool);
+    super({ adapter });
+    this.pool = pool;
   }
 
   async onModuleInit(): Promise<void> {
@@ -196,6 +208,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleDestroy(): Promise<void> {
     await this.$disconnect();
+    await this.pool.end();
   }
 }
 ```
@@ -204,51 +217,29 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
 ## 8. Veritabanı Tohumlama (Seeding)
 
-Prisma v7, migrate işlemlerinden sonra otomatik seed özelliğini kaldırmıştır. Seeding işlemleri **manuel** olarak tetiklenmelidir:
+Prisma v7, migrate işlemlerinden sonra otomatik seed özelliğini kaldırmıştır. Seeding işlemleri **manuel** olarak tetiklenmelidir (üretim ortamında çalıştırılamaz):
 ```bash
 npx prisma db seed
 ```
 
 ### Örnek Seed Dosyası (`prisma/seed.ts`):
 ```typescript
-import { PrismaClient } from '../backend/src/generated/client/client.js'; // Özel üretilen client konumu
-import { PrismaLibSql } from '@prisma/adapter-libsql';
+import { PrismaClient } from '../backend/src/generated/client/client.js';
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
 import * as bcrypt from 'bcrypt';
-import * as path from 'path';
 
-const dbAbsPath = path.resolve(
-  process.cwd(),
-  process.cwd().endsWith('backend') ? '../prisma/dev.db' : 'prisma/dev.db'
-);
-
-const config = {
-  url: process.env.DATABASE_URL || `file:${dbAbsPath}`,
-};
-const adapter = new PrismaLibSql(config);
-const prisma = new PrismaClient({ adapter });
-
-async function main(): Promise<void> {
-  const hash = await bcrypt.hash('test1234', 12);
-
-  await prisma.user.createMany({
-    data: [
-      { username: 'player1', passwordHash: hash, eloScore: 1000 },
-      { username: 'player2', passwordHash: hash, eloScore: 1200 },
-      { username: 'player3', passwordHash: hash, eloScore: 800 },
-    ],
-  });
-
-  console.log('Seed tamamlandı.');
+if (process.env.NODE_ENV === 'production') {
+  throw new Error('Seed script cannot be executed when NODE_ENV is production!');
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+const dbUrl = process.env.DATABASE_URL;
+if (!dbUrl) {
+  throw new Error('DATABASE_URL is not defined!');
+}
+const pool = new pg.Pool({ connectionString: dbUrl });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 ```
 
 ---

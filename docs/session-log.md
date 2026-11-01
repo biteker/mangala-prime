@@ -23,6 +23,25 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-01] — T-10 & T-12: v1.0.0 Release, Git Hijyeni ve Doküman Senkronizasyonu
+
+**Tamamlanan Görev:** `develop` → `main` Release PR'ı (#32) merge edilerek `v1.0.0` sürüm etiketi (`git tag -a v1.0.0`) oluşturuldu ve `origin`'e gönderildi. Yerelde ve `origin` üzerinde merge edilmiş/eski 19 adet `feature/*` ve `pixijs` branch'i silinerek depoda yalnızca `main` ve `develop` bırakıldı. Canlı sunucu (`https://mangala-prime.egitimhaber.gen.tr/health`) üzerinde `200 OK`, CSP/HSTS başlıkları ve `/test-match` (404) doğrulandı. Ardından T-12 kapsamında `AGENTS.md`, `docs/spec.md`, `.antigravity/skills/prisma.md`, `docs/production-backlog.md` ve `REVIEW_CHECKLIST.md` dosyalarındaki eski SQLite/LibSQL/PM2/CSS-tahta referansları gerçek mimariyle (PostgreSQL 16 + `@prisma/adapter-pg`, PixiJS v8 + GSAP + Web Audio, Docker + GHCR + `prisma migrate deploy`, K-1/K-2/K-5 klasör yapısı) senkronize edildi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `AGENTS.md` — Prisma 7 kuralındaki LibSQL referansı `@prisma/adapter-pg` olarak güncellendi
+- `docs/spec.md` — Bölüm 5.1, 8.3 (Rate limit & CSP), 9.2/9.4 (PixiJS v8 & GSAP), 10.2 (CI/CD Docker pipeline), 14 (`/health`), 17 (K-1/K-2/K-5 klasör yapısı) güncellendi
+- `.antigravity/skills/prisma.md` — PostgreSQL 16 + `@prisma/adapter-pg` + `env('DATABASE_URL')` standardına göre güncellendi
+- `docs/production-backlog.md` — Tamamlanan Faz A ve Local PvP maddeleri işaretlendi
+- `REVIEW_CHECKLIST.md` — CI/CD kontrol listesi Docker ve `/health` standardına göre güncellendi
+
+**Test Sonuçları:** 94/94 test geçti (14 test suite)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Faz A ve Faz C tamamlandı. Sıradaki adım Faz B: T-08 (Ortak Saf Oyun Motoru).
+**Bir Sonraki Görev:** T-08 — Ortak (Shared) Saf Oyun Motoru
+**Commit:** docs(architecture): sync spec, skills, and checklists with v1.0.0 architecture (T-12)
+**PR:** docs/architecture-sync → develop
+
+---
+
 ### Oturum [2026-11-01] — T-07: Prisma Config Tekilleştirme
 
 **Tamamlanan Görev:** Mükerrer olan `prisma/prisma.config.ts` kaldırılarak kökteki `/prisma.config.ts` tek kaynak haline getirildi. Kökteki yapılandırma dosyasındaki `dummy_password_for_ci_only` fallback'i silinerek `env('DATABASE_URL')` kullanımı zorunlu kılındı. `backend/package.json` içindeki mükerrer `prisma.seed` tanımı kaldırılarak `prisma.config.ts > migrations.seed` tekilleştirildi. CI iş akışı (`.github/workflows/ci-cd.yml`) ve `Dockerfile` derleme aşamasında `npx prisma generate` adımlarına açık derleme zamanı `DATABASE_URL` ortam değişkeni eklendi.
