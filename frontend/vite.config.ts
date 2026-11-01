@@ -8,12 +8,15 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@shared': path.resolve(__dirname, '../shared/types'),
-      '@mangala/shared': path.resolve(__dirname, '../shared/types'),
+      '@shared': path.resolve(__dirname, '../shared'),
+      '@mangala/shared': path.resolve(__dirname, '../shared/index.ts'),
     },
   },
   server: {
     host: true,
     port: 5173,
+    fs: {
+      allow: [path.resolve(__dirname, '..')],
+    },
   },
 })

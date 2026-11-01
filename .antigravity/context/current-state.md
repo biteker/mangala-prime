@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: docs/architecture-sync
+Aktif Branch: feature/shared-game-engine
 
 ---
 
@@ -67,14 +67,15 @@ Yayın Hazırlığı: ██████████ %100 (v1.0.0 Yayınlandı �
 - **✅ ÇÖZÜLDÜ (B-09 / T-07):** `prisma/prisma.config.ts` silinerek kök `/prisma.config.ts` tek kaynak yapıldı; DB URL fallback'i kaldırıldı.
 - **✅ ÇÖZÜLDÜ (B-12 / T-10):** `develop` → `main` (`v1.0.0`) release yapıldı ve 19 eski branch temizlendi.
 - **✅ ÇÖZÜLDÜ (B-13 / T-12):** `AGENTS.md`, `docs/spec.md`, `.antigravity/skills/prisma.md`, `REVIEW_CHECKLIST.md` ve `docs/production-backlog.md` gerçek mimariyle senkronize edildi.
+- **✅ ÇÖZÜLDÜ (B-08 / T-08):** Saf Mangala oyun motoru `shared/engine/mangala-engine.ts` altında tekilleştirildi; `frontend/src/lib/game-engine.ts` kaldırıldı.
 - **Mimari Kararlar:** K-1…K-7 tamamı 2026-10-31'de onaylandı.
 
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-01 — T-10 & T-12: v1.0.0 Release, Git Hijyeni ve Doküman Senkronizasyonu
+Oturum 2026-11-01 — T-08: Ortak (Shared) Saf Oyun Motoru
 
 ### Yapılanlar
-- `develop` → `main` PR #32 merge edildi, `v1.0.0` etiketi oluşturuldu ve 19 eski branch temizlendi.
-- Canlı sunucuda `GET /health` (`200 OK`), CSP/HSTS başlıkları ve `/test-match` (`404`) doğrulandı.
-- Tüm proje dokümanları (`AGENTS.md`, `docs/spec.md`, `prisma.md`, `REVIEW_CHECKLIST.md`, `production-backlog.md`) v1.0.0 mimarisiyle senkronize edildi. Sıradaki görev: T-08.
+- 1.000 oyunluk (39.001 hamle) diferansiyel test ile 0 ayrışma doğrulandı.
+- `shared/engine/mangala-engine.ts` (`applyMove`, `getLegalMoves`, `createInitialBoard`, `MangalaRuleError`) oluşturuldu; backend ve frontend ortak motora bağlandı.
+- 97/97 birim testi ve monorepo build doğrulandı. Sıradaki görev: T-11.
