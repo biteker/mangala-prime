@@ -3,6 +3,10 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 import * as bcrypt from 'bcrypt';
 
+if (process.env.NODE_ENV === 'production') {
+  throw new Error('Seed script cannot be executed when NODE_ENV is production!');
+}
+
 const dbUrl = process.env.DATABASE_URL;
 if (!dbUrl) {
   throw new Error('DATABASE_URL is not defined!');

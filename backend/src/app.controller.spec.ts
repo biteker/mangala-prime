@@ -1,44 +1,39 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { GameService } from './game/game.service';
-import { PrismaService } from './common/prisma/prisma.service';
-import { AuthService } from './auth/auth.service';
-import { JwtService } from '@nestjs/jwt';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { ExecutionContext, CallHandler } from '@nestjs/common';
+import { of, firstValueFrom } from 'rxjs';
 
 describe('AppController', () => {
   let appController: AppController;
 
-  const mockGameService = {
-    initializeGame: jest.fn(),
-  };
-  const mockPrismaService = {
-    user: { findUnique: jest.fn() },
-    match: { create: jest.fn() },
-  };
-  const mockAuthService = {
-    register: jest.fn(),
-  };
-  const mockJwtService = {
-    signAsync: jest.fn(),
-  };
-
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
-      providers: [
-        AppService,
-        { provide: GameService, useValue: mockGameService },
-        { provide: PrismaService, useValue: mockPrismaService },
-        { provide: AuthService, useValue: mockAuthService },
-        { provide: JwtService, useValue: mockJwtService },
-      ],
     }).compile();
 
     appController = app.get<AppController>(AppController);
   });
 
-  it('should be defined', () => {
-    expect(appController).toBeDefined();
+  it('should_return_ok_status_from_health_endpoint', async () => {
+    // Arrange
+    const interceptor = new ResponseInterceptor<{ status: 'ok' }>();
+    const mockContext = {} as ExecutionContext;
+    const next: CallHandler = {
+      handle: () => of(appController.getHealth()),
+    };
+
+    // Act
+    const rawResult = appController.getHealth();
+    const wrappedResult = await firstValueFrom(interceptor.intercept(mockContext, next));
+
+    // Assert
+    expect(rawResult).toEqual({ status: 'ok' });
+    expect(wrappedResult).toEqual({ data: { status: 'ok' } });
+  });
+
+  it('should_not_expose_createTestMatch_debug_method', () => {
+    // Assert
+    expect('createTestMatch' in appController).toBe(false);
   });
 });
