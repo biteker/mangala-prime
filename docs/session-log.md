@@ -23,6 +23,25 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-01] — T-04: Birleşik CORS Politikası (HTTP + WebSocket)
+
+**Tamamlanan Görev:** `ConfiguredIoAdapter` yazılarak `AppConfig.corsOrigins` beyaz listesi ve `credentials: true` politikası Socket.IO sunucusuna merkezi olarak uygulandı. `GameGateway` ve `LobbyGateway` üzerindeki `cors: { origin: '*' }` tanımları kaldırıldı.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `backend/src/common/adapters/configured-io.adapter.ts` — Yeni: `IoAdapter` alt sınıfı, `createIOServer` üzerinde merkezi CORS yapılandırması
+- `backend/src/common/adapters/configured-io.adapter.spec.ts` — Yeni: WebSocket CORS override birim testleri (2 test)
+- `backend/src/main.ts` — `app.useWebSocketAdapter(new ConfiguredIoAdapter(app, config))` eklendi
+- `backend/src/game/game.gateway.ts` — `@WebSocketGateway` içinden `cors: { origin: '*' }` kaldırıldı
+- `backend/src/lobby/lobby.gateway.ts` — `@WebSocketGateway` içinden `cors: { origin: '*' }` kaldırıldı
+
+**Test Sonuçları:** 84/84 test geçti (11 test suite)
+**Derleme:** ✅ Hatasız (`shared`, `backend`, `frontend`)
+**Açık Sorunlar:** Yok. Sıradaki adım T-05 (Helmet + Rate Limiting).
+**Bir Sonraki Görev:** T-05 — Helmet ve Rate Limiting
+**Commit:** feat(security): enforce unified CORS policy across HTTP and WebSockets (T-04)
+**PR:** feature/unified-cors → develop
+
+---
+
 ### Oturum [2026-11-01] — T-02: Test Endpoint'i ve Debug Artıklarının Kaldırılması
 
 **Tamamlanan Görev:** Kimlik doğrulamasız `POST /test-match` endpoint'i ve `ws-test.html` tamamen kaldırıldı. `AppController` içine tip güvenli `@Public() @Get('health')` endpoint'i eklendi ve birim testleriyle doğrulandı. `prisma/seed.ts` içine production ortamında çalışmayı engelleyen güvenlik kontrolü eklendi, `.gitignore`'a `.obsidian/` tanımlandı.
