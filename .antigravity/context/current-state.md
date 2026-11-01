@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/unified-cors
+Aktif Branch: feature/helmet-throttler
 
 ---
 
@@ -8,7 +8,7 @@ Aktif Branch: feature/unified-cors
 
 ```
 Faz 1 MVP: ██████████ %100
-Yayın Hazırlığı: ████████░░ %80  (T-01, T-02, T-03 ve T-04 tamamlandı — bkz. docs/architecture-roadmap.md)
+Yayın Hazırlığı: █████████░ %86  (T-01..T-05 tamamlandı — bkz. docs/architecture-roadmap.md)
 ```
 
 ---
@@ -68,9 +68,9 @@ Yayın Hazırlığı: ████████░░ %80  (T-01, T-02, T-03 ve T
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-01 — T-04: Birleşik CORS Politikası (HTTP + WebSocket)
+Oturum 2026-11-01 — T-05: Helmet ve Rate Limiting
 
 ### Yapılanlar
-- `ConfiguredIoAdapter` oluşturuldu ve `main.ts` içinde WebSocket adapter olarak bağlandı.
-- `GameGateway` ve `LobbyGateway` üzerindeki `origin: '*'` kaldırıldı (`grep origin: '*'|origin: true` → 0 sonuç).
-- 84/84 birim testi ve monorepo build doğrulandı. Sıradaki görev: T-05.
+- `helmet` (PixiJS/WS uyumlu CSP) ve `@nestjs/throttler` kuruldu; `trust proxy: 1` açıldı.
+- `/auth/login`, `/auth/register`, `/auth/refresh` ve WS bağlantı/hamle/sohbet kanallarına hız sınırlandırması (`SlidingWindowLimiter`) eklendi.
+- 91/91 birim testi ve monorepo build doğrulandı. Sıradaki görev: T-06.

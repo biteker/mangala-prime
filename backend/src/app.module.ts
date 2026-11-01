@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from './common/config/config.module';
@@ -14,6 +16,12 @@ import { join } from 'path';
 @Module({
   imports: [
     ConfigModule,
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60_000,
+        limit: 100,
+      },
+    ]),
     PrismaModule, 
     EloModule, 
     GameModule, 
@@ -26,7 +34,13 @@ import { join } from 'path';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
 

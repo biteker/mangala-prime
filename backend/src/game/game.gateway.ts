@@ -16,11 +16,16 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import type { GameMovePayload, GameReconnectPayload, GameChatTogglePayload, GameMessagePayload } from '@mangala/shared';
 import { GameEndReason } from '@mangala/shared';
+import { SlidingWindowLimiter } from '../common/guards/sliding-window-limiter';
 
 @WebSocketGateway({ namespace: '/game' })
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
   @WebSocketServer()
   server!: Server;
+
+  private readonly connectionLimiter = new SlidingWindowLimiter(20, 60_000);
+  private readonly moveLimiter = new SlidingWindowLimiter(10, 5_000);
+  private readonly chatLimiter = new SlidingWindowLimiter(5, 10_000);
 
   constructor(
     private readonly gameService: GameService,
@@ -31,8 +36,30 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     this.gameService.setServer(server);
   }
 
+  private extractClientIp(client: Socket): string {
+    const forwardedFor = client.handshake.headers?.['x-forwarded-for'];
+    const realIp = client.handshake.headers?.['x-real-ip'];
+    let ip =
+      typeof forwardedFor === 'string'
+        ? forwardedFor.split(',')[0].trim()
+        : typeof realIp === 'string'
+          ? realIp.trim()
+          : client.handshake.address || client.conn?.remoteAddress || '127.0.0.1';
+
+    if (ip.startsWith('::ffff:')) {
+      ip = ip.substring(7);
+    }
+    return ip;
+  }
+
   async handleConnection(client: Socket): Promise<void> {
     try {
+      const ip = this.extractClientIp(client);
+      if (!this.connectionLimiter.tryConsume(ip)) {
+        client.disconnect(true);
+        return;
+      }
+
       let token = client.handshake.auth?.token || client.handshake.query?.token;
       
       if (!token) {
@@ -85,6 +112,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     const userId = client.data.userId;
     if (!userId) {
       client.disconnect(true);
+      return;
+    }
+
+    if (!this.moveLimiter.tryConsume(userId)) {
+      client.emit('game:error', {
+        error: { code: 'RATE_LIMITED', message: 'Çok fazla hamle isteği. Lütfen biraz bekleyin.' },
+      });
       return;
     }
 
@@ -233,6 +267,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   ): Promise<void> {
     const userId = client.data.userId;
     if (!userId) return;
+
+    if (!this.chatLimiter.tryConsume(userId)) {
+      client.emit('game:error', {
+        error: { code: 'RATE_LIMITED', message: 'Çok fazla mesaj gönderildi. Lütfen biraz bekleyin.' },
+      });
+      return;
+    }
 
     if (!payload || !payload.matchId || !payload.message) return;
 

@@ -15,11 +15,14 @@ import { InviteDto } from './dto/invite.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import type { LobbyInviteSendPayload, LobbyInviteResponsePayload } from '@mangala/shared';
+import { SlidingWindowLimiter } from '../common/guards/sliding-window-limiter';
 
 @WebSocketGateway({ namespace: '/lobby' })
 export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
   @WebSocketServer()
   server!: Server;
+
+  private readonly connectionLimiter = new SlidingWindowLimiter(20, 60_000);
 
   constructor(
     private readonly lobbyService: LobbyService,
@@ -30,8 +33,30 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, O
     this.lobbyService.setServer(server);
   }
 
+  private extractClientIp(client: Socket): string {
+    const forwardedFor = client.handshake.headers?.['x-forwarded-for'];
+    const realIp = client.handshake.headers?.['x-real-ip'];
+    let ip =
+      typeof forwardedFor === 'string'
+        ? forwardedFor.split(',')[0].trim()
+        : typeof realIp === 'string'
+          ? realIp.trim()
+          : client.handshake.address || client.conn?.remoteAddress || '127.0.0.1';
+
+    if (ip.startsWith('::ffff:')) {
+      ip = ip.substring(7);
+    }
+    return ip;
+  }
+
   async handleConnection(client: Socket): Promise<void> {
     try {
+      const ip = this.extractClientIp(client);
+      if (!this.connectionLimiter.tryConsume(ip)) {
+        client.disconnect(true);
+        return;
+      }
+
       let token = client.handshake.auth?.token || client.handshake.query?.token;
 
       if (!token) {
@@ -47,15 +72,6 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, O
 
       const userId = payload.sub;
       const username = payload.username;
-      
-      const forwardedFor = client.handshake.headers?.['x-forwarded-for'];
-      let ip = typeof forwardedFor === 'string'
-        ? forwardedFor.split(',')[0].trim()
-        : (client.handshake.headers?.['x-real-ip'] as string) || client.handshake.address || client.conn.remoteAddress || '127.0.0.1';
-
-      if (ip.startsWith('::ffff:')) {
-        ip = ip.substring(7);
-      }
 
       client.data = { userId, username, ip };
 
