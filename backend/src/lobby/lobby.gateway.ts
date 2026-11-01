@@ -8,17 +8,36 @@ import {
   MessageBody,
   ConnectedSocket,
 } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+import { Server, Socket, type DefaultEventsMap } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { LobbyService } from './lobby.service';
 import { InviteDto } from './dto/invite.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import type { LobbyInviteSendPayload, LobbyInviteResponsePayload } from '@mangala/shared';
+import type {
+  LobbyInviteSendPayload,
+  LobbyInviteResponsePayload,
+} from '@mangala/shared';
 import { SlidingWindowLimiter } from '../common/guards/sliding-window-limiter';
+import { extractErrorCode } from '../common/filters/error-code.util';
+
+interface LobbySocketData {
+  userId?: string;
+  username?: string;
+  ip?: string;
+}
+
+export type AuthenticatedLobbySocket = Socket<
+  DefaultEventsMap,
+  DefaultEventsMap,
+  DefaultEventsMap,
+  LobbySocketData
+>;
 
 @WebSocketGateway({ namespace: '/lobby' })
-export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
+export class LobbyGateway
+  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
+{
   @WebSocketServer()
   server!: Server;
 
@@ -41,7 +60,9 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, O
         ? forwardedFor.split(',')[0].trim()
         : typeof realIp === 'string'
           ? realIp.trim()
-          : client.handshake.address || client.conn?.remoteAddress || '127.0.0.1';
+          : client.handshake.address ||
+            client.conn?.remoteAddress ||
+            '127.0.0.1';
 
     if (ip.startsWith('::ffff:')) {
       ip = ip.substring(7);
@@ -49,7 +70,27 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, O
     return ip;
   }
 
-  async handleConnection(client: Socket): Promise<void> {
+  private extractHandshakeToken(client: Socket): string | null {
+    const authToken = (client.handshake.auth as { token?: unknown } | undefined)
+      ?.token;
+    const queryToken = (
+      client.handshake.query as { token?: unknown } | undefined
+    )?.token;
+    const rawToken =
+      typeof authToken === 'string'
+        ? authToken
+        : typeof queryToken === 'string'
+          ? queryToken
+          : null;
+
+    if (!rawToken) {
+      return null;
+    }
+
+    return rawToken.startsWith('Bearer ') ? rawToken.substring(7) : rawToken;
+  }
+
+  async handleConnection(client: AuthenticatedLobbySocket): Promise<void> {
     try {
       const ip = this.extractClientIp(client);
       if (!this.connectionLimiter.tryConsume(ip)) {
@@ -57,18 +98,16 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, O
         return;
       }
 
-      let token = client.handshake.auth?.token || client.handshake.query?.token;
-
+      const token = this.extractHandshakeToken(client);
       if (!token) {
         client.disconnect(true);
         return;
       }
 
-      if (typeof token === 'string' && token.startsWith('Bearer ')) {
-        token = token.substring(7);
-      }
-
-      const payload = await this.jwtService.verifyAsync(token);
+      const payload = await this.jwtService.verifyAsync<{
+        sub: string;
+        username: string;
+      }>(token);
 
       const userId = payload.sub;
       const username = payload.username;
@@ -94,12 +133,12 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, O
         username,
         elo,
       });
-    } catch (error) {
+    } catch {
       client.disconnect(true);
     }
   }
 
-  async handleDisconnect(client: Socket): Promise<void> {
+  async handleDisconnect(client: AuthenticatedLobbySocket): Promise<void> {
     const userId = await this.lobbyService.removeUser(client.id);
     if (userId) {
       this.server.emit('lobby:user_status', {
@@ -110,7 +149,9 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, O
   }
 
   @SubscribeMessage('lobby:queue_join')
-  async handleQueueJoin(@ConnectedSocket() client: Socket): Promise<void> {
+  async handleQueueJoin(
+    @ConnectedSocket() client: AuthenticatedLobbySocket,
+  ): Promise<void> {
     const userId = client.data.userId;
     const ip = client.data.ip || '127.0.0.1';
     if (!userId) {
@@ -156,7 +197,7 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, O
   }
 
   @SubscribeMessage('lobby:queue_leave')
-  async handleQueueLeave(@ConnectedSocket() client: Socket): Promise<void> {
+  handleQueueLeave(@ConnectedSocket() client: AuthenticatedLobbySocket): void {
     const userId = client.data.userId;
     if (!userId) {
       client.disconnect(true);
@@ -168,7 +209,7 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, O
 
   @SubscribeMessage('lobby:invite_send')
   async handleInviteSend(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthenticatedLobbySocket,
     @MessageBody() payload: LobbyInviteSendPayload,
   ): Promise<void> {
     const userId = client.data.userId;
@@ -182,13 +223,19 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, O
     const errors = await validate(inviteDto);
     if (errors.length > 0) {
       client.emit('lobby:error', {
-        error: { code: 'INVALID_PARAMS', message: 'Geçersiz davet parametreleri.' },
+        error: {
+          code: 'INVALID_PARAMS',
+          message: 'Geçersiz davet parametreleri.',
+        },
       });
       return;
     }
 
     try {
-      const sent = await this.lobbyService.sendInvite(userId, payload.targetUserId);
+      const sent = await this.lobbyService.sendInvite(
+        userId,
+        payload.targetUserId,
+      );
       if (sent) {
         const target = this.lobbyService.getOnlineUser(payload.targetUserId);
         if (target) {
@@ -198,8 +245,9 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, O
         }
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Davet gönderilemedi.';
-      const code = (error as any).response?.code || 'INVITE_FAILED';
+      const message =
+        error instanceof Error ? error.message : 'Davet gönderilemedi.';
+      const code = extractErrorCode(error, 'INVITE_FAILED');
       client.emit('lobby:error', {
         error: { code, message },
       });
@@ -208,7 +256,7 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, O
 
   @SubscribeMessage('lobby:invite_response')
   async handleInviteResponse(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthenticatedLobbySocket,
     @MessageBody() payload: LobbyInviteResponsePayload,
   ): Promise<void> {
     const userId = client.data.userId;
@@ -232,28 +280,39 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, O
       );
 
       if (matchResult) {
-        if (payload.accepted && matchResult.matchId && matchResult.player1 && matchResult.player2) {
+        if (
+          payload.accepted &&
+          matchResult.matchId &&
+          matchResult.player1 &&
+          matchResult.player2
+        ) {
           const p1Elo = await this.getPlayerElo(matchResult.player1.userId);
           const p2Elo = await this.getPlayerElo(matchResult.player2.userId);
 
           // Davet edene (p1) maç bulundu
-          this.server.to(matchResult.player1.socketId).emit('game:match_found', {
-            matchId: matchResult.matchId,
-            opponentUsername: matchResult.player2.username,
-            opponentElo: p2Elo,
-            yourColor: 0,
-          });
+          this.server
+            .to(matchResult.player1.socketId)
+            .emit('game:match_found', {
+              matchId: matchResult.matchId,
+              opponentUsername: matchResult.player2.username,
+              opponentElo: p2Elo,
+              yourColor: 0,
+            });
 
           // Kabul edene (p2) maç bulundu
-          this.server.to(matchResult.player2.socketId).emit('game:match_found', {
-            matchId: matchResult.matchId,
-            opponentUsername: matchResult.player1.username,
-            opponentElo: p1Elo,
-            yourColor: 1,
-          });
+          this.server
+            .to(matchResult.player2.socketId)
+            .emit('game:match_found', {
+              matchId: matchResult.matchId,
+              opponentUsername: matchResult.player1.username,
+              opponentElo: p1Elo,
+              yourColor: 1,
+            });
         } else {
           // Reddedildi, davet edene bildir
-          const inviter = this.lobbyService.getOnlineUser(payload.inviterUserId);
+          const inviter = this.lobbyService.getOnlineUser(
+            payload.inviterUserId,
+          );
           if (inviter) {
             this.server.to(inviter.socketId).emit('lobby:invite_response', {
               targetUserId: userId,
@@ -263,8 +322,9 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, O
         }
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Davet yanıtı işlenemedi.';
-      const code = (error as any).response?.code || 'INVITE_RESPONSE_FAILED';
+      const message =
+        error instanceof Error ? error.message : 'Davet yanıtı işlenemedi.';
+      const code = extractErrorCode(error, 'INVITE_RESPONSE_FAILED');
       client.emit('lobby:error', {
         error: { code, message },
       });

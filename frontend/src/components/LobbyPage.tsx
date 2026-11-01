@@ -43,7 +43,6 @@ export function LobbyPage(): React.JSX.Element {
   // Eşleşme sırası sayacı
   useEffect(() => {
     if (isInQueue) {
-      setQueueSeconds(120);
       queueIntervalRef.current = setInterval(() => {
         setQueueSeconds((prev) => {
           if (prev <= 1) {
@@ -73,7 +72,6 @@ export function LobbyPage(): React.JSX.Element {
   // Meydan okuma (giden davet) sayacı
   useEffect(() => {
     if (outgoingInviteTargetId) {
-      setInviteSeconds(30);
       inviteIntervalRef.current = setInterval(() => {
         setInviteSeconds((prev) => {
           if (prev <= 1) {
@@ -141,7 +139,10 @@ export function LobbyPage(): React.JSX.Element {
               <button
                 type="button"
                 className="auth-button start-queue-btn"
-                onClick={joinQueue}
+                onClick={(): void => {
+                  setQueueSeconds(120);
+                  joinQueue();
+                }}
               >
                 Hızlı Maç Bul (Online)
               </button>
@@ -238,7 +239,10 @@ export function LobbyPage(): React.JSX.Element {
                       type="button"
                       className="challenge-btn"
                       disabled={u.status === 'playing' || isInQueue || !!outgoingInviteTargetId}
-                      onClick={(): void => sendInvite(u.userId)}
+                      onClick={(): void => {
+                        setInviteSeconds(30);
+                        sendInvite(u.userId);
+                      }}
                     >
                       Meydan Oku
                     </button>

@@ -1,6 +1,14 @@
-import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
-import { UserProfileResponse, LeaderboardEntry, UserPublicProfileResponse } from '@mangala/shared';
+import {
+  UserProfileResponse,
+  LeaderboardEntry,
+  UserPublicProfileResponse,
+} from '@mangala/shared';
 
 @Injectable()
 export class UserService {
@@ -21,10 +29,7 @@ export class UserService {
 
       const totalMatches = await this.prisma.match.count({
         where: {
-          OR: [
-            { player1Id: userId },
-            { player2Id: userId },
-          ],
+          OR: [{ player1Id: userId }, { player2Id: userId }],
           status: {
             in: ['FINISHED', 'ABANDONED'],
           },
@@ -59,10 +64,7 @@ export class UserService {
         users.map(async (user, index) => {
           const totalMatches = await this.prisma.match.count({
             where: {
-              OR: [
-                { player1Id: user.id },
-                { player2Id: user.id },
-              ],
+              OR: [{ player1Id: user.id }, { player2Id: user.id }],
               status: {
                 in: ['FINISHED', 'ABANDONED'],
               },
@@ -75,11 +77,11 @@ export class UserService {
             wins: user.wins,
             totalMatches,
           };
-        })
+        }),
       );
 
       return leaderboardEntries;
-    } catch (error) {
+    } catch {
       throw new InternalServerErrorException({
         code: 'INTERNAL_ERROR',
         message: 'Liderlik tablosu alınırken veritabanı hatası oluştu.',
@@ -87,7 +89,9 @@ export class UserService {
     }
   }
 
-  async getUserPublicProfile(username: string): Promise<UserPublicProfileResponse> {
+  async getUserPublicProfile(
+    username: string,
+  ): Promise<UserPublicProfileResponse> {
     try {
       const user = await this.prisma.user.findUnique({
         where: { username },
@@ -102,10 +106,7 @@ export class UserService {
 
       const matches = await this.prisma.match.findMany({
         where: {
-          OR: [
-            { player1Id: user.id },
-            { player2Id: user.id },
-          ],
+          OR: [{ player1Id: user.id }, { player2Id: user.id }],
           status: {
             in: ['FINISHED', 'ABANDONED'],
           },
@@ -128,7 +129,9 @@ export class UserService {
           result = 'LOSS';
         }
 
-        const eloChange = isP1 ? (match.p1EloChange ?? 0) : (match.p2EloChange ?? 0);
+        const eloChange = isP1
+          ? (match.p1EloChange ?? 0)
+          : (match.p2EloChange ?? 0);
 
         return {
           id: match.id,

@@ -134,32 +134,50 @@ describe('GameEngineService', () => {
     // Assert
     expect(result.gameOver).toBe(true);
     expect(result.winner).toBe(0);
-    expect(result.newBoard).toEqual([0, 0, 0, 0, 0, 0, 35, 0, 0, 0, 0, 0, 0, 5]);
+    expect(result.newBoard).toEqual([
+      0, 0, 0, 0, 0, 0, 35, 0, 0, 0, 0, 0, 0, 5,
+    ]);
   });
 
   describe('Validations', () => {
     it('should_throw_bad_request_if_board_length_is_invalid', () => {
       const board: BoardState = [4, 4, 4];
-      expect(() => service.processMove(board, 0, 0)).toThrow(BadRequestException);
+      expect(() => service.processMove(board, 0, 0)).toThrow(
+        BadRequestException,
+      );
     });
 
     it('should_throw_bad_request_if_invalid_pit_index', () => {
       const board: BoardState = [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0];
-      expect(() => service.processMove(board, -1, 0)).toThrow(BadRequestException);
-      expect(() => service.processMove(board, 6, 0)).toThrow(BadRequestException);
-      expect(() => service.processMove(board, 13, 0)).toThrow(BadRequestException);
-      expect(() => service.processMove(board, 14, 0)).toThrow(BadRequestException);
+      expect(() => service.processMove(board, -1, 0)).toThrow(
+        BadRequestException,
+      );
+      expect(() => service.processMove(board, 6, 0)).toThrow(
+        BadRequestException,
+      );
+      expect(() => service.processMove(board, 13, 0)).toThrow(
+        BadRequestException,
+      );
+      expect(() => service.processMove(board, 14, 0)).toThrow(
+        BadRequestException,
+      );
     });
 
     it('should_throw_bad_request_if_selecting_pit_not_owned_by_player', () => {
       const board: BoardState = [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0];
-      expect(() => service.processMove(board, 7, 0)).toThrow(BadRequestException);
-      expect(() => service.processMove(board, 2, 1)).toThrow(BadRequestException);
+      expect(() => service.processMove(board, 7, 0)).toThrow(
+        BadRequestException,
+      );
+      expect(() => service.processMove(board, 2, 1)).toThrow(
+        BadRequestException,
+      );
     });
 
     it('should_throw_bad_request_if_selected_pit_is_empty', () => {
       const board: BoardState = [4, 4, 0, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0];
-      expect(() => service.processMove(board, 2, 0)).toThrow(BadRequestException);
+      expect(() => service.processMove(board, 2, 0)).toThrow(
+        BadRequestException,
+      );
     });
   });
 });

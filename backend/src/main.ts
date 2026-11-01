@@ -18,7 +18,10 @@ async function bootstrap(): Promise<void> {
   try {
     config = loadAppConfig(process.env);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Invalid application configuration';
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'Invalid application configuration';
     console.error(`[FATAL] ${message}`);
     process.exit(1);
   }
@@ -70,5 +73,4 @@ async function bootstrap(): Promise<void> {
 
   await app.listen(config.port, '0.0.0.0');
 }
-bootstrap();
-
+void bootstrap();

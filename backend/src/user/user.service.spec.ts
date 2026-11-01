@@ -5,7 +5,6 @@ import { NotFoundException } from '@nestjs/common';
 
 describe('UserService', () => {
   let service: UserService;
-  let prisma: PrismaService;
 
   const mockPrisma = {
     user: {
@@ -27,7 +26,6 @@ describe('UserService', () => {
     }).compile();
 
     service = module.get<UserService>(UserService);
-    prisma = module.get<PrismaService>(PrismaService);
 
     jest.clearAllMocks();
   });
@@ -57,7 +55,9 @@ describe('UserService', () => {
         wins: 10,
         losses: 5,
       });
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({ where: { id: userId } });
+      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
+        where: { id: userId },
+      });
       expect(mockPrisma.match.count).toHaveBeenCalledWith({
         where: {
           OR: [{ player1Id: userId }, { player2Id: userId }],
@@ -71,7 +71,9 @@ describe('UserService', () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(service.getUserProfile('nonexistent-uuid')).rejects.toThrow(NotFoundException);
+      await expect(service.getUserProfile('nonexistent-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -175,7 +177,9 @@ describe('UserService', () => {
           },
         ],
       });
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({ where: { username } });
+      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
+        where: { username },
+      });
       expect(mockPrisma.match.findMany).toHaveBeenCalledWith({
         where: {
           OR: [{ player1Id: userId }, { player2Id: userId }],
@@ -191,7 +195,9 @@ describe('UserService', () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(service.getUserPublicProfile('nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(service.getUserPublicProfile('nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

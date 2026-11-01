@@ -1,4 +1,9 @@
-import { Injectable, Inject, ConflictException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { APP_CONFIG, type AppConfig } from '../common/config/app-config';
@@ -56,7 +61,9 @@ export class AuthService {
     }
   }
 
-  async login(loginDto: LoginDto): Promise<{ accessToken: string; refreshToken: string }> {
+  async login(
+    loginDto: LoginDto,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const { username, password } = loginDto;
 
     try {
@@ -96,11 +103,16 @@ export class AuthService {
     }
   }
 
-  async refreshTokens(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
+  async refreshTokens(
+    refreshToken: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     try {
-      const payload = this.jwtService.verify(refreshToken, {
-        secret: this.config.jwtRefreshSecret,
-      });
+      const payload = this.jwtService.verify<{ sub: string; username: string }>(
+        refreshToken,
+        {
+          secret: this.config.jwtRefreshSecret,
+        },
+      );
 
       const user = await this.prisma.user.findUnique({
         where: { id: payload.sub },
@@ -121,7 +133,7 @@ export class AuthService {
       });
 
       return tokens;
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException({
         code: 'UNAUTHORIZED',
         message: 'Geçersiz veya süresi dolmuş yenileme anahtarı.',
@@ -135,12 +147,15 @@ export class AuthService {
         where: { id: userId },
         data: { refreshToken: null },
       });
-    } catch (error) {
+    } catch {
       // Fail silently
     }
   }
 
-  private async generateTokens(userId: string, username: string): Promise<{ accessToken: string; refreshToken: string }> {
+  private async generateTokens(
+    userId: string,
+    username: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const payload = { sub: userId, username };
 
     const [accessToken, refreshToken] = await Promise.all([

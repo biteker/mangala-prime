@@ -23,6 +23,28 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-01] — T-06: `any` Temizliği ve Lint Kapısı
+
+**Tamamlanan Görev:** Kod tabanındaki (backend, frontend, shared ve birim testleri) tüm `any` kullanımları tip güvenli arayüzler ve tip daraltma yardımcıları (`extractErrorCode`, `AuthenticatedRequest`, `AuthenticatedGameSocket`, `AuthenticatedLobbySocket`) ile değiştirildi. Hem `backend/eslint.config.mjs` hem de `frontend/eslint.config.js` içinde `@typescript-eslint/no-explicit-any: 'error'` kuralı etkinleştirildi. Mevcut tüm ESLint hataları (backend `no-unsafe-*`, `require-await`, `unbound-method`; frontend React 19 `rules-of-hooks`, `set-state-in-effect`, `refs`) kurallar gevşetilmeden sıfırlandı. Root `package.json` ve `.github/workflows/ci-cd.yml` içine `npm run lint` kapısı eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `backend/src/common/filters/error-code.util.ts` — Yeni: `HttpException` içinden tip daraltma ile hata kodu çıkaran `extractErrorCode` yardımcı fonksiyonu
+- `backend/src/common/filters/error-code.util.spec.ts` — Yeni: `extractErrorCode` birim testleri (3 test)
+- `backend/eslint.config.mjs` — `@typescript-eslint/no-explicit-any: 'error'` ve `src/generated/**` ignore kuralı eklendi
+- `frontend/eslint.config.js` — `@typescript-eslint/no-explicit-any: 'error'` kuralı eklendi
+- `package.json` & `backend/package.json` — Root `lint` script'i eklendi, backend `lint` script'i CI uyumlu hale getirildi
+- `.github/workflows/ci-cd.yml` — Test adımından önce `Run Linter` (`npm run lint`) adımı eklendi
+- `backend/src/**` & `backend/test/prisma-client.mock.ts` — Tüm `any` tipleri ve strict type-checked ESLint hataları temizlendi
+- `frontend/src/**` — Tüm `any` tipleri ve React Hooks / ESLint hataları temizlendi
+
+**Test Sonuçları:** 94/94 test geçti (14 test suite)
+**Derleme:** ✅ Hatasız (`npm run lint` 0 error, `npm run build` başarılı)
+**Açık Sorunlar:** Yok. Sıradaki adım T-07 (Prisma Config Tekilleştirme).
+**Bir Sonraki Görev:** T-07 — Prisma Config Tekilleştirme
+**Commit:** refactor(lint): remove all any types and enforce strict eslint gate in CI (T-06)
+**PR:** feature/strict-lint-gate → develop
+
+---
+
 ### Oturum [2026-11-01] — T-05: Helmet ve Rate Limiting
 
 **Tamamlanan Görev:** `helmet` (PixiJS ve WebSocket uyumlu CSP ile) ve `@nestjs/throttler` kurularak HTTP ve WebSocket katmanlarında güvenlik başlıkları ve hız sınırlandırması (rate limiting) devreye alındı. Reverse proxy arkasında gerçek IP tespiti için `trust proxy: 1` açıldı. `HttpExceptionFilter` 429 hatalarını `{ error: { code: 'RATE_LIMITED', message: '...' } }` formatında döndürecek şekilde güncellendi. WebSocket bağlantı ve mesajları için saf `SlidingWindowLimiter` sınıfı yazılarak `GameGateway` ve `LobbyGateway` içine entegre edildi.

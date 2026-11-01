@@ -80,8 +80,8 @@ export function updatePhysics(
       if (s.isSleeping) continue;
 
       // Calculate center pull force
-      let targetX = 0;
-      let targetY = 0;
+      let targetX: number;
+      let targetY: number;
       if (boundary.type === 'circle') {
         targetX = boundary.cx;
         targetY = boundary.cy + boundary.radius * 0.15; // Pull slightly below center
@@ -249,8 +249,8 @@ export function packStonesStatically(
   const stones: PhysicsStone[] = [];
   
   // Initialize stones with slight random offsets around the center
-  let cx = 0;
-  let cy = 0;
+  let cx: number;
+  let cy: number;
   if (boundary.type === 'circle') {
     cx = boundary.cx;
     cy = boundary.cy;

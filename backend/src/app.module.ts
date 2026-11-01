@@ -22,11 +22,11 @@ import { join } from 'path';
         limit: 100,
       },
     ]),
-    PrismaModule, 
-    EloModule, 
-    GameModule, 
-    AuthModule, 
-    UserModule, 
+    PrismaModule,
+    EloModule,
+    GameModule,
+    AuthModule,
+    UserModule,
     LobbyModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
@@ -43,4 +43,3 @@ import { join } from 'path';
   ],
 })
 export class AppModule {}
-

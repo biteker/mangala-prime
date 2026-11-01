@@ -100,13 +100,7 @@ export class MangalaBoard extends PIXI.Container {
   public resize(width: number, height: number): void {
     const targetRatio = 1400 / 600;
     const currentRatio = width / height;
-    let scale = 1;
-
-    if (currentRatio > targetRatio) {
-      scale = height / 600;
-    } else {
-      scale = width / 1400;
-    }
+    const scale = currentRatio > targetRatio ? height / 600 : width / 1400;
 
     this.scale.set(scale);
     // Center the 1400x600 board inside the canvas and adjust for the local offsets (BOARD_X=100, BOARD_Y=150)

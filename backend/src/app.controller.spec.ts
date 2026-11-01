@@ -19,13 +19,15 @@ describe('AppController', () => {
     // Arrange
     const interceptor = new ResponseInterceptor<{ status: 'ok' }>();
     const mockContext = {} as ExecutionContext;
-    const next: CallHandler = {
+    const next: CallHandler<{ status: 'ok' }> = {
       handle: () => of(appController.getHealth()),
     };
 
     // Act
     const rawResult = appController.getHealth();
-    const wrappedResult = await firstValueFrom(interceptor.intercept(mockContext, next));
+    const wrappedResult = await firstValueFrom(
+      interceptor.intercept(mockContext, next),
+    );
 
     // Assert
     expect(rawResult).toEqual({ status: 'ok' });

@@ -602,7 +602,7 @@ flowchart LR
 | T-03 | ✅ Sızan şifre rotasyonu (Tamamlandı) | A | P0 | **İnsan + Ajan** | — | K-4 |
 | T-04 | ✅ Birleşik CORS (HTTP + WS) (Tamamlandı) | A | P1 | Ajan | T-01 | K-2 |
 | T-05 | ✅ Helmet + Rate limiting (Tamamlandı) | A | P1 | Ajan | T-04 | K-6 |
-| T-06 | `any` temizliği + lint kapısı | A | P1 | Ajan | T-02, T-05 | — |
+| T-06 | ✅ `any` temizliği + lint kapısı (Tamamlandı) | A | P1 | Ajan | T-02, T-05 | — |
 | T-07 | Prisma config tekilleştirme | A | P2 | Ajan | — | — |
 | T-10 | Release + UAT + git hijyeni | C | P0 | Ajan + İnsan | Faz A | — |
 | T-12 | Doküman senkronizasyonu | C | P3 | Ajan | T-10 | K-5 |

@@ -101,6 +101,8 @@ describe('loadAppConfig', () => {
 
     // Act & Assert
     expect(() => loadAppConfig(tooLowEnv)).toThrow('GAME_TURN_TIME_LIMIT_SECS');
-    expect(() => loadAppConfig(tooHighEnv)).toThrow('GAME_TURN_TIME_LIMIT_SECS');
+    expect(() => loadAppConfig(tooHighEnv)).toThrow(
+      'GAME_TURN_TIME_LIMIT_SECS',
+    );
   });
 });

@@ -33,13 +33,13 @@ apiClient.interceptors.request.use(
 
 interface FailedRequest {
   resolve: (value: string | null) => void;
-  reject: (reason: any) => void;
+  reject: (reason: unknown) => void;
 }
 
 let isRefreshing = false;
 let failedQueue: FailedRequest[] = [];
 
-const processQueue = (error: any, token: string | null = null): void => {
+const processQueue = (error: unknown, token: string | null = null): void => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);

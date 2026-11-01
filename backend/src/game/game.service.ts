@@ -1,10 +1,16 @@
-import { Injectable, Inject, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { APP_CONFIG, type AppConfig } from '../common/config/app-config';
 import { GameEngineService } from './game-engine.service';
 import { EloService } from '../elo/elo.service';
 import { GameRoom } from './types/game-room.types';
-import { BoardState, Player, MatchStatus, GameEndReason } from '@mangala/shared';
+import { BoardState, Player, GameEndReason } from '@mangala/shared';
 import { GameMovePayload } from '@mangala/shared';
 import { Server } from 'socket.io';
 
@@ -57,10 +63,18 @@ export class GameService {
     return undefined;
   }
 
-  async initializeGame(matchId: string, player1Id: string, player2Id: string): Promise<GameRoom> {
+  async initializeGame(
+    matchId: string,
+    player1Id: string,
+    player2Id: string,
+  ): Promise<GameRoom> {
     try {
-      const p1 = await this.prisma.user.findUnique({ where: { id: player1Id } });
-      const p2 = await this.prisma.user.findUnique({ where: { id: player2Id } });
+      const p1 = await this.prisma.user.findUnique({
+        where: { id: player1Id },
+      });
+      const p2 = await this.prisma.user.findUnique({
+        where: { id: player2Id },
+      });
 
       if (!p1 || !p2) {
         throw new NotFoundException({
@@ -101,13 +115,13 @@ export class GameService {
     }
   }
 
-  async handlePlayerConnect(userId: string, socketId: string): Promise<void> {
+  handlePlayerConnect(userId: string, socketId: string): Promise<void> {
     // Kullanıcının içinde olduğu aktif odayı bul
     for (const room of this.rooms.values()) {
       if (room.player1Id === userId) {
         room.player1SocketId = socketId;
         this.clearReconnectTimer(userId);
-        
+
         // Sıra bu oyuncudaysa ve timer kilitliyse (yani socketId boştayken kilitlendiyse) timer'ı başlat
         if (room.currentPlayer === 0 && !room.timer) {
           this.resumeTurnTimer(room);
@@ -123,9 +137,14 @@ export class GameService {
         break;
       }
     }
+    return Promise.resolve();
   }
 
-  async handlePlayerDisconnect(socketId: string): Promise<{ matchId: string; opponentSocketId: string; userId: string } | null> {
+  handlePlayerDisconnect(socketId: string): Promise<{
+    matchId: string;
+    opponentSocketId: string;
+    userId: string;
+  } | null> {
     for (const room of this.rooms.values()) {
       let disconnectedUserId = '';
       let opponentSocketId = '';
@@ -142,9 +161,10 @@ export class GameService {
 
       if (disconnectedUserId) {
         // Sıradaki oyuncu koptuysa turn timer'ı dondur
-        const isCurrentPlayer = (disconnectedUserId === room.player1Id && room.currentPlayer === 0) ||
-                                (disconnectedUserId === room.player2Id && room.currentPlayer === 1);
-        
+        const isCurrentPlayer =
+          (disconnectedUserId === room.player1Id && room.currentPlayer === 0) ||
+          (disconnectedUserId === room.player2Id && room.currentPlayer === 1);
+
         if (isCurrentPlayer) {
           this.freezeTurnTimer(room);
         }
@@ -152,30 +172,38 @@ export class GameService {
         // 60 saniyelik reconnect sayacı başlat
         this.startReconnectTimer(room.matchId, disconnectedUserId);
 
-        return {
+        return Promise.resolve({
           matchId: room.matchId,
           opponentSocketId,
           userId: disconnectedUserId,
-        };
+        });
       }
     }
-    return null;
+    return Promise.resolve(null);
   }
 
-  async handleReconnect(userId: string, matchId: string, socketId: string): Promise<GameRoom> {
+  handleReconnect(
+    userId: string,
+    matchId: string,
+    socketId: string,
+  ): Promise<GameRoom> {
     const room = this.rooms.get(matchId);
     if (!room) {
-      throw new NotFoundException({
-        code: 'NOT_FOUND',
-        message: 'Oyun odası bulunamadı.',
-      });
+      return Promise.reject(
+        new NotFoundException({
+          code: 'NOT_FOUND',
+          message: 'Oyun odası bulunamadı.',
+        }),
+      );
     }
 
     if (room.player1Id !== userId && room.player2Id !== userId) {
-      throw new BadRequestException({
-        code: 'INVALID_PLAYER',
-        message: 'Bu maça dahil değilsiniz.',
-      });
+      return Promise.reject(
+        new BadRequestException({
+          code: 'INVALID_PLAYER',
+          message: 'Bu maça dahil değilsiniz.',
+        }),
+      );
     }
 
     if (room.player1Id === userId) {
@@ -187,20 +215,24 @@ export class GameService {
     this.clearReconnectTimer(userId);
 
     // Sıra bu oyuncudaysa ve timer kilitliyse timer'ı başlat
-    const isCurrentPlayer = (userId === room.player1Id && room.currentPlayer === 0) ||
-                            (userId === room.player2Id && room.currentPlayer === 1);
-    
+    const isCurrentPlayer =
+      (userId === room.player1Id && room.currentPlayer === 0) ||
+      (userId === room.player2Id && room.currentPlayer === 1);
+
     if (isCurrentPlayer && !room.timer) {
       this.resumeTurnTimer(room);
     }
 
-    return room;
+    return Promise.resolve(room);
   }
 
-  async validateMove(socketId: string, payload: GameMovePayload): Promise<MoveValidationResult> {
+  validateMove(
+    socketId: string,
+    payload: GameMovePayload,
+  ): Promise<MoveValidationResult> {
     const room = this.rooms.get(payload.matchId);
     if (!room) {
-      return { valid: false, reason: 'Maç bulunamadı.' };
+      return Promise.resolve({ valid: false, reason: 'Maç bulunamadı.' });
     }
 
     let playerIndex: Player;
@@ -209,11 +241,18 @@ export class GameService {
     } else if (room.player2SocketId === socketId) {
       playerIndex = 1;
     } else {
-      return { valid: false, reason: 'Bu maçta oyuncu değilsiniz.' };
+      return Promise.resolve({
+        valid: false,
+        reason: 'Bu maçta oyuncu değilsiniz.',
+      });
     }
 
     if (room.currentPlayer !== playerIndex) {
-      return { valid: false, reason: 'Sıra sizde değil.', currentBoard: room.board };
+      return Promise.resolve({
+        valid: false,
+        reason: 'Sıra sizde değil.',
+        currentBoard: room.board,
+      });
     }
 
     const isP1 = playerIndex === 0;
@@ -221,14 +260,22 @@ export class GameService {
     const playerEndPit = isP1 ? 5 : 12;
 
     if (payload.pitIndex < playerStartPit || payload.pitIndex > playerEndPit) {
-      return { valid: false, reason: 'Kendi bölgenizdeki bir kuyudan hamle yapmalısınız.', currentBoard: room.board };
+      return Promise.resolve({
+        valid: false,
+        reason: 'Kendi bölgenizdeki bir kuyudan hamle yapmalısınız.',
+        currentBoard: room.board,
+      });
     }
 
     if (room.board[payload.pitIndex] === 0) {
-      return { valid: false, reason: 'Seçilen kuyu boş.', currentBoard: room.board };
+      return Promise.resolve({
+        valid: false,
+        reason: 'Seçilen kuyu boş.',
+        currentBoard: room.board,
+      });
     }
 
-    return { valid: true };
+    return Promise.resolve({ valid: true });
   }
 
   async processMove(payload: GameMovePayload): Promise<ProcessMoveResult> {
@@ -246,8 +293,13 @@ export class GameService {
       room.timer = null;
     }
 
-    const movingPlayerId = room.currentPlayer === 0 ? room.player1Id : room.player2Id;
-    const engineResult = this.gameEngine.processMove(room.board, payload.pitIndex, room.currentPlayer);
+    const movingPlayerId =
+      room.currentPlayer === 0 ? room.player1Id : room.player2Id;
+    const engineResult = this.gameEngine.processMove(
+      room.board,
+      payload.pitIndex,
+      room.currentPlayer,
+    );
 
     // Hamle geçmişini veritabanına kaydet
     try {
@@ -259,7 +311,7 @@ export class GameService {
           boardState: JSON.stringify(engineResult.newBoard),
         },
       });
-    } catch (dbError) {
+    } catch {
       // Hata durumunda loglanır, ancak oyunu bozmamak için kesinti yapılmaz
     }
 
@@ -295,7 +347,8 @@ export class GameService {
       this.cleanUpRoom(room.matchId);
     } else {
       // Oyun devam ediyorsa sonraki oyuncunun durumuna bak
-      const nextSocketId = room.currentPlayer === 0 ? room.player1SocketId : room.player2SocketId;
+      const nextSocketId =
+        room.currentPlayer === 0 ? room.player1SocketId : room.player2SocketId;
       if (nextSocketId) {
         // Oyuncu bağlıysa turn timer'ını başlat
         this.startTurnTimer(room.matchId);
@@ -305,7 +358,8 @@ export class GameService {
       }
     }
 
-    const nextPlayerId = room.currentPlayer === 0 ? room.player1Id : room.player2Id;
+    const nextPlayerId =
+      room.currentPlayer === 0 ? room.player1Id : room.player2Id;
 
     return {
       newBoard: room.board,
@@ -317,7 +371,10 @@ export class GameService {
     };
   }
 
-  async handleTimeout(matchId: string, timedOutPlayerId: string): Promise<void> {
+  async handleTimeout(
+    matchId: string,
+    timedOutPlayerId: string,
+  ): Promise<void> {
     const room = this.rooms.get(matchId);
     if (!room) return;
 
@@ -343,14 +400,17 @@ export class GameService {
           finalBoard: room.board,
         });
       }
-    } catch (error) {
+    } catch {
       // Hata durumunda logla
     } finally {
       this.cleanUpRoom(matchId);
     }
   }
 
-  async handleAbandon(matchId: string, forfeitingPlayerId: string): Promise<void> {
+  async handleAbandon(
+    matchId: string,
+    forfeitingPlayerId: string,
+  ): Promise<void> {
     const room = this.rooms.get(matchId);
     if (!room) return;
 
@@ -376,7 +436,7 @@ export class GameService {
           finalBoard: room.board,
         });
       }
-    } catch (error) {
+    } catch {
       // log error
     } finally {
       this.cleanUpRoom(matchId);
@@ -421,9 +481,10 @@ export class GameService {
     room.turnTimeLeft = this.getTurnTimeLimit();
     room.turnExpiresAt = Date.now() + this.getTurnTimeLimit() * 1000;
 
-    room.timer = setTimeout(async () => {
-      const timedOutPlayerId = room.currentPlayer === 0 ? room.player1Id : room.player2Id;
-      await this.handleTimeout(matchId, timedOutPlayerId);
+    room.timer = setTimeout(() => {
+      const timedOutPlayerId =
+        room.currentPlayer === 0 ? room.player1Id : room.player2Id;
+      void this.handleTimeout(matchId, timedOutPlayerId);
     }, this.getTurnTimeLimit() * 1000);
   }
 
@@ -443,22 +504,29 @@ export class GameService {
     }
 
     const limit = this.getTurnTimeLimit();
-    const msLeft = Math.max(100, room.turnTimeLeft * (room.turnTimeLeft <= limit ? 1000 : 1));
+    const msLeft = Math.max(
+      100,
+      room.turnTimeLeft * (room.turnTimeLeft <= limit ? 1000 : 1),
+    );
     room.turnExpiresAt = Date.now() + msLeft;
 
-    room.timer = setTimeout(async () => {
-      const timedOutPlayerId = room.currentPlayer === 0 ? room.player1Id : room.player2Id;
-      await this.handleTimeout(room.matchId, timedOutPlayerId);
+    room.timer = setTimeout(() => {
+      const timedOutPlayerId =
+        room.currentPlayer === 0 ? room.player1Id : room.player2Id;
+      void this.handleTimeout(room.matchId, timedOutPlayerId);
     }, msLeft);
   }
 
   // --- Reconnect Timer Helpers ---
 
-  private startReconnectTimer(matchId: string, disconnectedUserId: string): void {
+  private startReconnectTimer(
+    matchId: string,
+    disconnectedUserId: string,
+  ): void {
     this.clearReconnectTimer(disconnectedUserId);
 
-    const timeout = setTimeout(async () => {
-      await this.handleDisconnectTimeout(matchId, disconnectedUserId);
+    const timeout = setTimeout(() => {
+      void this.handleDisconnectTimeout(matchId, disconnectedUserId);
     }, 60000);
 
     this.reconnectTimers.set(disconnectedUserId, timeout);
@@ -472,7 +540,10 @@ export class GameService {
     }
   }
 
-  private async handleDisconnectTimeout(matchId: string, disconnectedUserId: string): Promise<void> {
+  private async handleDisconnectTimeout(
+    matchId: string,
+    disconnectedUserId: string,
+  ): Promise<void> {
     const room = this.rooms.get(matchId);
     if (!room) return;
 
@@ -498,7 +569,7 @@ export class GameService {
           finalBoard: room.board,
         });
       }
-    } catch (error) {
+    } catch {
       // log error
     } finally {
       this.cleanUpRoom(matchId);

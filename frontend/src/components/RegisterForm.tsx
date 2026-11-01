@@ -49,7 +49,7 @@ export function RegisterForm(): React.JSX.Element {
         try {
           await login(username, password);
           navigate('#/lobby');
-        } catch (loginErr: unknown) {
+        } catch {
           setErrorMsg('Otomatik giriş başarısız oldu, lütfen manuel giriş yapın.');
           navigate('#/login');
         }

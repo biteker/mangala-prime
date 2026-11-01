@@ -1,5 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { EloService, calculateExpectedScore, getKFactor, calculateDelta } from './elo.service';
+import {
+  EloService,
+  calculateExpectedScore,
+  getKFactor,
+  calculateDelta,
+} from './elo.service';
 import { PrismaService } from '../common/prisma/prisma.service';
 
 describe('EloService - Saf Matematiksel Fonksiyonlar (Unit)', () => {
@@ -90,7 +95,12 @@ describe('EloService - Veritabanı Entegrasyon Testleri (Mocked)', () => {
         matchesAsP2: [],
       });
 
-    const result = await service.updateEloScores('match1', 'p1', 'p2', 'p1_win');
+    const result = await service.updateEloScores(
+      'match1',
+      'p1',
+      'p2',
+      'p1_win',
+    );
 
     expect(result.p1EloChange).toBe(20);
     expect(result.p2EloChange).toBe(-20);
@@ -120,7 +130,12 @@ describe('EloService - Veritabanı Entegrasyon Testleri (Mocked)', () => {
         matchesAsP2: [],
       });
 
-    const result = await service.updateEloScores('match1', 'p1', 'p2', 'p1_forfeit');
+    const result = await service.updateEloScores(
+      'match1',
+      'p1',
+      'p2',
+      'p1_forfeit',
+    );
 
     expect(result.p1EloChange).toBe(-15);
     expect(result.p2EloChange).toBe(15);
@@ -149,7 +164,12 @@ describe('EloService - Veritabanı Entegrasyon Testleri (Mocked)', () => {
         matchesAsP2: [],
       });
 
-    const result = await service.updateEloScores('match1', 'p1', 'p2', 'p1_win');
+    const result = await service.updateEloScores(
+      'match1',
+      'p1',
+      'p2',
+      'p1_win',
+    );
 
     expect(result.p1EloChange).toBe(0);
     expect(result.p2EloChange).toBe(0);
@@ -178,7 +198,12 @@ describe('EloService - Veritabanı Entegrasyon Testleri (Mocked)', () => {
         matchesAsP2: [],
       });
 
-    const result = await service.updateEloScores('match1', 'p1', 'p2', 'p2_win');
+    const result = await service.updateEloScores(
+      'match1',
+      'p1',
+      'p2',
+      'p2_win',
+    );
 
     expect(result.p1EloChange).toBe(-10);
   });

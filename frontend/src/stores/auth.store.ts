@@ -38,7 +38,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           const { apiClient } = await import('../lib/api-client');
           await apiClient.post('/auth/logout', {});
-        } catch (e) {
+        } catch {
           // Fail silently
         } finally {
           set({ accessToken: null, user: null });
@@ -48,7 +48,7 @@ export const useAuthStore = create<AuthState>()(
       fetchMe: async () => {
         // Döngüsel bağımlılığı önlemek için dinamik import kullanılır
         const { apiClient } = await import('../lib/api-client');
-        const user = await apiClient.get<any, UserProfileResponse>('/users/me');
+        const user = await apiClient.get<unknown, UserProfileResponse>('/users/me');
         set({ user });
       },
     }),

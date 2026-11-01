@@ -3,6 +3,10 @@
  * Uses Web Audio API to generate high-quality sound effects dynamically.
  */
 
+interface WebkitAudioWindow extends Window {
+  webkitAudioContext?: typeof AudioContext;
+}
+
 class AudioSynthesizer {
   private ctx: AudioContext | null = null;
   private masterVolume: GainNode | null = null;
@@ -23,7 +27,8 @@ class AudioSynthesizer {
       return true;
     }
 
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    const AudioContextClass =
+      window.AudioContext || (window as WebkitAudioWindow).webkitAudioContext;
     if (!AudioContextClass) {
       console.warn('Web Audio API is not supported in this browser.');
       return false;

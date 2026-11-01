@@ -8,18 +8,37 @@ import {
   MessageBody,
   ConnectedSocket,
 } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+import { Server, Socket, type DefaultEventsMap } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { GameService } from './game.service';
 import { MoveDto } from './dto/move.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import type { GameMovePayload, GameReconnectPayload, GameChatTogglePayload, GameMessagePayload } from '@mangala/shared';
+import type {
+  GameMovePayload,
+  GameReconnectPayload,
+  GameChatTogglePayload,
+  GameMessagePayload,
+} from '@mangala/shared';
 import { GameEndReason } from '@mangala/shared';
 import { SlidingWindowLimiter } from '../common/guards/sliding-window-limiter';
 
+interface GameSocketData {
+  userId?: string;
+  username?: string;
+}
+
+export type AuthenticatedGameSocket = Socket<
+  DefaultEventsMap,
+  DefaultEventsMap,
+  DefaultEventsMap,
+  GameSocketData
+>;
+
 @WebSocketGateway({ namespace: '/game' })
-export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
+export class GameGateway
+  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
+{
   @WebSocketServer()
   server!: Server;
 
@@ -44,7 +63,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         ? forwardedFor.split(',')[0].trim()
         : typeof realIp === 'string'
           ? realIp.trim()
-          : client.handshake.address || client.conn?.remoteAddress || '127.0.0.1';
+          : client.handshake.address ||
+            client.conn?.remoteAddress ||
+            '127.0.0.1';
 
     if (ip.startsWith('::ffff:')) {
       ip = ip.substring(7);
@@ -52,7 +73,27 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     return ip;
   }
 
-  async handleConnection(client: Socket): Promise<void> {
+  private extractHandshakeToken(client: Socket): string | null {
+    const authToken = (client.handshake.auth as { token?: unknown } | undefined)
+      ?.token;
+    const queryToken = (
+      client.handshake.query as { token?: unknown } | undefined
+    )?.token;
+    const rawToken =
+      typeof authToken === 'string'
+        ? authToken
+        : typeof queryToken === 'string'
+          ? queryToken
+          : null;
+
+    if (!rawToken) {
+      return null;
+    }
+
+    return rawToken.startsWith('Bearer ') ? rawToken.substring(7) : rawToken;
+  }
+
+  async handleConnection(client: AuthenticatedGameSocket): Promise<void> {
     try {
       const ip = this.extractClientIp(client);
       if (!this.connectionLimiter.tryConsume(ip)) {
@@ -60,18 +101,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         return;
       }
 
-      let token = client.handshake.auth?.token || client.handshake.query?.token;
-      
+      const token = this.extractHandshakeToken(client);
       if (!token) {
         client.disconnect(true);
         return;
       }
 
-      if (typeof token === 'string' && token.startsWith('Bearer ')) {
-        token = token.substring(7);
-      }
-
-      const payload = await this.jwtService.verifyAsync(token);
+      const payload = await this.jwtService.verifyAsync<{
+        sub: string;
+        username: string;
+      }>(token);
 
       const userId = payload.sub;
       const username = payload.username;
@@ -80,22 +119,24 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
       // Oyuncuyu varsa aktif odasına bağla
       await this.gameService.handlePlayerConnect(userId, client.id);
-      
+
       // Kullanıcının odası varsa socket odasına katılması gerek
       const room = this.gameService.getRoomForUser(userId);
       if (room) {
-        client.join(room.matchId);
+        await client.join(room.matchId);
       }
-    } catch (error) {
+    } catch {
       client.disconnect(true);
     }
   }
 
-  async handleDisconnect(client: Socket): Promise<void> {
-    const disconnectResult = await this.gameService.handlePlayerDisconnect(client.id);
+  async handleDisconnect(client: AuthenticatedGameSocket): Promise<void> {
+    const disconnectResult = await this.gameService.handlePlayerDisconnect(
+      client.id,
+    );
     if (disconnectResult) {
-      const { matchId, opponentSocketId, userId } = disconnectResult;
-      
+      const { matchId, userId } = disconnectResult;
+
       // Diğer oyuncuya bağlantı koptu bilgisi gitmeli
       this.server.to(matchId).emit('game:player_disconnected', {
         playerId: userId,
@@ -106,7 +147,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   @SubscribeMessage('game:move')
   async handleMove(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthenticatedGameSocket,
     @MessageBody() payload: GameMovePayload,
   ): Promise<void> {
     const userId = client.data.userId;
@@ -117,7 +158,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     if (!this.moveLimiter.tryConsume(userId)) {
       client.emit('game:error', {
-        error: { code: 'RATE_LIMITED', message: 'Çok fazla hamle isteği. Lütfen biraz bekleyin.' },
+        error: {
+          code: 'RATE_LIMITED',
+          message: 'Çok fazla hamle isteği. Lütfen biraz bekleyin.',
+        },
       });
       return;
     }
@@ -128,7 +172,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     if (errors.length > 0) {
       const room = this.gameService.getRoom(payload.matchId);
       client.emit('game:error', {
-        error: { code: 'INVALID_MOVE', message: 'Geçersiz hamle parametreleri.' },
+        error: {
+          code: 'INVALID_MOVE',
+          message: 'Geçersiz hamle parametreleri.',
+        },
         board: room?.board,
       });
       return;
@@ -138,7 +185,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     const validation = await this.gameService.validateMove(client.id, payload);
     if (!validation.valid) {
       client.emit('game:error', {
-        error: { code: 'INVALID_MOVE', message: validation.reason || 'Geçersiz hamle.' },
+        error: {
+          code: 'INVALID_MOVE',
+          message: validation.reason || 'Geçersiz hamle.',
+        },
         board: validation.currentBoard,
       });
       return;
@@ -147,7 +197,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     // 3. Hamleyi işle
     try {
       const result = await this.gameService.processMove(payload);
-      
+
       if (result.gameOver) {
         this.server.to(payload.matchId).emit('game:game_over', {
           matchId: payload.matchId,
@@ -164,16 +214,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
           turnTimeLeft: this.gameService.getTurnTimeLimit(),
         });
       }
-    } catch (error) {
+    } catch {
       client.emit('game:error', {
-        error: { code: 'INTERNAL_ERROR', message: 'Hamle işlenirken bir hata oluştu.' },
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Hamle işlenirken bir hata oluştu.',
+        },
       });
     }
   }
 
   @SubscribeMessage('game:reconnect')
   async handleReconnect(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthenticatedGameSocket,
     @MessageBody() payload: GameReconnectPayload,
   ): Promise<void> {
     const userId = client.data.userId;
@@ -190,12 +243,18 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
 
     try {
-      const room = await this.gameService.handleReconnect(userId, payload.matchId, client.id);
-      
-      client.join(payload.matchId);
+      const room = await this.gameService.handleReconnect(
+        userId,
+        payload.matchId,
+        client.id,
+      );
 
-      const opponentUsername = userId === room.player1Id ? room.player2Username : room.player1Username;
-      const nextPlayerId = room.currentPlayer === 0 ? room.player1Id : room.player2Id;
+      await client.join(payload.matchId);
+
+      const opponentUsername =
+        userId === room.player1Id ? room.player2Username : room.player1Username;
+      const nextPlayerId =
+        room.currentPlayer === 0 ? room.player1Id : room.player2Id;
       const yourColor: 0 | 1 = userId === room.player1Id ? 0 : 1;
 
       client.emit('game:reconnect_ack', {
@@ -207,7 +266,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         yourColor,
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Yeniden bağlanma başarısız oldu.';
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Yeniden bağlanma başarısız oldu.';
       client.emit('game:error', {
         error: { code: 'RECONNECT_FAILED', message: errorMessage },
       });
@@ -216,7 +278,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   @SubscribeMessage('game:abandon')
   async handleAbandon(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthenticatedGameSocket,
     @MessageBody() payload: { matchId: string },
   ): Promise<void> {
     const userId = client.data.userId;
@@ -234,18 +296,21 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     try {
       await this.gameService.handleAbandon(payload.matchId, userId);
-    } catch (error) {
+    } catch {
       client.emit('game:error', {
-        error: { code: 'FORFEIT_FAILED', message: 'Oyundan çekilme işlemi başarısız oldu.' },
+        error: {
+          code: 'FORFEIT_FAILED',
+          message: 'Oyundan çekilme işlemi başarısız oldu.',
+        },
       });
     }
   }
 
   @SubscribeMessage('game:chat_toggle')
-  async handleChatToggle(
-    @ConnectedSocket() client: Socket,
+  handleChatToggle(
+    @ConnectedSocket() client: AuthenticatedGameSocket,
     @MessageBody() payload: GameChatTogglePayload,
-  ): Promise<void> {
+  ): void {
     const userId = client.data.userId;
     if (!userId) return;
 
@@ -261,16 +326,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   }
 
   @SubscribeMessage('game:message')
-  async handleChatMessage(
-    @ConnectedSocket() client: Socket,
+  handleChatMessage(
+    @ConnectedSocket() client: AuthenticatedGameSocket,
     @MessageBody() payload: GameMessagePayload,
-  ): Promise<void> {
+  ): void {
     const userId = client.data.userId;
     if (!userId) return;
 
     if (!this.chatLimiter.tryConsume(userId)) {
       client.emit('game:error', {
-        error: { code: 'RATE_LIMITED', message: 'Çok fazla mesaj gönderildi. Lütfen biraz bekleyin.' },
+        error: {
+          code: 'RATE_LIMITED',
+          message: 'Çok fazla mesaj gönderildi. Lütfen biraz bekleyin.',
+        },
       });
       return;
     }

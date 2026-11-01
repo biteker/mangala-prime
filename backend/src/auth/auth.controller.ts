@@ -16,7 +16,18 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { Public } from './auth.guard';
 import { APP_CONFIG, type AppConfig } from '../common/config/app-config';
-import { AuthRegisterResponse, AuthLoginResponse, AuthRefreshResponse } from '@mangala/shared';
+import {
+  AuthRegisterResponse,
+  AuthLoginResponse,
+  AuthRefreshResponse,
+} from '@mangala/shared';
+
+export interface AuthenticatedRequest extends express.Request {
+  user?: {
+    readonly id: string;
+    readonly username: string;
+  };
+}
 
 @Controller('auth')
 export class AuthController {
@@ -28,7 +39,9 @@ export class AuthController {
   @Public()
   @Throttle({ default: { limit: 3, ttl: 600_000 } })
   @Post('register')
-  async register(@Body() registerDto: RegisterDto): Promise<AuthRegisterResponse> {
+  async register(
+    @Body() registerDto: RegisterDto,
+  ): Promise<AuthRegisterResponse> {
     return this.authService.register(registerDto);
   }
 
@@ -53,7 +66,10 @@ export class AuthController {
     @Req() req: express.Request,
     @Res({ passthrough: true }) res: express.Response,
   ): Promise<AuthRefreshResponse> {
-    const refreshToken = req.cookies?.['refreshToken'];
+    const cookies = req.cookies as
+      | Record<string, string | undefined>
+      | undefined;
+    const refreshToken = cookies?.['refreshToken'];
     if (!refreshToken) {
       throw new UnauthorizedException({
         code: 'UNAUTHORIZED',
@@ -69,7 +85,7 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logout(
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
     @Res({ passthrough: true }) res: express.Response,
   ): Promise<void> {
     if (req.user?.id) {
