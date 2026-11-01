@@ -2,42 +2,39 @@
 
 ---
 
-## Görev: T-05 — Helmet ve Rate Limiting
+## Görev: T-06 — `any` Temizliği ve Lint Kapısı
 
-> **Tam tasarım:** `docs/architecture-roadmap.md` → Bölüm 4, **T-05**. Bu dosya özet bilgi verir; bağlayıcı olan roadmap dokümanıdır.
+> **Tam tasarım:** `docs/architecture-roadmap.md` → Bölüm 4, **T-06**. Bu dosya özet bilgi verir; bağlayıcı olan roadmap dokümanıdır.
 
 ### Ön Koşullar (Başlamadan Kontrol Et)
-- [x] **K-2** ve **K-6** kararları onaylandı (2026-10-31).
-- [ ] T-04 (`feature/unified-cors`) `develop`'a merge edildi mi?
+- [ ] T-05 (`feature/helmet-throttler`) `develop`'a merge edildi mi?
 
 ### Branch
-`feature/helmet-throttler` (base: güncel `origin/develop`)
+`feature/strict-lint-gate` (base: güncel `origin/develop`)
 
 ### Ne Yapılacak? (Özet)
-1. `backend` workspace'ine `helmet` ve `@nestjs/throttler` paketlerini kur.
-2. `backend/src/main.ts`:
-   - `app.getHttpAdapter().getInstance().set('trust proxy', 1)` ekle (reverse proxy arkasında gerçek IP için).
-   - `helmet(...)` middleware'ini PixiJS ve WebSocket ile uyumlu CSP politikasıyla etkinleştir (`default-src 'self'`, `script-src 'self'`, `style-src 'self' 'unsafe-inline'`, `img-src 'self' data: blob:`, `connect-src 'self' wss: ws:`, `worker-src 'self' blob:`, `font-src 'self' data:`).
-3. `backend/src/app.module.ts`: `ThrottlerModule.forRoot` (global 100 istek / 60 sn) ve `APP_GUARD` olarak `ThrottlerGuard` ekle.
-4. Endpoint özel rate limit'leri (K-6 tablosu):
-   - `POST /auth/login`: 5 istek / 60 sn
-   - `POST /auth/register`: 3 istek / 10 dk (600 sn)
-   - `POST /auth/refresh`: 20 istek / 60 sn
-   - `GET /health`: `@SkipThrottle()`
-5. `backend/src/common/filters/http-exception.filter.ts`: `ThrottlerException` (HTTP 429) yakalandığında `{ error: { code: 'RATE_LIMITED', message: 'Çok fazla istek. Lütfen biraz bekleyin.' } }` formatında dönmesini sağla.
-6. `backend/src/common/guards/sliding-window-limiter.ts`: WebSocket bağlantı ve mesajları için zaman parametreli (`now: number`) saf `SlidingWindowLimiter` sınıfı yaz ve `game.gateway.ts` / `lobby.gateway.ts` içinde uygula (WS bağlantı: 20/60sn IP bazlı; `game:message`: 5/10sn userId bazlı; `game:move`: 10/5sn userId bazlı).
-7. Zorunlu testleri yaz: `sliding-window-limiter.spec.ts` ve HTTP 429 `RATE_LIMITED` testi.
+1. `backend/src/common/filters/error-code.util.ts` dosyasını oluştur:
+   - `export function extractErrorCode(error: unknown, fallback: string): string`
+   - `HttpException` ise `getResponse()` objesinden `code: string` alanını tip daraltma ile okur; değilse `fallback` döner.
+   - Birim testini yaz (`error-code.util.spec.ts`).
+2. `backend/src/lobby/lobby.gateway.ts` içindeki `(error as any).response?.code` kullanımlarını `extractErrorCode(error, 'INVITE_FAILED')` ve `extractErrorCode(error, 'INVITE_RESPONSE_FAILED')` ile değiştir.
+3. Kod tabanındaki ve test dosyalarındaki kalan tüm `any` kullanımlarını (`auth.controller.ts`, `user.controller.ts`, spec dosyaları, frontend vb.) tip güvenli arayüzlerle temizle (`grep -rnE ":\s*any\b|as any|<any>" backend/src frontend/src shared --include=*.ts --include=*.tsx | grep -v generated` → 0 sonuç).
+4. `backend/eslint.config.mjs` ve `frontend/eslint.config.js` içinde `'@typescript-eslint/no-explicit-any': 'error'` kuralını etkinleştir (`backend/src/generated/**` lint'ten hariç tutulur).
+5. Root `package.json`'a `"lint": "npm run lint -w backend && npm run lint -w frontend"` ekle (`backend/package.json` içinde `lint` script'i yoksa ekle).
+6. `.github/workflows/ci-cd.yml` içine test adımından önce `npm run lint` adımını ekle.
+7. Tüm lint hatalarını (0 error) kuralları gevşetmeden temizle.
 
 ### İlgili Referanslar
-- `docs/architecture-roadmap.md` Bölüm 4, T-05 · `docs/spec.md` Bölüm 13.2 · `.antigravity/skills/api-contract.md`, `.antigravity/skills/websocket.md`, `.antigravity/skills/testing.md`
+- `docs/architecture-roadmap.md` Bölüm 4, T-06 · `AGENTS.md` Kesin Kurallar · `docs/spec.md` Bölüm 19.6
 
 ### Kabul Kriterleri
-- [ ] `sliding-window-limiter.spec.ts` ve HTTP 429 rate limit testleri geçti
-- [ ] `ThrottlerException` `{ error: { code: 'RATE_LIMITED', message: '...' } }` formatında dönüyor
+- [ ] `grep -rnE ":\s*any\b|as any|<any>" backend/src frontend/src shared --include=*.ts --include=*.tsx | grep -v generated` → 0 sonuç
+- [ ] `npm run lint` → 0 error
+- [ ] `.github/workflows/ci-cd.yml` içinde `npm run lint` adımı var
 - [ ] `npm run test` ve `npm run build` yeşil
 
 ### Kapsam Dışı
-- ESLint `no-explicit-any` kapısı (T-06), Prisma config tekilleştirme (T-07)
+- Prisma config tekilleştirme (T-07), WS exception filter (T-11)
 
 ### Sonraki Görev
-T-06 — `any` Temizliği ve Lint Kapısı
+T-07 — Prisma Config Tekilleştirme

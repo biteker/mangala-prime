@@ -5,11 +5,17 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
+import { ThrottlerException } from '@nestjs/throttler';
 import { Response } from 'express';
+
+interface StructuredErrorResponse {
+  readonly code?: string;
+  readonly message?: string | readonly string[];
+}
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
-  catch(exception: unknown, host: ArgumentsHost) {
+  catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
@@ -17,7 +23,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let errorCode = 'INTERNAL_ERROR';
     let errorMessage = 'Internal server error';
 
-    if (exception instanceof HttpException) {
+    if (exception instanceof ThrottlerException) {
+      status = HttpStatus.TOO_MANY_REQUESTS;
+      errorCode = 'RATE_LIMITED';
+      errorMessage = 'Çok fazla istek. Lütfen biraz bekleyin.';
+    } else if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
       errorMessage = exception.message;
@@ -40,20 +50,21 @@ export class HttpExceptionFilter implements ExceptionFilter {
           break;
         case HttpStatus.TOO_MANY_REQUESTS:
           errorCode = 'RATE_LIMITED';
+          errorMessage = 'Çok fazla istek. Lütfen biraz bekleyin.';
           break;
         default:
           errorCode = 'INTERNAL_ERROR';
       }
 
       if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
-        const responseObj = exceptionResponse as any;
+        const responseObj = exceptionResponse as StructuredErrorResponse;
         if (Array.isArray(responseObj.message)) {
           errorMessage = responseObj.message.join(', ');
-        } else if (responseObj.message) {
+        } else if (typeof responseObj.message === 'string' && responseObj.message.length > 0) {
           errorMessage = responseObj.message;
         }
 
-        if (responseObj.code) {
+        if (typeof responseObj.code === 'string' && responseObj.code.length > 0) {
           errorCode = responseObj.code;
         }
       }

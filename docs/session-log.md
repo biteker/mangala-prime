@@ -23,6 +23,31 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-01] — T-05: Helmet ve Rate Limiting
+
+**Tamamlanan Görev:** `helmet` (PixiJS ve WebSocket uyumlu CSP ile) ve `@nestjs/throttler` kurularak HTTP ve WebSocket katmanlarında güvenlik başlıkları ve hız sınırlandırması (rate limiting) devreye alındı. Reverse proxy arkasında gerçek IP tespiti için `trust proxy: 1` açıldı. `HttpExceptionFilter` 429 hatalarını `{ error: { code: 'RATE_LIMITED', message: '...' } }` formatında döndürecek şekilde güncellendi. WebSocket bağlantı ve mesajları için saf `SlidingWindowLimiter` sınıfı yazılarak `GameGateway` ve `LobbyGateway` içine entegre edildi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `backend/package.json` — `helmet` ve `@nestjs/throttler` eklendi
+- `backend/src/main.ts` — `trust proxy: 1` ve PixiJS/WS uyumlu CSP ile `helmet` middleware'i eklendi
+- `backend/src/app.module.ts` — `ThrottlerModule.forRoot` (100 istek/60sn) ve global `ThrottlerGuard` eklendi
+- `backend/src/auth/auth.controller.ts` — `/auth/login` (5/60sn), `/auth/register` (3/10dk), `/auth/refresh` (20/60sn) `@Throttle` kuralları eklendi
+- `backend/src/app.controller.ts` — `/health` için `@SkipThrottle()` eklendi
+- `backend/src/common/filters/http-exception.filter.ts` — `ThrottlerException` için `429 RATE_LIMITED` formatı ve `any` temizliği yapıldı
+- `backend/src/common/guards/sliding-window-limiter.ts` — Yeni: Saf, bellek temizlemeli `SlidingWindowLimiter` sınıfı
+- `backend/src/common/guards/sliding-window-limiter.spec.ts` — Yeni: 5 zorunlu birim testi
+- `backend/src/auth/auth.controller.spec.ts` — Yeni: 6. login denemesinde `429 RATE_LIMITED` e2e/integration testi (2 test)
+- `backend/src/game/game.gateway.ts` — WS bağlantı (20/60sn), `game:move` (10/5sn) ve `game:message` (5/10sn) hız limitleri eklendi
+- `backend/src/lobby/lobby.gateway.ts` — WS bağlantı (20/60sn) hız limiti eklendi
+
+**Test Sonuçları:** 91/91 test geçti (13 test suite)
+**Derleme:** ✅ Hatasız (`shared`, `backend`, `frontend`)
+**Açık Sorunlar:** Yok. Sıradaki adım T-06 (`any` temizliği ve ESLint kapısı).
+**Bir Sonraki Görev:** T-06 — `any` Temizliği ve Lint Kapısı
+**Commit:** feat(security): add helmet CSP headers and HTTP/WS rate limiting (T-05)
+**PR:** feature/helmet-throttler → develop
+
+---
+
 ### Oturum [2026-11-01] — T-04: Birleşik CORS Politikası (HTTP + WebSocket)
 
 **Tamamlanan Görev:** `ConfiguredIoAdapter` yazılarak `AppConfig.corsOrigins` beyaz listesi ve `credentials: true` politikası Socket.IO sunucusuna merkezi olarak uygulandı. `GameGateway` ve `LobbyGateway` üzerindeki `cors: { origin: '*' }` tanımları kaldırıldı.
