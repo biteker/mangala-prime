@@ -23,6 +23,25 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-01] — T-07: Prisma Config Tekilleştirme
+
+**Tamamlanan Görev:** Mükerrer olan `prisma/prisma.config.ts` kaldırılarak kökteki `/prisma.config.ts` tek kaynak haline getirildi. Kökteki yapılandırma dosyasındaki `dummy_password_for_ci_only` fallback'i silinerek `env('DATABASE_URL')` kullanımı zorunlu kılındı. `backend/package.json` içindeki mükerrer `prisma.seed` tanımı kaldırılarak `prisma.config.ts > migrations.seed` tekilleştirildi. CI iş akışı (`.github/workflows/ci-cd.yml`) ve `Dockerfile` derleme aşamasında `npx prisma generate` adımlarına açık derleme zamanı `DATABASE_URL` ortam değişkeni eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `prisma/prisma.config.ts` — Silindi (tek kaynak kuralı)
+- `prisma.config.ts` — `dummy_password_for_ci_only` fallback'i kaldırıldı, `env('DATABASE_URL')` ile güncellendi
+- `backend/package.json` — Mükerrer `prisma.seed` alanı kaldırıldı
+- `.github/workflows/ci-cd.yml` — `Generate Prisma Client` adımına `env: DATABASE_URL` eklendi
+- `Dockerfile` — `build-backend` aşamasındaki `npx prisma generate` komutlarına build-time `DATABASE_URL` eklendi
+
+**Test Sonuçları:** 94/94 test geçti (14 test suite)
+**Derleme:** ✅ Hatasız (`npx prisma validate`, `npx prisma generate`, `npx prisma migrate deploy`, `npm run lint`, `npm run build` başarılı)
+**Açık Sorunlar:** Yok. Faz A (T-01…T-07) tamamlandı. Sıradaki adım T-10 (Release Süreci, UAT ve Git Hijyeni).
+**Bir Sonraki Görev:** T-10 — Release Süreci ve Git Hijyeni
+**Commit:** refactor(prisma): unify prisma.config.ts and remove db url fallback (T-07)
+**PR:** feature/prisma-config-single-source → develop
+
+---
+
 ### Oturum [2026-11-01] — T-06: `any` Temizliği ve Lint Kapısı
 
 **Tamamlanan Görev:** Kod tabanındaki (backend, frontend, shared ve birim testleri) tüm `any` kullanımları tip güvenli arayüzler ve tip daraltma yardımcıları (`extractErrorCode`, `AuthenticatedRequest`, `AuthenticatedGameSocket`, `AuthenticatedLobbySocket`) ile değiştirildi. Hem `backend/eslint.config.mjs` hem de `frontend/eslint.config.js` içinde `@typescript-eslint/no-explicit-any: 'error'` kuralı etkinleştirildi. Mevcut tüm ESLint hataları (backend `no-unsafe-*`, `require-await`, `unbound-method`; frontend React 19 `rules-of-hooks`, `set-state-in-effect`, `refs`) kurallar gevşetilmeden sıfırlandı. Root `package.json` ve `.github/workflows/ci-cd.yml` içine `npm run lint` kapısı eklendi.

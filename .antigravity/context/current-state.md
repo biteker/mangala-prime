@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/strict-lint-gate
+Aktif Branch: feature/prisma-config-single-source
 
 ---
 
@@ -8,7 +8,7 @@ Aktif Branch: feature/strict-lint-gate
 
 ```
 Faz 1 MVP: ██████████ %100
-Yayın Hazırlığı: █████████░ %90  (T-01..T-06 tamamlandı — bkz. docs/architecture-roadmap.md)
+Yayın Hazırlığı: ██████████ %95  (Faz A: T-01..T-07 tamamlandı — bkz. docs/architecture-roadmap.md)
 ```
 
 ---
@@ -41,7 +41,7 @@ Yayın Hazırlığı: █████████░ %90  (T-01..T-06 tamamland�
 |-------|-------|--------|
 | GitHub Actions CI/CD | ✅ Onaylandı | Testler yeşil (74/74). `prisma migrate deploy` ile güvenli dağıtım sağlandı. |
 | Hetzner Deploy | ✅ Onaylandı ve Merge Edildi | Docker, Compose ve Nginx Proxy Manager ile VPS üzerinde deploy doğrulandı. |
-| Güvenlik Sertleştirmesi | 🔄 Devam Ediyor | Yalnızca HTTP `CORS_ORIGIN` whitelist yapıldı. Eksikler: JWT fallback secret'ları, WS CORS `*`, Helmet/rate limit yok, `/test-match` açık. → Roadmap Faz A (T-01…T-07) |
+| Güvenlik Sertleştirmesi | ✅ Onaylandı | Faz A (T-01…T-07): Tipli config, debug endpoint temizliği, şifre rotasyonu, birleşik CORS, Helmet + Rate limiting, sıfır `any` + CI lint kapısı ve Prisma config tekilleştirme tamamlandı. |
 
 ---
 
@@ -64,14 +64,15 @@ Yayın Hazırlığı: █████████░ %90  (T-01..T-06 tamamland�
 - **✅ ÇÖZÜLDÜ (B-04 / B-05 / T-04):** `ConfiguredIoAdapter` ile HTTP ve WebSocket CORS politikası `AppConfig.corsOrigins` altında birleştirildi.
 - **✅ ÇÖZÜLDÜ (B-06 / T-05):** `helmet` CSP, HTTP `@nestjs/throttler` ve WS `SlidingWindowLimiter` devreye alındı.
 - **✅ ÇÖZÜLDÜ (B-07 / T-06):** Kod tabanındaki tüm `any` kullanımları kaldırıldı, ESLint `no-explicit-any: error` ve CI `npm run lint` kapısı eklendi.
+- **✅ ÇÖZÜLDÜ (B-09 / T-07):** `prisma/prisma.config.ts` silinerek kök `/prisma.config.ts` tek kaynak yapıldı; DB URL fallback'i kaldırıldı.
 - **Mimari Kararlar:** K-1…K-7 tamamı 2026-10-31'de onaylandı (K-4: yalnızca şifre rotasyonu).
 
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-01 — T-06: `any` Temizliği ve Lint Kapısı
+Oturum 2026-11-01 — T-07: Prisma Config Tekilleştirme
 
 ### Yapılanlar
-- `extractErrorCode` yardımcı fonksiyonu ve birim testleri yazıldı; tüm `any` tipleri kaldırıldı.
-- Backend ve frontend ESLint yapılandırmalarında `@typescript-eslint/no-explicit-any: 'error'` açıldı ve tüm lint hataları sıfırlandı.
-- CI iş akışına `npm run lint` kapısı eklendi; 94/94 birim testi ve monorepo build doğrulandı. Sıradaki görev: T-07.
+- `prisma/prisma.config.ts` silindi; kökteki `/prisma.config.ts` içinde `env('DATABASE_URL')` zorunlu kılındı ve fallback kaldırıldı.
+- `backend/package.json` içindeki mükerrer `prisma.seed` alanı temizlendi; CI ve `Dockerfile` `prisma generate` adımları güncellendi.
+- `npx prisma validate`, `npx prisma migrate deploy`, 94/94 birim testi ve monorepo build doğrulandı. Sıradaki görev: T-10.

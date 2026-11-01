@@ -39,13 +39,13 @@ COPY prisma/ ./prisma/
 COPY prisma.config.ts ./
 
 # Prisma Client'ı oluştur
-RUN npx prisma generate
+RUN DATABASE_URL="postgresql://build:build@localhost:5432/build" npx prisma generate
 
 # Backend'i derle
 RUN npm run build -w backend
 
 # Sadece üretim bağımlılıklarını tutmak için temizlik yapacağız
-RUN rm -rf node_modules && npm ci --omit=dev && npx prisma generate
+RUN rm -rf node_modules && npm ci --omit=dev && DATABASE_URL="postgresql://build:build@localhost:5432/build" npx prisma generate
 
 # ==============================================================================
 # STAGE 5: Production Runner
