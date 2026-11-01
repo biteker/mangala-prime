@@ -7,19 +7,25 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { loadAppConfig, AppConfig } from './common/config/app-config';
 import cookieParser from 'cookie-parser';
 
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
+  let config: AppConfig;
+  try {
+    config = loadAppConfig(process.env);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Invalid application configuration';
+    console.error(`[FATAL] ${message}`);
+    process.exit(1);
+  }
+
   const app = await NestFactory.create(AppModule);
 
   app.use(cookieParser());
 
-  const allowedOrigins = process.env.CORS_ORIGIN
-    ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
-    : true;
-
   app.enableCors({
-    origin: allowedOrigins,
+    origin: [...config.corsOrigins],
     credentials: true,
   });
 
@@ -34,7 +40,7 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new ResponseInterceptor());
 
-  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
+  await app.listen(config.port, '0.0.0.0');
 }
 bootstrap();
 

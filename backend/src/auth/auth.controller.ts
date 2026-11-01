@@ -4,6 +4,7 @@ import {
   Body,
   Res,
   Req,
+  Inject,
   HttpCode,
   HttpStatus,
   UnauthorizedException,
@@ -13,11 +14,15 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { Public } from './auth.guard';
+import { APP_CONFIG, type AppConfig } from '../common/config/app-config';
 import { AuthRegisterResponse, AuthLoginResponse, AuthRefreshResponse } from '@mangala/shared';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    @Inject(APP_CONFIG) private readonly config: AppConfig,
+  ) {}
 
   @Public()
   @Post('register')
@@ -68,15 +73,15 @@ export class AuthController {
     }
     res.clearCookie('refreshToken', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: this.config.nodeEnv === 'production',
       sameSite: 'strict',
     });
   }
 
-  private setRefreshTokenCookie(res: express.Response, token: string) {
+  private setRefreshTokenCookie(res: express.Response, token: string): void {
     res.cookie('refreshToken', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: this.config.nodeEnv === 'production',
       sameSite: 'strict',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });

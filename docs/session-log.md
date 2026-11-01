@@ -23,6 +23,37 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-01] — T-01: Tipli Config Modülü ve Secret Fail-Fast
+
+**Tamamlanan Görev:** `loadAppConfig` saf fonksiyonu ve global `ConfigModule` (`APP_CONFIG`) oluşturuldu. Sunucu başlangıcında (`main.ts`) fail-fast env doğrulaması eklendi. Tüm hardcoded JWT fallback secret'ları ve dağınık `process.env` okumaları kaldırılarak merkezi tipli yapılandırmaya geçirildi. Jest için `test/setup-env.ts` eklendi ve `app-config.spec.ts` ile 7 zorunlu birim testi yazıldı.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `backend/src/common/config/app-config.ts` — Yeni: `AppConfig` arayüzü, `APP_CONFIG` token'ı ve saf `loadAppConfig` doğrulayıcısı
+- `backend/src/common/config/config.module.ts` — Yeni: Global `ConfigModule`
+- `backend/src/common/config/app-config.spec.ts` — Yeni: 7 zorunlu config doğrulama testi
+- `backend/test/setup-env.ts` — Yeni: Jest test ortamı varsayılan env kurulumu
+- `backend/package.json` — `jest.setupFiles` içine `setup-env.ts` eklendi
+- `backend/src/main.ts` — Başlangıçta `loadAppConfig` fail-fast kontrolü ve `config.corsOrigins`/`config.port` kullanımı
+- `backend/src/app.module.ts` — `ConfigModule` import edildi
+- `backend/src/auth/auth.module.ts` — `JwtModule.registerAsync` ile `APP_CONFIG` entegrasyonu
+- `backend/src/auth/auth.service.ts` — Hardcoded secret fallback'leri kaldırıldı, `APP_CONFIG` inject edildi
+- `backend/src/auth/strategies/jwt.strategy.ts` — `APP_CONFIG` üzerinden `jwtSecret` kullanımı
+- `backend/src/auth/auth.controller.ts` — Cookie `secure` bayrağı `APP_CONFIG.nodeEnv` üzerinden alındı
+- `backend/src/game/game.gateway.ts` — Hardcoded secret kaldırıldı
+- `backend/src/lobby/lobby.gateway.ts` — Hardcoded secret kaldırıldı
+- `backend/src/game/game.service.ts` — Tur süresi `APP_CONFIG.turnTimeLimitSecs` üzerinden alındı
+- `backend/src/common/prisma/prisma.service.ts` — `APP_CONFIG` desteği eklendi
+- `backend/src/app.controller.ts` — Hardcoded secret fallback'leri kaldırıldı (endpoint T-02'de tamamen silinecek)
+- `backend/.env.example` — Placeholder değerlerle güncellendi
+
+**Test Sonuçları:** 81/81 test geçti (10 test suite)
+**Derleme:** ✅ Hatasız (`shared`, `backend`, `frontend`)
+**Açık Sorunlar:** Yok. Sıradaki adım T-02 (`POST /test-match` ve `ws-test.html` temizliği).
+**Bir Sonraki Görev:** T-02 — Test Endpoint'i ve Debug Artıklarının Kaldırılması
+**Commit:** feat(config): add typed app config and fail-fast secret validation (T-01)
+**PR:** feature/config-hardening → develop
+
+---
+
 ### Oturum [2026-10-30] — Mimari Denetim ve Yol Haritası (Sistem Mimarı)
 
 **Tamamlanan Görev:** Kod tabanının mimari denetimi yapıldı. 14 bulgu (3 kritik güvenlik) tespit edildi. 16 görevlik tasarım ve görev dokümanı hazırlandı. Kod değişikliği yapılmadı.

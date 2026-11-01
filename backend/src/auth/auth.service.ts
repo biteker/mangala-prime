@@ -1,6 +1,7 @@
-import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Inject, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../common/prisma/prisma.service';
+import { APP_CONFIG, type AppConfig } from '../common/config/app-config';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
@@ -11,6 +12,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    @Inject(APP_CONFIG) private readonly config: AppConfig,
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthRegisterResponse> {
@@ -97,7 +99,7 @@ export class AuthService {
   async refreshTokens(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
     try {
       const payload = this.jwtService.verify(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET || 'fallback_refresh_secret_key_for_dev_only_0987654321',
+        secret: this.config.jwtRefreshSecret,
       });
 
       const user = await this.prisma.user.findUnique({
@@ -143,11 +145,10 @@ export class AuthService {
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_SECRET || 'fallback_secret_key_for_dev_only_1234567890',
         expiresIn: '1h',
       }),
       this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_REFRESH_SECRET || 'fallback_refresh_secret_key_for_dev_only_0987654321',
+        secret: this.config.jwtRefreshSecret,
         expiresIn: '30d',
       }),
     ]);

@@ -76,7 +76,7 @@ describe('LobbyGateway', () => {
       await gateway.handleConnection(mockSocket as unknown as Socket);
 
       // Assert
-      expect(jwtService.verifyAsync).toHaveBeenCalledWith('valid-token', expect.any(Object));
+      expect(jwtService.verifyAsync).toHaveBeenCalledWith('valid-token');
       expect(mockSocket.data).toEqual({ userId: 'user-1', username: 'user1', ip: '192.168.1.100' });
       expect(lobbyService.addUser).toHaveBeenCalledWith('user-1', 'user1', 'socket-p1', '192.168.1.100');
       expect(mockSocket.broadcast.emit).toHaveBeenCalledWith('lobby:user_status', {

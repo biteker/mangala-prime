@@ -597,7 +597,7 @@ flowchart LR
 
 | ID | Görev | Faz | Öncelik | Sorumlu | Bağımlılık | Karar |
 |----|-------|-----|---------|---------|-----------|-------|
-| T-01 | Tipli Config + Secret Fail-Fast | A | P0 | Ajan | — | K-2 |
+| T-01 | ✅ Tipli Config + Secret Fail-Fast (Tamamlandı) | A | P0 | Ajan | — | K-2 |
 | T-02 | Debug endpoint kaldırma + /health | A | P0 | Ajan | T-01 | K-3 |
 | T-03 | ✅ Sızan şifre rotasyonu (Tamamlandı) | A | P0 | **İnsan + Ajan** | — | K-4 |
 | T-04 | Birleşik CORS (HTTP + WS) | A | P1 | Ajan | T-01 | K-2 |

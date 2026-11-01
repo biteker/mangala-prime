@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
+import { APP_CONFIG, type AppConfig } from '../common/config/app-config';
 import { GameEngineService } from './game-engine.service';
 import { EloService } from '../elo/elo.service';
 import { GameRoom } from './types/game-room.types';
@@ -32,10 +33,11 @@ export class GameService {
     private readonly prisma: PrismaService,
     private readonly gameEngine: GameEngineService,
     private readonly eloService: EloService,
+    @Inject(APP_CONFIG) private readonly config: AppConfig,
   ) {}
 
   getTurnTimeLimit(): number {
-    return parseInt(process.env.GAME_TURN_TIME_LIMIT_SECS || '59', 10);
+    return this.config.turnTimeLimitSecs;
   }
 
   setServer(server: Server): void {

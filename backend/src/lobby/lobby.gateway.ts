@@ -43,9 +43,7 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect, O
         token = token.substring(7);
       }
 
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET || 'fallback_secret_key_for_dev_only_1234567890',
-      });
+      const payload = await this.jwtService.verifyAsync(token);
 
       const userId = payload.sub;
       const username = payload.username;

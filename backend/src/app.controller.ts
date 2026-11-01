@@ -45,11 +45,9 @@ export class AppController {
       const p2Payload = { sub: p2.id, username: p2.username };
       
       const p1Token = await this.jwtService.signAsync(p1Payload, {
-        secret: process.env.JWT_SECRET || 'fallback_secret_key_for_dev_only_1234567890',
         expiresIn: '1h',
       });
       const p2Token = await this.jwtService.signAsync(p2Payload, {
-        secret: process.env.JWT_SECRET || 'fallback_secret_key_for_dev_only_1234567890',
         expiresIn: '1h',
       });
 

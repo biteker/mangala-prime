@@ -1,7 +1,8 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Inject, Optional, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '../../generated/client/client.js';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
+import { APP_CONFIG, type AppConfig } from '../config/app-config';
 
 @Injectable()
 export class PrismaService
@@ -10,8 +11,8 @@ export class PrismaService
 {
   private pool: pg.Pool;
 
-  constructor() {
-    const dbUrl = process.env.DATABASE_URL;
+  constructor(@Optional() @Inject(APP_CONFIG) config?: AppConfig) {
+    const dbUrl = config?.databaseUrl ?? process.env.DATABASE_URL;
     if (!dbUrl) {
       throw new Error('DATABASE_URL environment variable is not defined!');
     }
