@@ -23,6 +23,26 @@ export interface ChatMessage {
   type: 'text' | 'preset';
 }
 
+export interface LastOfflineMoveInfo {
+  pitIndex: number;
+  stoneCount: number;
+  player: Player;
+  extraTurn: boolean;
+  capturedPits?: number[];
+  nextBoard: BoardState;
+  seq: number;
+}
+
+export const getBotMoveDelayMs = (
+  stonesSown: number,
+  hasCapture: boolean,
+): number => {
+  const sowAnimationMs = 600 + Math.max(1, stonesSown) * 160;
+  const captureAnimationMs = hasCapture ? 500 : 0;
+  const thinkingPauseMs = 500;
+  return sowAnimationMs + captureAnimationMs + thinkingPauseMs;
+};
+
 interface GameState {
   socket: Socket | null;
   matchId: string | null;
@@ -41,6 +61,7 @@ interface GameState {
   isLocalPvP: boolean;
   mode: GameMode;
   botLevel: BotLevel;
+  lastMoveInfo: LastOfflineMoveInfo | null;
 
   connectGame: (matchId: string) => void;
   disconnectGame: () => void;
@@ -119,6 +140,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   isLocalPvP: false,
   mode: 'online',
   botLevel: 'medium',
+  lastMoveInfo: null,
 
   connectGame: (matchId: string) => {
     const state = get();
@@ -159,6 +181,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       gameOverDetails: null,
       disconnectedPlayerId: null,
       reconnectWindowSecs: null,
+      lastMoveInfo: null,
     });
 
     // Soket (yeniden) bağlandığında mevcut oda durumunu sunucudan talep et
@@ -266,6 +289,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       reconnectWindowSecs: null,
       isLocalPvP: false,
       mode: 'online',
+      lastMoveInfo: null,
     });
   },
 
@@ -292,6 +316,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       gameOverDetails: null,
       disconnectedPlayerId: null,
       reconnectWindowSecs: null,
+      lastMoveInfo: null,
     });
     runTimer(59, set, get);
   },
@@ -321,6 +346,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       gameOverDetails: null,
       disconnectedPlayerId: null,
       reconnectWindowSecs: null,
+      lastMoveInfo: null,
     });
     runTimer(59, set, get);
   },
@@ -334,12 +360,24 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       const applyOfflineMove = (chosenPit: number, player: Player): void => {
         const currentState = get();
+        const stoneCount = currentState.board[chosenPit] ?? 0;
         const result = applyMove(currentState.board, chosenPit, player);
+        const moveInfo: LastOfflineMoveInfo = {
+          pitIndex: chosenPit,
+          stoneCount,
+          player,
+          extraTurn: result.extraTurn,
+          capturedPits: result.capturedPits,
+          nextBoard: [...result.newBoard],
+          seq: (currentState.lastMoveInfo?.seq ?? 0) + 1,
+        };
+
         if (result.gameOver) {
           clearTimers();
           set({
             board: result.newBoard,
             currentPlayerId: null,
+            lastMoveInfo: moveInfo,
             gameOverDetails: {
               matchId: currentState.matchId ?? 'local-match',
               winnerId:
@@ -361,6 +399,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         set({
           board: result.newBoard,
           currentPlayerId: nextPlayerId,
+          lastMoveInfo: moveInfo,
           gameError: null,
         });
         runTimer(59, set, get);
@@ -369,6 +408,10 @@ export const useGameStore = create<GameState>((set, get) => ({
           if (botMoveTimeout) {
             clearTimeout(botMoveTimeout);
           }
+          const delayMs = getBotMoveDelayMs(
+            stoneCount,
+            Boolean(result.capturedPits && result.capturedPits.length > 0),
+          );
           botMoveTimeout = setTimeout(() => {
             botMoveTimeout = null;
             const latestState = get();
@@ -392,7 +435,7 @@ export const useGameStore = create<GameState>((set, get) => ({
                   botErr instanceof Error ? botErr.message : 'Bot hamle hatası.',
               });
             }
-          }, 800);
+          }, delayMs);
         }
       };
 

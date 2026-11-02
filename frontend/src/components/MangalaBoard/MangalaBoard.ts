@@ -66,6 +66,10 @@ export class MangalaBoard extends PIXI.Container {
   
   // Interactivity block
   private isAnimating: boolean = false;
+  private pendingAnimations: Array<{
+    nextBoard: number[];
+    moveDetails: { startPit: number; steps: number[] };
+  }> = [];
   
   // Physics Ticker & Destruction Guard
   private tickerActive: boolean = false;
@@ -850,9 +854,16 @@ export class MangalaBoard extends PIXI.Container {
     nextBoard: number[],
     moveDetails?: { startPit: number; steps: number[] }
   ): void {
-    console.log("[MangalaBoard] updateBoardState called. isAnimating:", this.isAnimating, "hasMoveDetails:", !!moveDetails);
     if (this.isAnimating) {
-      console.warn("[MangalaBoard] updateBoardState blocked because isAnimating is true!");
+      if (moveDetails) {
+        this.pendingAnimations.push({
+          nextBoard: [...nextBoard],
+          moveDetails: {
+            startPit: moveDetails.startPit,
+            steps: [...moveDetails.steps]
+          }
+        });
+      }
       return;
     }
 
@@ -862,7 +873,7 @@ export class MangalaBoard extends PIXI.Container {
     }
 
     this.isAnimating = true;
-    this.runSowingAnimation(moveDetails.startPit, moveDetails.steps, nextBoard);
+    this.runSowingAnimation(moveDetails.startPit, moveDetails.steps, [...nextBoard]);
   }
 
   /**
@@ -997,18 +1008,130 @@ export class MangalaBoard extends PIXI.Container {
       }, startTime + stepDuration / 2);
     });
 
-    // Trigger completion immediately after the last stone lands (with a tiny buffer of 0.02s)
+    // Trigger capture flight (if any) and completion immediately after the last stone lands
     tl.add(() => {
-      this.checkAnimationSettle();
+      this.animateCaptureOrSettle(finalBoardState);
     }, 0.2 + steps.length * stepDelay + stepDuration + 0.02);
+  }
+
+  /**
+   * If a capture (Even rule / Turan rule) or end-of-game sweep occurred,
+   * animate the captured stones flying into the target treasury before settling.
+   */
+  private animateCaptureOrSettle(finalBoardState: number[]): void {
+    if (this.isDestroyed) return;
+
+    const capturedStones: VisualStone[] = [];
+    for (let pitIdx = 0; pitIdx < 14; pitIdx++) {
+      if (pitIdx === 6 || pitIdx === 13) continue;
+      const targetCount = finalBoardState[pitIdx] || 0;
+      const currentCount = this.stonesInPits[pitIdx].length;
+      if (currentCount > targetCount) {
+        const diff = currentCount - targetCount;
+        for (let i = 0; i < diff; i++) {
+          const stone = this.stonesInPits[pitIdx].pop();
+          if (stone) {
+            capturedStones.push(stone);
+          }
+        }
+      }
+    }
+
+    if (capturedStones.length === 0) {
+      this.checkAnimationSettle(finalBoardState);
+      return;
+    }
+
+    const p1Deficit = (finalBoardState[6] || 0) - this.stonesInPits[6].length;
+    const targetTreasuryIdx = p1Deficit > 0 ? 6 : 13;
+    const targetCenter = this.pitCenters[targetTreasuryIdx];
+    const targetBoundary = this.pitBoundaries[targetTreasuryIdx];
+
+    soundManager.playTreasuryCapture();
+
+    const captureTl = gsap.timeline();
+    const flightDuration = 0.42;
+
+    capturedStones.forEach((stone, idx) => {
+      stone.isSleeping = false;
+      const angle = Math.random() * Math.PI * 2;
+      const radius = targetBoundary.radius * 0.6 * Math.random();
+      const tx = targetCenter.x + Math.cos(angle) * radius;
+      const ty = targetCenter.y + (Math.random() - 0.5) * 160;
+      const delay = idx * 0.03;
+
+      captureTl.to(
+        stone,
+        {
+          x: tx,
+          y: ty,
+          duration: flightDuration,
+          ease: 'power2.inOut',
+          onUpdate: () => {
+            if (!stone || !stone.container || this.isDestroyed) return;
+            stone.container.x = stone.x;
+            stone.container.y = stone.y;
+            this.updateStoneVisual(stone);
+          }
+        },
+        delay
+      );
+
+      captureTl.fromTo(
+        stone,
+        { flightZ: 0.2 },
+        {
+          flightZ: 1.0,
+          duration: flightDuration / 2,
+          ease: 'power1.out',
+          onUpdate: () => this.updateStoneVisual(stone)
+        },
+        delay
+      );
+
+      captureTl.to(
+        stone,
+        {
+          flightZ: 0.0,
+          duration: flightDuration / 2,
+          ease: 'power1.in',
+          onUpdate: () => this.updateStoneVisual(stone),
+          onComplete: () => {
+            this.stonesInPits[targetTreasuryIdx].push(stone);
+            stone.vx = (Math.random() * 3 - 1.5);
+            stone.vy = (Math.random() * 3 - 1.5);
+            stone.isSleeping = false;
+            this.startPhysicsTicker();
+          }
+        },
+        delay + flightDuration / 2
+      );
+    });
+
+    const totalCaptureDuration = (capturedStones.length - 1) * 0.03 + flightDuration + 0.02;
+    captureTl.add(() => {
+      this.checkAnimationSettle(finalBoardState);
+    }, totalCaptureDuration);
   }
 
   /**
    * Snaps the animation to completion as soon as all stones land, allowing immediate next turn interaction
    * while the stones continue to physically settle in the background.
    */
-  private checkAnimationSettle(): void {
-    console.log("[MangalaBoard] checkAnimationSettle called. Settle complete, enabling next turn.");
+  private checkAnimationSettle(finalBoardState: number[]): void {
+    this.initializeBoard(finalBoardState);
+
+    const nextQueued = this.pendingAnimations.shift();
+    if (nextQueued) {
+      this.isAnimating = true;
+      this.runSowingAnimation(
+        nextQueued.moveDetails.startPit,
+        nextQueued.moveDetails.steps,
+        nextQueued.nextBoard
+      );
+      return;
+    }
+
     this.isAnimating = false;
     if (this.onAnimationComplete) {
       this.onAnimationComplete();

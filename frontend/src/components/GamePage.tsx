@@ -85,6 +85,7 @@ export function GamePage(): React.JSX.Element {
     reconnectWindowSecs,
     isLocalPvP,
     mode,
+    lastMoveInfo,
     connectGame,
     disconnectGame,
     makeMove,
@@ -182,90 +183,109 @@ export function GamePage(): React.JSX.Element {
       console.warn('Fullscreen error:', err);
     }
   };
-  const prevBoardRef = useRef<number[]>(board);
-  const prevPlayerIdRef = useRef<string | null>(currentPlayerId);
-
-  // Store'daki board güncellemelerini yakalayıp animasyon adımlarını belirler
+  // Store'daki board güncellemelerini dinleyip animasyon adımlarını belirler
   useEffect(() => {
-    const prevBoard = prevBoardRef.current;
-    prevBoardRef.current = board;
-
-    const prevPlayerId = prevPlayerIdRef.current;
-    prevPlayerIdRef.current = currentPlayerId;
-
-    const prevTotal = prevBoard.reduce((a, b) => a + b, 0);
-    const nextTotal = board.reduce((a, b) => a + b, 0);
-
-    // Eşleşme başlangıcı, reconnect veya geçersiz durumlarda animasyon oynatmadan direkt eşitle
-    if (prevTotal !== nextTotal || prevTotal === 0) {
-      setBoardData({ board, lastMove: null });
-      return;
-    }
-
-    // Taş kaybeden kuyu başlangıç kuyusudur.
-    // Kapma (capture) durumlarında hem hamleyi başlatan kuyu hem de kapılan rakip kuyu taş kaybeder.
-    // Hangisinin başlangıç kuyusu olduğunu son hamle yapan oyuncunun sırasına göre belirleriz.
-    const p1PitsLosing: number[] = [];
-    const p2PitsLosing: number[] = [];
-    for (let i = 0; i < 6; i++) {
-      if (board[i] < prevBoard[i]) {
-        p1PitsLosing.push(i);
+    const unsubscribe = useGameStore.subscribe((nextState, prevState) => {
+      if (nextState.board === prevState.board) {
+        return;
       }
-    }
-    for (let i = 7; i < 13; i++) {
-      if (board[i] < prevBoard[i]) {
-        p2PitsLosing.push(i);
+
+      const prevBoard = prevState.board;
+      const nextBoard = nextState.board;
+      const prevPlayerId = prevState.currentPlayerId;
+
+      const prevTotal = prevBoard.reduce((a, b) => a + b, 0);
+      const nextTotal = nextBoard.reduce((a, b) => a + b, 0);
+
+      // Eşleşme başlangıcı, reconnect veya geçersiz durumlarda animasyon oynatmadan direkt eşitle
+      if (prevTotal !== nextTotal || prevTotal === 0) {
+        setBoardData({ board: nextBoard, lastMove: null });
+        return;
       }
-    }
 
-    let lastMovePit = -1;
-    if (p1PitsLosing.length > 0 && p2PitsLosing.length === 0) {
-      // Sadece Player 1 kuyularından taş eksilmiş
-      lastMovePit = p1PitsLosing[0];
-    } else if (p2PitsLosing.length > 0 && p1PitsLosing.length === 0) {
-      // Sadece Player 2 kuyularından taş eksilmiş
-      lastMovePit = p2PitsLosing[0];
-    } else if (p1PitsLosing.length > 0 && p2PitsLosing.length > 0) {
-      // İki taraftan da taş eksilmiş (hamle başlatan kuyu + kapılan rakip kuyu)
-      // Sıra kimdeyken hamle yapıldığını kontrol edip o oyuncunun kuyularına bakarız
-      const wasMyTurn = currentUser ? prevPlayerId === currentUser.id : false;
-      const myPitsStart = yourColor === 1 ? 7 : 0;
-      const myPitsEnd = yourColor === 1 ? 12 : 5;
-
-      if (wasMyTurn) {
-        // Hamleyi ben yaptım, o halde başlangıç kuyusu benim tarafımda olmalı
-        lastMovePit = p1PitsLosing.find(p => p >= myPitsStart && p <= myPitsEnd) ?? 
-                      p2PitsLosing.find(p => p >= myPitsStart && p <= myPitsEnd) ?? -1;
-      } else {
-        // Hamleyi rakip yaptı, o halde başlangıç kuyusu rakip tarafında olmalı
-        lastMovePit = p1PitsLosing.find(p => !(p >= myPitsStart && p <= myPitsEnd)) ?? 
-                      p2PitsLosing.find(p => !(p >= myPitsStart && p <= myPitsEnd)) ?? -1;
+      // Yerel PvP ve Bot modlarında store'dan gelen kesin hamle bilgisini kullan
+      if (
+        nextState.lastMoveInfo &&
+        nextState.lastMoveInfo !== prevState.lastMoveInfo
+      ) {
+        const steps = calculateAnimationSteps(
+          nextState.lastMoveInfo.pitIndex,
+          nextState.lastMoveInfo.stoneCount,
+        );
+        if (steps.length === 0) {
+          setBoardData({ board: nextBoard, lastMove: null });
+          return;
+        }
+        setIsAnimating(true);
+        setBoardData({
+          board: nextBoard,
+          lastMove: {
+            startPit: nextState.lastMoveInfo.pitIndex,
+            steps,
+            nextState: nextBoard,
+          },
+        });
+        return;
       }
-    }
 
-    if (lastMovePit === -1) {
-      setBoardData({ board, lastMove: null });
-      return;
-    }
-
-    const startStones = prevBoard[lastMovePit];
-    const steps = calculateAnimationSteps(lastMovePit, startStones);
-
-    if (steps.length === 0) {
-      setBoardData({ board, lastMove: null });
-      return;
-    }
-
-    setIsAnimating(true);
-    setBoardData({
-      board,
-      lastMove: {
-        startPit: lastMovePit,
-        steps,
-        nextState: board
+      // Online modda taş kaybeden kuyuyu tespit et
+      const p1PitsLosing: number[] = [];
+      const p2PitsLosing: number[] = [];
+      for (let i = 0; i < 6; i++) {
+        if (nextBoard[i] < prevBoard[i]) {
+          p1PitsLosing.push(i);
+        }
       }
+      for (let i = 7; i < 13; i++) {
+        if (nextBoard[i] < prevBoard[i]) {
+          p2PitsLosing.push(i);
+        }
+      }
+
+      let lastMovePit = -1;
+      if (p1PitsLosing.length > 0 && p2PitsLosing.length === 0) {
+        lastMovePit = p1PitsLosing[0];
+      } else if (p2PitsLosing.length > 0 && p1PitsLosing.length === 0) {
+        lastMovePit = p2PitsLosing[0];
+      } else if (p1PitsLosing.length > 0 && p2PitsLosing.length > 0) {
+        const wasP1Move =
+          nextState.mode === 'bot' || nextState.isLocalPvP
+            ? prevPlayerId === 'p1'
+            : currentUser
+              ? (nextState.yourColor === 0
+                  ? prevPlayerId === currentUser.id
+                  : prevPlayerId !== currentUser.id)
+              : true;
+
+        lastMovePit = wasP1Move ? p1PitsLosing[0] : p2PitsLosing[0];
+      }
+
+      if (lastMovePit === -1) {
+        setBoardData({ board: nextBoard, lastMove: null });
+        return;
+      }
+
+      const startStones = prevBoard[lastMovePit];
+      const steps = calculateAnimationSteps(lastMovePit, startStones);
+
+      if (steps.length === 0) {
+        setBoardData({ board: nextBoard, lastMove: null });
+        return;
+      }
+
+      setIsAnimating(true);
+      setBoardData({
+        board: nextBoard,
+        lastMove: {
+          startPit: lastMovePit,
+          steps,
+          nextState: nextBoard,
+        },
+      });
     });
-  }, [board]);
+
+    return unsubscribe;
+  }, [currentUser]);
 
   const handleAnimationComplete = (): void => {
     setIsAnimating(false);
@@ -511,11 +531,17 @@ export function GamePage(): React.JSX.Element {
         {/* Orta Bölüm: Başlık ve Zamanlayıcı */}
         <div className="top-bar-center">
           <div className="game-title">
-            {isBotMode
-              ? 'Türk Mangalası (Yapay Zeka)'
-              : isLocalPvP
-                ? 'Türk Mangalası (Yerel PvP)'
-                : 'Türk Mangalası'}
+            {lastMoveInfo?.extraTurn
+              ? lastMoveInfo.player === 0
+                ? '🎯 Son Taş Hazinede — Ekstra Hamle!'
+                : isBotMode
+                  ? '🤖 Yapay Zeka Ekstra Hamle Kazandı!'
+                  : '🎯 2. Oyuncu Ekstra Hamle Kazandı!'
+              : isBotMode
+                ? (isP1Active ? 'Sıra Sizde' : '🤖 Yapay Zeka Düşünüyor...')
+                : isLocalPvP
+                  ? (isP1Active ? 'Sıra: 1. Oyuncu' : 'Sıra: 2. Oyuncu')
+                  : 'Türk Mangalası'}
           </div>
           <div className={`game-timer ${turnTimeLeft <= 5 ? 'danger' : ''}`}>
             <ClockIcon />

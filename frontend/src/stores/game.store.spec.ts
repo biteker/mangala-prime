@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { GameEndReason } from '@mangala/shared';
-import { useGameStore } from './game.store';
+import { getBotMoveDelayMs, useGameStore } from './game.store';
 
 describe('useGameStore (Local PvP)', () => {
   beforeEach(() => {
@@ -82,16 +82,17 @@ describe('useGameStore (Local PvP)', () => {
     // Arrange
     useGameStore.getState().startBotGame('medium');
 
-    // Act — Oyuncu 1 kuyu 0'dan oynar, sıra bota ('p2') geçer
+    // Act — Oyuncu 1 kuyu 0'dan (4 taş) oynar, sıra bota ('p2') geçer
     useGameStore.getState().makeMove(0);
     expect(useGameStore.getState().currentPlayerId).toBe('p2');
 
-    // Bot düşünme süresi (800ms) ilerletilir (medium bot kuyu 10'dan ekstra hamle alır ve tekrar oynar)
-    vi.advanceTimersByTime(800);
+    // Animasyon + bot düşünme süresi ilerletilir (medium bot kuyu 10'dan ekstra hamle alır ve tekrar oynar)
+    const fourStoneDelay = getBotMoveDelayMs(4, false);
+    vi.advanceTimersByTime(fourStoneDelay);
     expect(useGameStore.getState().board[13]).toBeGreaterThanOrEqual(1);
 
-    // İkinci hamlesini de yapması için 800ms daha ilerletilir
-    vi.advanceTimersByTime(800);
+    // İkinci hamlesini de yapması için süre ilerletilir
+    vi.advanceTimersByTime(fourStoneDelay);
 
     // Assert — Sıra tekrar insan oyuncuya ('p1') dönmüş olmalı
     expect(useGameStore.getState().currentPlayerId).toBe('p1');
