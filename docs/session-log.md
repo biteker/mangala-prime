@@ -23,6 +23,24 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-02] — T-11: WebSocket Exception Filter (Spec Uyumu)
+
+**Tamamlanan Görev:** Spec 13.3 ve 17 ile uyumlu `WsExceptionFilter` (`backend/src/common/filters/ws-exception.filter.ts`) oluşturularak `BaseWsExceptionFilter` genişletildi. Filtre, yakalanan `HttpException`, `WsException` ve beklenmeyen hataları soketin namespace'ine göre (`/game` → `game:error`, `/lobby` → `lobby:error`) `{ error: { code, message } }` formatında emit edecek ve beklenmeyen hatalarda stack trace sızdırmadan `INTERNAL_ERROR` döndürecek şekilde yapılandırıldı. `GameGateway` ve `LobbyGateway` üzerine `@UseFilters(new WsExceptionFilter())` eklendi; gateway'lerdeki 5 adet `try/catch → client.emit('...:error')` bloğu ve 3 adet manuel `INVALID_PARAMS` hata yayını filtreye devredilerek manuel hata emit sayısı 12'den 4'e indirildi (`INVALID_MOVE` durumunda `board` alanı gönderildiği için spec 13.3 gereği korundu).
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `backend/src/common/filters/ws-exception.filter.ts` — Yeni: Namespace duyarlı (`game:error` / `lobby:error`), `extractErrorCode` tabanlı ve stack trace sızdırmayan WebSocket exception filter
+- `backend/src/common/filters/ws-exception.filter.spec.ts` — Yeni: 6 birim testi (`HttpException` kod çıkarımı, durum kodu fallback, `WsException`, bilinmeyen hata ve 500 maskeleme)
+- `backend/src/game/game.gateway.ts` — `@UseFilters(new WsExceptionFilter())` eklendi; `handleMove`, `handleReconnect` ve `handleAbandon` içindeki tekrarlayan `try/catch` ve `INVALID_PARAMS` blokları filtreye devredildi (manuel hata emit: 8 → 4)
+- `backend/src/lobby/lobby.gateway.ts` — `@UseFilters(new WsExceptionFilter())` eklendi; `handleInviteSend` ve `handleInviteResponse` içindeki tekrarlayan `try/catch` ve `INVALID_PARAMS` blokları filtreye devredildi (manuel hata emit: 4 → 2)
+
+**Test Sonuçları:** 103/103 test geçti (15 test suite)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki adım T-09 (Frontend Test Altyapısı).
+**Bir Sonraki Görev:** T-09 — Frontend Test Altyapısı
+**Commit:** feat(ws): add WsExceptionFilter and delegate gateway error handling (T-11)
+**PR:** feature/ws-exception-filter → develop
+
+---
+
 ### Oturum [2026-11-01] — T-08: Ortak (Shared) Saf Oyun Motoru
 
 **Tamamlanan Görev:** Geçiş öncesinde backend (`GameEngineService.processMove`) ve frontend (`processLocalMove`) motorları 1.000 rastgele maç (39.001 hamle) üzerinden diferansiyel test ile karşılaştırıldı (`divergences: 0`). Ardından saf, dış bağımlılıksız Mangala kural motoru (`applyMove`, `getLegalMoves`, `createInitialBoard`, `MangalaRuleError`) `@mangala/shared` paketi altında `shared/engine/mangala-engine.ts` içine taşındı. Backend `GameEngineService` ince bir NestJS adaptörüne dönüştürüldü, frontend `frontend/src/lib/game-engine.ts` silinerek `game.store.ts` doğrudan ortak motora bağlandı.

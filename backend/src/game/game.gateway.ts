@@ -1,3 +1,4 @@
+import { BadRequestException, UseFilters } from '@nestjs/common';
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -22,6 +23,7 @@ import type {
 } from '@mangala/shared';
 import { GameEndReason } from '@mangala/shared';
 import { SlidingWindowLimiter } from '../common/guards/sliding-window-limiter';
+import { WsExceptionFilter } from '../common/filters/ws-exception.filter';
 
 interface GameSocketData {
   userId?: string;
@@ -35,6 +37,7 @@ export type AuthenticatedGameSocket = Socket<
   GameSocketData
 >;
 
+@UseFilters(new WsExceptionFilter())
 @WebSocketGateway({ namespace: '/game' })
 export class GameGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
@@ -195,31 +198,22 @@ export class GameGateway
     }
 
     // 3. Hamleyi işle
-    try {
-      const result = await this.gameService.processMove(payload);
+    const result = await this.gameService.processMove(payload);
 
-      if (result.gameOver) {
-        this.server.to(payload.matchId).emit('game:game_over', {
-          matchId: payload.matchId,
-          winnerId: result.winnerId,
-          reason: GameEndReason.NORMAL,
-          p1EloChange: result.p1EloChange,
-          p2EloChange: result.p2EloChange,
-          finalBoard: result.newBoard,
-        });
-      } else {
-        this.server.to(payload.matchId).emit('game:state_update', {
-          board: result.newBoard,
-          nextPlayerId: result.nextPlayerId,
-          turnTimeLeft: this.gameService.getTurnTimeLimit(),
-        });
-      }
-    } catch {
-      client.emit('game:error', {
-        error: {
-          code: 'INTERNAL_ERROR',
-          message: 'Hamle işlenirken bir hata oluştu.',
-        },
+    if (result.gameOver) {
+      this.server.to(payload.matchId).emit('game:game_over', {
+        matchId: payload.matchId,
+        winnerId: result.winnerId,
+        reason: GameEndReason.NORMAL,
+        p1EloChange: result.p1EloChange,
+        p2EloChange: result.p2EloChange,
+        finalBoard: result.newBoard,
+      });
+    } else {
+      this.server.to(payload.matchId).emit('game:state_update', {
+        board: result.newBoard,
+        nextPlayerId: result.nextPlayerId,
+        turnTimeLeft: this.gameService.getTurnTimeLimit(),
       });
     }
   }
@@ -236,44 +230,34 @@ export class GameGateway
     }
 
     if (!payload || !payload.matchId) {
-      client.emit('game:error', {
-        error: { code: 'INVALID_PARAMS', message: 'Geçersiz parametreler.' },
-      });
-      return;
-    }
-
-    try {
-      const room = await this.gameService.handleReconnect(
-        userId,
-        payload.matchId,
-        client.id,
-      );
-
-      await client.join(payload.matchId);
-
-      const opponentUsername =
-        userId === room.player1Id ? room.player2Username : room.player1Username;
-      const nextPlayerId =
-        room.currentPlayer === 0 ? room.player1Id : room.player2Id;
-      const yourColor: 0 | 1 = userId === room.player1Id ? 0 : 1;
-
-      client.emit('game:reconnect_ack', {
-        board: room.board,
-        nextPlayerId,
-        turnTimeLeft: room.turnTimeLeft,
-        matchId: room.matchId,
-        opponentUsername,
-        yourColor,
-      });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Yeniden bağlanma başarısız oldu.';
-      client.emit('game:error', {
-        error: { code: 'RECONNECT_FAILED', message: errorMessage },
+      throw new BadRequestException({
+        code: 'INVALID_PARAMS',
+        message: 'Geçersiz parametreler.',
       });
     }
+
+    const room = await this.gameService.handleReconnect(
+      userId,
+      payload.matchId,
+      client.id,
+    );
+
+    await client.join(payload.matchId);
+
+    const opponentUsername =
+      userId === room.player1Id ? room.player2Username : room.player1Username;
+    const nextPlayerId =
+      room.currentPlayer === 0 ? room.player1Id : room.player2Id;
+    const yourColor: 0 | 1 = userId === room.player1Id ? 0 : 1;
+
+    client.emit('game:reconnect_ack', {
+      board: room.board,
+      nextPlayerId,
+      turnTimeLeft: room.turnTimeLeft,
+      matchId: room.matchId,
+      opponentUsername,
+      yourColor,
+    });
   }
 
   @SubscribeMessage('game:abandon')
@@ -288,22 +272,13 @@ export class GameGateway
     }
 
     if (!payload || !payload.matchId) {
-      client.emit('game:error', {
-        error: { code: 'INVALID_PARAMS', message: 'Geçersiz parametreler.' },
+      throw new BadRequestException({
+        code: 'INVALID_PARAMS',
+        message: 'Geçersiz parametreler.',
       });
-      return;
     }
 
-    try {
-      await this.gameService.handleAbandon(payload.matchId, userId);
-    } catch {
-      client.emit('game:error', {
-        error: {
-          code: 'FORFEIT_FAILED',
-          message: 'Oyundan çekilme işlemi başarısız oldu.',
-        },
-      });
-    }
+    await this.gameService.handleAbandon(payload.matchId, userId);
   }
 
   @SubscribeMessage('game:chat_toggle')
