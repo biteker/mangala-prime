@@ -1,3 +1,4 @@
+import { BadRequestException, UseFilters } from '@nestjs/common';
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -19,7 +20,7 @@ import type {
   LobbyInviteResponsePayload,
 } from '@mangala/shared';
 import { SlidingWindowLimiter } from '../common/guards/sliding-window-limiter';
-import { extractErrorCode } from '../common/filters/error-code.util';
+import { WsExceptionFilter } from '../common/filters/ws-exception.filter';
 
 interface LobbySocketData {
   userId?: string;
@@ -34,6 +35,7 @@ export type AuthenticatedLobbySocket = Socket<
   LobbySocketData
 >;
 
+@UseFilters(new WsExceptionFilter())
 @WebSocketGateway({ namespace: '/lobby' })
 export class LobbyGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
@@ -231,26 +233,17 @@ export class LobbyGateway
       return;
     }
 
-    try {
-      const sent = await this.lobbyService.sendInvite(
-        userId,
-        payload.targetUserId,
-      );
-      if (sent) {
-        const target = this.lobbyService.getOnlineUser(payload.targetUserId);
-        if (target) {
-          this.server.to(target.socketId).emit('lobby:invite_send', {
-            inviterUserId: userId,
-          });
-        }
+    const sent = await this.lobbyService.sendInvite(
+      userId,
+      payload.targetUserId,
+    );
+    if (sent) {
+      const target = this.lobbyService.getOnlineUser(payload.targetUserId);
+      if (target) {
+        this.server.to(target.socketId).emit('lobby:invite_send', {
+          inviterUserId: userId,
+        });
       }
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Davet gönderilemedi.';
-      const code = extractErrorCode(error, 'INVITE_FAILED');
-      client.emit('lobby:error', {
-        error: { code, message },
-      });
     }
   }
 
@@ -266,68 +259,53 @@ export class LobbyGateway
     }
 
     if (!payload || !payload.inviterUserId) {
-      client.emit('lobby:error', {
-        error: { code: 'INVALID_PARAMS', message: 'Geçersiz parametreler.' },
+      throw new BadRequestException({
+        code: 'INVALID_PARAMS',
+        message: 'Geçersiz parametreler.',
       });
-      return;
     }
 
-    try {
-      const matchResult = await this.lobbyService.handleInviteResponse(
-        payload.inviterUserId,
-        userId,
-        payload.accepted,
-      );
+    const matchResult = await this.lobbyService.handleInviteResponse(
+      payload.inviterUserId,
+      userId,
+      payload.accepted,
+    );
 
-      if (matchResult) {
-        if (
-          payload.accepted &&
-          matchResult.matchId &&
-          matchResult.player1 &&
-          matchResult.player2
-        ) {
-          const p1Elo = await this.getPlayerElo(matchResult.player1.userId);
-          const p2Elo = await this.getPlayerElo(matchResult.player2.userId);
+    if (matchResult) {
+      if (
+        payload.accepted &&
+        matchResult.matchId &&
+        matchResult.player1 &&
+        matchResult.player2
+      ) {
+        const p1Elo = await this.getPlayerElo(matchResult.player1.userId);
+        const p2Elo = await this.getPlayerElo(matchResult.player2.userId);
 
-          // Davet edene (p1) maç bulundu
-          this.server
-            .to(matchResult.player1.socketId)
-            .emit('game:match_found', {
-              matchId: matchResult.matchId,
-              opponentUsername: matchResult.player2.username,
-              opponentElo: p2Elo,
-              yourColor: 0,
-            });
+        // Davet edene (p1) maç bulundu
+        this.server.to(matchResult.player1.socketId).emit('game:match_found', {
+          matchId: matchResult.matchId,
+          opponentUsername: matchResult.player2.username,
+          opponentElo: p2Elo,
+          yourColor: 0,
+        });
 
-          // Kabul edene (p2) maç bulundu
-          this.server
-            .to(matchResult.player2.socketId)
-            .emit('game:match_found', {
-              matchId: matchResult.matchId,
-              opponentUsername: matchResult.player1.username,
-              opponentElo: p1Elo,
-              yourColor: 1,
-            });
-        } else {
-          // Reddedildi, davet edene bildir
-          const inviter = this.lobbyService.getOnlineUser(
-            payload.inviterUserId,
-          );
-          if (inviter) {
-            this.server.to(inviter.socketId).emit('lobby:invite_response', {
-              targetUserId: userId,
-              accepted: false,
-            });
-          }
+        // Kabul edene (p2) maç bulundu
+        this.server.to(matchResult.player2.socketId).emit('game:match_found', {
+          matchId: matchResult.matchId,
+          opponentUsername: matchResult.player1.username,
+          opponentElo: p1Elo,
+          yourColor: 1,
+        });
+      } else {
+        // Reddedildi, davet edene bildir
+        const inviter = this.lobbyService.getOnlineUser(payload.inviterUserId);
+        if (inviter) {
+          this.server.to(inviter.socketId).emit('lobby:invite_response', {
+            targetUserId: userId,
+            accepted: false,
+          });
         }
       }
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Davet yanıtı işlenemedi.';
-      const code = extractErrorCode(error, 'INVITE_RESPONSE_FAILED');
-      client.emit('lobby:error', {
-        error: { code, message },
-      });
     }
   }
 

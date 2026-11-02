@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/shared-game-engine
+Aktif Branch: feature/ws-exception-filter
 
 ---
 
@@ -68,14 +68,15 @@ Yayın Hazırlığı: ██████████ %100 (v1.0.0 Yayınlandı �
 - **✅ ÇÖZÜLDÜ (B-12 / T-10):** `develop` → `main` (`v1.0.0`) release yapıldı ve 19 eski branch temizlendi.
 - **✅ ÇÖZÜLDÜ (B-13 / T-12):** `AGENTS.md`, `docs/spec.md`, `.antigravity/skills/prisma.md`, `REVIEW_CHECKLIST.md` ve `docs/production-backlog.md` gerçek mimariyle senkronize edildi.
 - **✅ ÇÖZÜLDÜ (B-08 / T-08):** Saf Mangala oyun motoru `shared/engine/mangala-engine.ts` altında tekilleştirildi; `frontend/src/lib/game-engine.ts` kaldırıldı.
+- **✅ ÇÖZÜLDÜ (B-11 / T-11):** `WsExceptionFilter` (`backend/src/common/filters/ws-exception.filter.ts`) eklendi; `GameGateway` ve `LobbyGateway` üzerindeki tekrarlayan `try/catch` hata yayınları filtreye devredildi.
 - **Mimari Kararlar:** K-1…K-7 tamamı 2026-10-31'de onaylandı.
 
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-01 — T-08: Ortak (Shared) Saf Oyun Motoru
+Oturum 2026-11-02 — T-11: WebSocket Exception Filter (Spec Uyumu)
 
 ### Yapılanlar
-- 1.000 oyunluk (39.001 hamle) diferansiyel test ile 0 ayrışma doğrulandı.
-- `shared/engine/mangala-engine.ts` (`applyMove`, `getLegalMoves`, `createInitialBoard`, `MangalaRuleError`) oluşturuldu; backend ve frontend ortak motora bağlandı.
-- 97/97 birim testi ve monorepo build doğrulandı. Sıradaki görev: T-11.
+- `backend/src/common/filters/ws-exception.filter.ts` ve `ws-exception.filter.spec.ts` (6 birim testi) oluşturuldu.
+- `GameGateway` ve `LobbyGateway` üzerine `@UseFilters(new WsExceptionFilter())` eklendi; 5 adet `try/catch` bloğu kaldırıldı ve manuel hata emit sayısı 12'den 6'ya indirildi.
+- 103/103 birim testi, lint ve build doğrulandı. Sıradaki görev: T-09.
