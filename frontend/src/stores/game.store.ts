@@ -12,10 +12,18 @@ import type {
   GameMessagePayload,
   GameChatTogglePayload,
   GameErrorPayload,
+  GameRematchOfferedPayload,
+  GameRematchDeclinedPayload,
+  GameRematchStartPayload,
 } from '@mangala/shared';
 import { chooseBotMove, type BotLevel } from '../lib/bot-engine';
 
 export type GameMode = 'online' | 'local' | 'bot';
+export type RematchStatus =
+  | 'idle'
+  | 'offered_by_me'
+  | 'offered_by_opponent'
+  | 'declined';
 
 export interface ChatMessage {
   sender: 'me' | 'opponent';
@@ -62,6 +70,8 @@ interface GameState {
   mode: GameMode;
   botLevel: BotLevel;
   lastMoveInfo: LastOfflineMoveInfo | null;
+  rematchState: RematchStatus;
+  rematchExpiresAt: number | null;
 
   connectGame: (matchId: string) => void;
   disconnectGame: () => void;
@@ -73,6 +83,8 @@ interface GameState {
   abandonGame: () => void;
   startLocalGame: () => void;
   startBotGame: (level: BotLevel) => void;
+  offerRematch: () => void;
+  respondRematch: (accept: boolean) => void;
 }
 
 let timerInterval: ReturnType<typeof setInterval> | null = null;
@@ -141,6 +153,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   mode: 'online',
   botLevel: 'medium',
   lastMoveInfo: null,
+  rematchState: 'idle',
+  rematchExpiresAt: null,
 
   connectGame: (matchId: string) => {
     const state = get();
@@ -182,6 +196,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       disconnectedPlayerId: null,
       reconnectWindowSecs: null,
       lastMoveInfo: null,
+      rematchState: 'idle',
+      rematchExpiresAt: null,
     });
 
     // Soket (yeniden) bağlandığında mevcut oda durumunu sunucudan talep et
@@ -263,6 +279,39 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({ chatEnabled: payload.chatEnabled });
     });
 
+    newSocket.on('game:rematch_offered', (payload: GameRematchOfferedPayload) => {
+      set({
+        rematchState: 'offered_by_opponent',
+        rematchExpiresAt: payload.expiresAt,
+      });
+    });
+
+    newSocket.on('game:rematch_declined', (payload: GameRematchDeclinedPayload) => {
+      if (get().matchId && payload.matchId !== get().matchId) return;
+      set({
+        rematchState: 'declined',
+        rematchExpiresAt: null,
+      });
+    });
+
+    newSocket.on('game:rematch_start', (payload: GameRematchStartPayload) => {
+      const currentState = get();
+      const swappedColor: Player = currentState.yourColor === 0 ? 1 : 0;
+      const user = useAuthStore.getState().user;
+      set({
+        matchId: payload.newMatchId,
+        board: createInitialBoard(),
+        yourColor: swappedColor,
+        currentPlayerId: swappedColor === 0 ? (user?.id ?? null) : null,
+        gameOverDetails: null,
+        gameError: null,
+        lastMoveInfo: null,
+        rematchState: 'idle',
+        rematchExpiresAt: null,
+      });
+      newSocket.emit('game:reconnect', { matchId: payload.newMatchId });
+    });
+
     set({ socket: newSocket });
   },
 
@@ -290,6 +339,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       isLocalPvP: false,
       mode: 'online',
       lastMoveInfo: null,
+      rematchState: 'idle',
+      rematchExpiresAt: null,
     });
   },
 
@@ -317,6 +368,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       disconnectedPlayerId: null,
       reconnectWindowSecs: null,
       lastMoveInfo: null,
+      rematchState: 'idle',
+      rematchExpiresAt: null,
     });
     runTimer(59, set, get);
   },
@@ -347,6 +400,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       disconnectedPlayerId: null,
       reconnectWindowSecs: null,
       lastMoveInfo: null,
+      rematchState: 'idle',
+      rematchExpiresAt: null,
     });
     runTimer(59, set, get);
   },
@@ -507,5 +562,37 @@ export const useGameStore = create<GameState>((set, get) => ({
       yourColor: details.yourColor,
       currentPlayerId: nextPlayerId,
     });
+  },
+
+  offerRematch: () => {
+    const state = get();
+    if (state.mode === 'bot') {
+      state.startBotGame(state.botLevel);
+      return;
+    }
+    if (state.mode === 'local' || state.isLocalPvP) {
+      state.startLocalGame();
+      return;
+    }
+    if (state.socket && state.socket.connected && state.matchId) {
+      state.socket.emit('game:rematch_offer', { matchId: state.matchId });
+      set({
+        rematchState: 'offered_by_me',
+        rematchExpiresAt: Date.now() + 30_000,
+      });
+    }
+  },
+
+  respondRematch: (accept: boolean) => {
+    const { socket, matchId } = get();
+    if (socket && socket.connected && matchId) {
+      socket.emit('game:rematch_response', { matchId, accept });
+      if (!accept) {
+        set({
+          rematchState: 'declined',
+          rematchExpiresAt: null,
+        });
+      }
+    }
   },
 }));

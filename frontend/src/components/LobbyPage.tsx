@@ -7,6 +7,7 @@ import type { BotLevel } from '../lib/bot-engine';
 
 export function LobbyPage(): React.JSX.Element {
   const currentUser = useAuthStore((state) => state.user);
+  const accessToken = useAuthStore((state) => state.accessToken);
   
   const {
     onlineUsers,
@@ -36,16 +37,15 @@ export function LobbyPage(): React.JSX.Element {
 
   // Lobiye bağlanma ve ayrılma yönetimi
   useEffect(() => {
-    const { accessToken, fetchMe } = useAuthStore.getState();
     if (!accessToken) {
       return;
     }
     connectLobby();
-    fetchMe().catch(() => {});
+    useAuthStore.getState().fetchMe().catch(() => {});
     return () => {
       disconnectLobby();
     };
-  }, [connectLobby, disconnectLobby]);
+  }, [accessToken, connectLobby, disconnectLobby]);
 
   // Eşleşme sırası sayacı
   useEffect(() => {

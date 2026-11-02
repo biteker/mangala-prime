@@ -2182,7 +2182,7 @@ html.theme-pixijs .mobile-turn-indicator {
 }
 
 /* Sadece mobil dikey ekranda uyarıyı göster */
-@media (max-width: 950px) and (orientation: portrait) {
+@media (max-width: 640px) and (orientation: portrait) {
   .orientation-warning-overlay {
     display: flex;
   }
@@ -2701,17 +2701,42 @@ html.theme-pixijs .game-layout {
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
-  padding: 0 !important;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
 }
 
-.game-content-container.local-pvp-mode .mangala-board-canvas-container {
-  width: 100% !important;
-  max-width: 1200px !important;
-  aspect-ratio: 1400 / 600 !important;
-  min-height: 460px !important;
+@media (min-width: 1024px) and (min-height: 521px) {
+  .game-content-container.local-pvp-mode .board-panel-container {
+    padding: 0 !important;
+  }
+
+  .game-content-container.local-pvp-mode .mangala-board-canvas-container {
+    width: 100% !important;
+    max-width: 1200px !important;
+    aspect-ratio: 1400 / 600 !important;
+    min-height: 460px !important;
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .game-content-container.local-pvp-mode .board-panel-container {
+    padding: 46px 0 10px 0 !important;
+    height: 100vh !important;
+  }
+
+  .game-content-container.local-pvp-mode .mangala-board-canvas-container {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    aspect-ratio: auto !important;
+  }
+
+  .game-over-modal {
+    padding: 20px 24px !important;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
 }
 
 
@@ -2964,6 +2989,21 @@ html.theme-pixijs .game-layout {
 }
 
 @media (max-width: 768px) {
+  .app-header {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+
+  .app-header-actions {
+    gap: 8px;
+  }
+
+  .theme-toggle-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
   .modal-panel {
     width: 100vw;
     max-width: 100vw;
@@ -2984,6 +3024,10 @@ html.theme-pixijs .game-layout {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.lobby-mode-actions .start-queue-btn {
+  max-width: 100%;
 }
 
 .local-pvp-btn {
@@ -3032,3 +3076,50 @@ html.theme-pixijs .game-layout {
   margin-top: 0;
   width: 100%;
 }
+
+/* --- T-15: Rövanş (Rematch) Modalı Stilleri --- */
+.rematch-panel {
+  width: 100%;
+}
+
+.rematch-offer-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.rematch-status-box {
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.rematch-status-box.declined {
+  color: var(--alert-error-text, #ff453a);
+  border-color: rgba(255, 69, 58, 0.35);
+}
+
+.rematch-incoming-box {
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--accent-color);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rematch-incoming-text {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+}
+

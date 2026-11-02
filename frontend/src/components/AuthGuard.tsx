@@ -9,9 +9,13 @@ interface AuthGuardProps {
 
 export function AuthGuard({ children }: AuthGuardProps): ReactNode {
   const accessToken = useAuthStore((state) => state.accessToken);
+  const isRestoringSession = useAuthStore((state) => state.isRestoringSession);
   const { route, navigate } = useRouter();
 
   useEffect(() => {
+    if (isRestoringSession) {
+      return;
+    }
     if (!accessToken) {
       if (route !== '#/login' && route !== '#/register') {
         navigate('#/login');
@@ -21,7 +25,7 @@ export function AuthGuard({ children }: AuthGuardProps): ReactNode {
         navigate('#/lobby');
       }
     }
-  }, [accessToken, route, navigate]);
+  }, [accessToken, isRestoringSession, route, navigate]);
 
   return children;
 }

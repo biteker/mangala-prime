@@ -611,7 +611,7 @@ flowchart LR
 | T-09 | ✅ Frontend testleri (Tamamlandı) | B | P2 | Ajan | T-08 | — |
 | T-13 | ✅ Liderlik + Profil UI (Tamamlandı) | D | P3 | Ajan | T-09 | — |
 | T-14 | ✅ Bot (PvE) (Tamamlandı) | D | P3 | Ajan | T-08 | — |
-| T-15 | Rövanş | D | P3 | Ajan | T-11 | K-7 |
+| T-15 | ✅ Rövanş (Tamamlandı) | D | P3 | Ajan | T-11 | K-7 |
 | T-16 | SEO / PWA | D | P3 | Ajan | T-10 | — |
 
 ---

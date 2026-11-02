@@ -25,11 +25,13 @@ function App(): React.JSX.Element {
     root.classList.add(theme);
   }, [theme]);
 
-  // Sayfa yüklendiğinde kullanıcı bilgilerini tazelemek için
+  // Sayfa yüklendiğinde oturumu ve kullanıcı bilgilerini tazelemek için
   useEffect(() => {
-    const { accessToken, fetchMe } = useAuthStore.getState();
+    const { accessToken, fetchMe, restoreSession } = useAuthStore.getState();
     if (accessToken) {
       fetchMe().catch(() => {});
+    } else {
+      restoreSession().catch(() => {});
     }
   }, []);
 
