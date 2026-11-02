@@ -43,6 +43,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   },
 
   fetchMe: async () => {
+    if (!get().accessToken) {
+      return;
+    }
     // Döngüsel bağımlılığı önlemek için dinamik import kullanılır
     const { apiClient } = await import('../lib/api-client');
     const user = await apiClient.get<unknown, UserProfileResponse>('/users/me');

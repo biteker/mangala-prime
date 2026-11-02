@@ -23,6 +23,26 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-02] — T-14: Bot (PvE) Modu
+
+**Tamamlanan Görev:** `@mangala/shared` saf oyun motorunu (`applyMove`, `getLegalMoves`) kullanan `frontend/src/lib/bot-engine.ts` (`chooseBotMove`) oluşturuldu ve 3 zorluk seviyesi (`easy`: rastgele + enjekte edilebilir RNG, `medium`: ekstra hamle > taş yakalama > rakip fırsat minimizasyonu açgözlü heuristic, `hard`: derinlik 6 minimax + alpha-beta budama) gerçeklendi. `game.store.ts` içine `mode: 'online' | 'local' | 'bot'` ve 800 ms bot düşünme gecikmesi eklendi. Lobiye zorluk seçicili "🤖 Bota Karşı Oyna (PvE)" paneli ve `GamePage.tsx` içine bot sırası / oyun sonu durumları bağlandı. `bot-engine.spec.ts` ve `game.store.spec.ts` ile 6 yeni birim testi eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/src/lib/bot-engine.ts` — Yeni: Saf Mangala bot motoru (`chooseBotMove`, `BotLevel`: `easy` | `medium` | `hard`)
+- `frontend/src/lib/bot-engine.spec.ts` — Yeni: 5 birim testi (tüm seviyelerde yasal hamle, deterministik RNG, medium ekstra hamle tercihi, hard 1 hamlede kazanma, <500ms performans)
+- `frontend/src/stores/game.store.ts` — `mode`, `botLevel`, `startBotGame` ve 800ms düşünme gecikmeli otomatik bot hamlesi eklendi
+- `frontend/src/stores/game.store.spec.ts` — Bot modunda otomatik yanıt ve ekstra tur zinciri testi eklendi
+- `frontend/src/components/LobbyPage.tsx` & `frontend/src/index.css` — Zorluk seviyesi seçicisi (`Kolay`, `Orta`, `Zor`) ve "🤖 Bota Karşı Oyna (PvE)" butonu eklendi
+- `frontend/src/components/GamePage.tsx` — Bot modunda sıranın bota geçmesi, kuyu tıklama kilidi ve oyun sonu modalı mesajları güncellendi
+
+**Test Sonuçları:** 128/128 test geçti (Backend: 103/103, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki adım Faz D: T-15 (Rövanş / Rematch).
+**Bir Sonraki Görev:** T-15 — Rövanş (Rematch)
+**Commit:** feat(frontend): add pure PvE bot engine with 3 difficulty levels (T-14)
+**PR:** feature/pve-bot → develop
+
+---
+
 ### Oturum [2026-11-02] — T-13: Liderlik Tablosu ve Profil Arayüzü
 
 **Tamamlanan Görev:** Mevcut `GET /users/leaderboard` ve `GET /users/:username` uç noktalarını kullanan `LeaderboardModal` ve `ProfileModal` bileşenleri oluşturuldu. Üst bara "🏆 Liderlik Tablosu" ve "👤 Profilim" butonları eklendi, 4 temanın tamamıyla (`theme-wood`, `theme-neon`, `theme-rustic`, `theme-pixijs`) uyumlu CSS değişkenleri ve mobil (<768px) tam ekran modal düzeni tanımlandı. Liderlik tablosunda aktif kullanıcının kendi satırı vurgulandı (`leaderboard-row-self`), profil modalında ise ELO, G/M, kazanma oranı ve son 20 karşılaşma (`Dostluk` rozeti dahil) gösterildi. `LeaderboardModal.spec.tsx` ve `ProfileModal.spec.tsx` ile 7 yeni Vitest birim testi eklendi.

@@ -31,6 +31,8 @@ interface LobbyState {
   respondToInvite: (inviterUserId: string, accepted: boolean) => void;
 }
 
+let lobbyDisconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
 export const useLobbyStore = create<LobbyState>((set, get) => ({
   socket: null,
   onlineUsers: [],
@@ -40,8 +42,13 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
   inviteError: null,
 
   connectLobby: () => {
+    if (lobbyDisconnectTimer) {
+      clearTimeout(lobbyDisconnectTimer);
+      lobbyDisconnectTimer = null;
+    }
+
     const state = get();
-    if (state.socket && state.socket.connected) {
+    if (state.socket && (state.socket.connected || state.socket.active)) {
       return;
     }
 
@@ -139,18 +146,33 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
   },
 
   disconnectLobby: () => {
-    const { socket } = get();
-    if (socket) {
-      socket.disconnect();
+    if (lobbyDisconnectTimer) {
+      clearTimeout(lobbyDisconnectTimer);
     }
-    set({
-      socket: null,
-      onlineUsers: [],
-      isInQueue: false,
-      incomingInvite: null,
-      outgoingInviteTargetId: null,
-      inviteError: null,
-    });
+    lobbyDisconnectTimer = setTimeout(() => {
+      lobbyDisconnectTimer = null;
+      const { socket } = get();
+      if (socket) {
+        if (socket.connected) {
+          socket.disconnect();
+        } else {
+          socket.once('connect', () => {
+            socket.disconnect();
+          });
+          socket.once('connect_error', () => {
+            socket.disconnect();
+          });
+        }
+      }
+      set({
+        socket: null,
+        onlineUsers: [],
+        isInQueue: false,
+        incomingInvite: null,
+        outgoingInviteTargetId: null,
+        inviteError: null,
+      });
+    }, 100);
   },
 
   joinQueue: () => {

@@ -2977,3 +2977,58 @@ html.theme-pixijs .game-layout {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+
+/* --- T-14: Bot (PvE) Modu Lobi Seçicisi --- */
+.lobby-mode-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.local-pvp-btn {
+  background: linear-gradient(135deg, #1f4037 0%, #99f2c8 100%);
+  color: #0d2218;
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(153, 242, 200, 0.25);
+}
+
+.bot-mode-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  margin-top: 4px;
+}
+
+.bot-level-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.bot-level-pill {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bot-level-pill.active {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #ffffff;
+}
+
+.bot-pve-btn {
+  margin-top: 0;
+  width: 100%;
+}

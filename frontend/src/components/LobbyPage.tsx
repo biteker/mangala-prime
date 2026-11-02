@@ -3,6 +3,7 @@ import { useLobbyStore } from '../stores/lobby.store';
 import { useAuthStore } from '../stores/auth.store';
 import { useGameStore } from '../stores/game.store';
 import { useRouter } from '../lib/router';
+import type { BotLevel } from '../lib/bot-engine';
 
 export function LobbyPage(): React.JSX.Element {
   const currentUser = useAuthStore((state) => state.user);
@@ -23,18 +24,24 @@ export function LobbyPage(): React.JSX.Element {
 
   const { navigate } = useRouter();
   const startLocalGame = useGameStore((state) => state.startLocalGame);
+  const startBotGame = useGameStore((state) => state.startBotGame);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [queueSeconds, setQueueSeconds] = useState(120);
   const [inviteSeconds, setInviteSeconds] = useState(30);
+  const [selectedBotLevel, setSelectedBotLevel] = useState<BotLevel>('medium');
 
   const queueIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const inviteIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Lobiye bağlanma ve ayrılma yönetimi
   useEffect(() => {
+    const { accessToken, fetchMe } = useAuthStore.getState();
+    if (!accessToken) {
+      return;
+    }
     connectLobby();
-    useAuthStore.getState().fetchMe().catch(() => {});
+    fetchMe().catch(() => {});
     return () => {
       disconnectLobby();
     };
@@ -135,7 +142,7 @@ export function LobbyPage(): React.JSX.Element {
           </p>
 
           {!isInQueue ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="lobby-mode-actions">
               <button
                 type="button"
                 className="auth-button start-queue-btn"
@@ -149,12 +156,6 @@ export function LobbyPage(): React.JSX.Element {
               <button
                 type="button"
                 className="auth-button local-pvp-btn"
-                style={{
-                  background: 'linear-gradient(135deg, #1f4037 0%, #99f2c8 100%)',
-                  color: '#0d2218',
-                  fontWeight: 700,
-                  boxShadow: '0 4px 15px rgba(153, 242, 200, 0.25)',
-                }}
                 onClick={(): void => {
                   startLocalGame();
                   navigate('#/game');
@@ -162,6 +163,37 @@ export function LobbyPage(): React.JSX.Element {
               >
                 🎮 Tek Cihazda 2 Kişi Oyna (Yerel PvP)
               </button>
+
+              <div className="bot-mode-panel">
+                <div className="bot-level-selector" role="group" aria-label="Yapay zeka zorluk seviyesi">
+                  {(
+                    [
+                      { key: 'easy', label: 'Kolay' },
+                      { key: 'medium', label: 'Orta' },
+                      { key: 'hard', label: 'Zor' },
+                    ] as const
+                  ).map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      className={`bot-level-pill ${selectedBotLevel === item.key ? 'active' : ''}`}
+                      onClick={(): void => setSelectedBotLevel(item.key)}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="auth-button bot-pve-btn"
+                  onClick={(): void => {
+                    startBotGame(selectedBotLevel);
+                    navigate('#/game');
+                  }}
+                >
+                  🤖 Bota Karşı Oyna (PvE)
+                </button>
+              </div>
             </div>
           ) : (
             <div className="queue-active-container">
