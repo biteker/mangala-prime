@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/leaderboard-profile-ui
+Aktif Branch: feature/pve-bot
 
 ---
 
@@ -71,14 +71,15 @@ Yayın Hazırlığı: ██████████ %100 (v1.0.0 Yayınlandı �
 - **✅ ÇÖZÜLDÜ (B-11 / T-11):** `WsExceptionFilter` (`backend/src/common/filters/ws-exception.filter.ts`) eklendi; `GameGateway` ve `LobbyGateway` üzerindeki tekrarlayan `try/catch` hata yayınları filtreye devredildi.
 - **✅ ÇÖZÜLDÜ (B-10 / T-09):** Frontend Vitest + Testing Library altyapısı kuruldu; `auth.store`, `api-client`, `game.store` ve `AuthGuard` için 12 birim testi eklendi; `auth.store` Spec 11.1 uyarınca salt-bellek (memory) moduna alındı. Faz B tamamlandı.
 - **✅ ÇÖZÜLDÜ (T-13):** `LeaderboardModal` ve `ProfileModal` bileşenleri 4 tema ve mobil tam ekran uyumlu olarak eklendi; 7 yeni Vitest birim testiyle doğrulandı.
+- **✅ ÇÖZÜLDÜ (T-14):** Saf `bot-engine.ts` (`easy`, `medium`, `hard` minimax + alpha-beta) ve Lobi/Oyun PvE bot modu eklendi; 6 yeni birim testiyle doğrulandı.
 - **Mimari Kararlar:** K-1…K-7 tamamı 2026-10-31'de onaylandı.
 
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-02 — T-13: Liderlik Tablosu ve Profil Arayüzü
+Oturum 2026-11-02 — T-14: Bot (PvE) Modu
 
 ### Yapılanlar
-- `LeaderboardModal.tsx` ve `ProfileModal.tsx` bileşenleri oluşturuldu ve üst bara bağlandı.
-- `LeaderboardModal.spec.tsx` (4 test) ve `ProfileModal.spec.tsx` (3 test) eklendi.
-- 122/122 birim testi (103 backend + 19 frontend), lint ve build doğrulandı. Sıradaki görev: T-14.
+- `frontend/src/lib/bot-engine.ts` (`chooseBotMove`, 3 zorluk seviyesi) ve `bot-engine.spec.ts` (5 test) oluşturuldu.
+- `game.store.ts`, `LobbyPage.tsx` ve `GamePage.tsx` üzerine PvE Bot modu entegre edildi.
+- 128/128 birim testi (103 backend + 25 frontend), lint ve build doğrulandı. Sıradaki görev: T-15.

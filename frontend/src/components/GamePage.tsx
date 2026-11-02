@@ -84,6 +84,7 @@ export function GamePage(): React.JSX.Element {
     disconnectedPlayerId,
     reconnectWindowSecs,
     isLocalPvP,
+    mode,
     connectGame,
     disconnectGame,
     makeMove,
@@ -91,6 +92,8 @@ export function GamePage(): React.JSX.Element {
     toggleChat,
     abandonGame,
   } = useGameStore();
+
+  const isBotMode = mode === 'bot';
 
   const [chatInput, setChatInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -310,13 +313,28 @@ export function GamePage(): React.JSX.Element {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const isMyTurn = isLocalPvP ? true : Boolean(currentUser && currentPlayerId === currentUser.id);
+  const isMyTurn = isBotMode
+    ? currentPlayerId === 'p1'
+    : isLocalPvP
+      ? true
+      : Boolean(currentUser && currentPlayerId === currentUser.id);
   const isP1Active = isLocalPvP ? (currentPlayerId === 'p1') : isMyTurn;
   const isP2Active = isLocalPvP ? (currentPlayerId === 'p2') : !isMyTurn;
 
   // Tıklanabilir kuyular dizisi
   const clickablePits = useMemo(() => {
     if (isAnimating) return [];
+
+    if (isBotMode) {
+      if (currentPlayerId !== 'p1') return [];
+      const pits: number[] = [];
+      for (let i = 0; i <= 5; i++) {
+        if (boardData.board[i] > 0) {
+          pits.push(i);
+        }
+      }
+      return pits;
+    }
 
     if (isLocalPvP) {
       const isP1Turn = currentPlayerId === 'p1';
@@ -342,12 +360,15 @@ export function GamePage(): React.JSX.Element {
       }
     }
     return pits;
-  }, [boardData.board, isMyTurn, isAnimating, yourColor, isLocalPvP, currentPlayerId]);
+  }, [boardData.board, isMyTurn, isAnimating, yourColor, isLocalPvP, isBotMode, currentPlayerId]);
 
   // Oyuncu Bilgileri Eşleştirmesi
   const p1Info = useMemo(() => {
     const myUsername = currentUser?.username ?? 'Oyuncu 1';
     const myElo = currentUser?.elo ?? 1000;
+    if (isBotMode) {
+      return { name: myUsername, elo: myElo };
+    }
     if (isLocalPvP) {
       return { name: `${myUsername} (P1)`, elo: myElo };
     }
@@ -356,11 +377,14 @@ export function GamePage(): React.JSX.Element {
     } else {
       return { name: opponentUsername || 'Rakip', elo: opponentElo || 1000 };
     }
-  }, [yourColor, currentUser, opponentUsername, opponentElo, isLocalPvP]);
+  }, [yourColor, currentUser, opponentUsername, opponentElo, isLocalPvP, isBotMode]);
 
   const p2Info = useMemo(() => {
     const myUsername = currentUser?.username ?? 'Oyuncu 1';
     const myElo = currentUser?.elo ?? 1000;
+    if (isBotMode) {
+      return { name: opponentUsername || '🤖 Yapay Zeka', elo: opponentElo || 1200 };
+    }
     if (isLocalPvP) {
       return { name: '2. Oyuncu (P2)', elo: 1000 };
     }
@@ -369,7 +393,7 @@ export function GamePage(): React.JSX.Element {
     } else {
       return { name: opponentUsername || 'Rakip', elo: opponentElo || 1000 };
     }
-  }, [yourColor, currentUser, opponentUsername, opponentElo, isLocalPvP]);
+  }, [yourColor, currentUser, opponentUsername, opponentElo, isLocalPvP, isBotMode]);
 
   if (!currentUser) {
     return <div className="auth-card">Yükleniyor...</div>;
@@ -486,7 +510,13 @@ export function GamePage(): React.JSX.Element {
 
         {/* Orta Bölüm: Başlık ve Zamanlayıcı */}
         <div className="top-bar-center">
-          <div className="game-title">{isLocalPvP ? 'Türk Mangalası (Yerel PvP)' : 'Türk Mangalası'}</div>
+          <div className="game-title">
+            {isBotMode
+              ? 'Türk Mangalası (Yapay Zeka)'
+              : isLocalPvP
+                ? 'Türk Mangalası (Yerel PvP)'
+                : 'Türk Mangalası'}
+          </div>
           <div className={`game-timer ${turnTimeLeft <= 5 ? 'danger' : ''}`}>
             <ClockIcon />
             <span>{formatTime(turnTimeLeft)}</span>
@@ -647,9 +677,11 @@ export function GamePage(): React.JSX.Element {
       {/* Mobilde ekranın altında sırayı gösteren indicator */}
       <div className="mobile-turn-indicator-container">
         <div className={`mobile-turn-indicator ${isP1Active ? 'my-turn' : 'opponent-turn'}`}>
-          {isLocalPvP
-            ? (isP1Active ? 'Sıra: 1. Oyuncu (Alt Sıra)' : 'Sıra: 2. Oyuncu (Üst Sıra)')
-            : (isMyTurn ? 'Sıra Sizde' : 'Sıra Rakipte')}
+          {isBotMode
+            ? (isP1Active ? 'Sıra Sizde' : 'Yapay Zeka Düşünüyor...')
+            : isLocalPvP
+              ? (isP1Active ? 'Sıra: 1. Oyuncu (Alt Sıra)' : 'Sıra: 2. Oyuncu (Üst Sıra)')
+              : (isMyTurn ? 'Sıra Sizde' : 'Sıra Rakipte')}
         </div>
       </div>
 
@@ -659,7 +691,15 @@ export function GamePage(): React.JSX.Element {
           <div className="auth-card game-over-modal">
             <h2 className="auth-title">Oyun Bitti</h2>
 
-            {isLocalPvP ? (
+            {isBotMode ? (
+              gameOverDetails.winnerId === 'p1' ? (
+                <div className="game-result-title win">Tebrikler, Kazandınız! 🎉</div>
+              ) : gameOverDetails.winnerId === 'p2' ? (
+                <div className="game-result-title lose">Yapay Zeka Kazandı! 🤖</div>
+              ) : (
+                <div className="game-result-title draw">Oyun Berabere! 🤝</div>
+              )
+            ) : isLocalPvP ? (
               gameOverDetails.winnerId === 'p1' ? (
                 <div className="game-result-title win">Tebrikler, 1. Oyuncu Kazandı! 🎉</div>
               ) : gameOverDetails.winnerId === 'p2' ? (

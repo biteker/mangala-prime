@@ -13,6 +13,9 @@ import type {
   GameChatTogglePayload,
   GameErrorPayload,
 } from '@mangala/shared';
+import { chooseBotMove, type BotLevel } from '../lib/bot-engine';
+
+export type GameMode = 'online' | 'local' | 'bot';
 
 export interface ChatMessage {
   sender: 'me' | 'opponent';
@@ -36,6 +39,8 @@ interface GameState {
   disconnectedPlayerId: string | null;
   reconnectWindowSecs: number | null;
   isLocalPvP: boolean;
+  mode: GameMode;
+  botLevel: BotLevel;
 
   connectGame: (matchId: string) => void;
   disconnectGame: () => void;
@@ -46,9 +51,33 @@ interface GameState {
   setMatchDetails: (details: { opponentUsername: string; opponentElo: number; yourColor: Player }) => void;
   abandonGame: () => void;
   startLocalGame: () => void;
+  startBotGame: (level: BotLevel) => void;
 }
 
 let timerInterval: ReturnType<typeof setInterval> | null = null;
+let botMoveTimeout: ReturnType<typeof setTimeout> | null = null;
+
+const clearTimers = (): void => {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  if (botMoveTimeout) {
+    clearTimeout(botMoveTimeout);
+    botMoveTimeout = null;
+  }
+};
+
+const getBotDisplayInfo = (level: BotLevel): { name: string; elo: number } => {
+  switch (level) {
+    case 'easy':
+      return { name: '🤖 Yapay Zeka (Kolay)', elo: 800 };
+    case 'medium':
+      return { name: '🤖 Yapay Zeka (Orta)', elo: 1200 };
+    case 'hard':
+      return { name: '🤖 Yapay Zeka (Zor)', elo: 1600 };
+  }
+};
 
 const runTimer = (
   seconds: number,
@@ -88,6 +117,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   disconnectedPlayerId: null,
   reconnectWindowSecs: null,
   isLocalPvP: false,
+  mode: 'online',
+  botLevel: 'medium',
 
   connectGame: (matchId: string) => {
     const state = get();
@@ -105,10 +136,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       state.socket.disconnect();
     }
 
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
+    clearTimers();
 
     const socketUrl = typeof window !== 'undefined'
       ? (window.location.port === '5173'
@@ -124,6 +152,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({
       socket: newSocket,
       matchId,
+      mode: 'online',
+      isLocalPvP: false,
       board: [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0],
       gameError: null,
       gameOverDetails: null,
@@ -218,10 +248,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (socket) {
       socket.disconnect();
     }
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
+    clearTimers();
     set({
       socket: null,
       matchId: null,
@@ -238,6 +265,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       disconnectedPlayerId: null,
       reconnectWindowSecs: null,
       isLocalPvP: false,
+      mode: 'online',
     });
   },
 
@@ -246,12 +274,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (socket) {
       socket.disconnect();
     }
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
+    clearTimers();
     set({
       socket: null,
+      mode: 'local',
       isLocalPvP: true,
       matchId: 'local-match',
       board: createInitialBoard(),
@@ -270,40 +296,113 @@ export const useGameStore = create<GameState>((set, get) => ({
     runTimer(59, set, get);
   },
 
+  startBotGame: (level: BotLevel) => {
+    const { socket } = get();
+    if (socket) {
+      socket.disconnect();
+    }
+    clearTimers();
+    const botInfo = getBotDisplayInfo(level);
+    set({
+      socket: null,
+      mode: 'bot',
+      botLevel: level,
+      isLocalPvP: true,
+      matchId: `bot-match-${level}`,
+      board: createInitialBoard(),
+      currentPlayerId: 'p1',
+      turnTimeLeft: 59,
+      opponentUsername: botInfo.name,
+      opponentElo: botInfo.elo,
+      yourColor: 0,
+      chatEnabled: false,
+      messages: [],
+      gameError: null,
+      gameOverDetails: null,
+      disconnectedPlayerId: null,
+      reconnectWindowSecs: null,
+    });
+    runTimer(59, set, get);
+  },
+
   makeMove: (pitIndex: number) => {
     const state = get();
-    if (state.isLocalPvP) {
-      const currentPlayer: Player = state.currentPlayerId === 'p2' ? 1 : 0;
-      try {
-        const result = applyMove(state.board, pitIndex, currentPlayer);
+    if (state.isLocalPvP || state.mode === 'local' || state.mode === 'bot') {
+      if (state.mode === 'bot' && state.currentPlayerId === 'p2') {
+        return;
+      }
+
+      const applyOfflineMove = (chosenPit: number, player: Player): void => {
+        const currentState = get();
+        const result = applyMove(currentState.board, chosenPit, player);
         if (result.gameOver) {
+          clearTimers();
           set({
             board: result.newBoard,
             currentPlayerId: null,
             gameOverDetails: {
-              matchId: 'local-match',
-              winnerId: result.winner === 0 ? 'p1' : (result.winner === 1 ? 'p2' : undefined),
+              matchId: currentState.matchId ?? 'local-match',
+              winnerId:
+                result.winner === 0
+                  ? 'p1'
+                  : result.winner === 1
+                    ? 'p2'
+                    : undefined,
               reason: GameEndReason.NORMAL,
               p1EloChange: 0,
               p2EloChange: 0,
               finalBoard: result.newBoard,
             },
           });
-          if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-          }
-        } else {
-          const nextPlayerId = result.nextPlayer === 0 ? 'p1' : 'p2';
-          set({
-            board: result.newBoard,
-            currentPlayerId: nextPlayerId,
-            gameError: null,
-          });
-          runTimer(59, set, get);
+          return;
         }
+
+        const nextPlayerId = result.nextPlayer === 0 ? 'p1' : 'p2';
+        set({
+          board: result.newBoard,
+          currentPlayerId: nextPlayerId,
+          gameError: null,
+        });
+        runTimer(59, set, get);
+
+        if (currentState.mode === 'bot' && nextPlayerId === 'p2') {
+          if (botMoveTimeout) {
+            clearTimeout(botMoveTimeout);
+          }
+          botMoveTimeout = setTimeout(() => {
+            botMoveTimeout = null;
+            const latestState = get();
+            if (
+              latestState.mode !== 'bot' ||
+              latestState.currentPlayerId !== 'p2' ||
+              latestState.gameOverDetails
+            ) {
+              return;
+            }
+            try {
+              const botPit = chooseBotMove(
+                latestState.board,
+                1,
+                latestState.botLevel,
+              );
+              applyOfflineMove(botPit, 1);
+            } catch (botErr: unknown) {
+              set({
+                gameError:
+                  botErr instanceof Error ? botErr.message : 'Bot hamle hatası.',
+              });
+            }
+          }, 800);
+        }
+      };
+
+      const currentPlayer: Player = state.currentPlayerId === 'p2' ? 1 : 0;
+      try {
+        applyOfflineMove(pitIndex, currentPlayer);
       } catch (err: unknown) {
-        set({ gameError: err instanceof Error ? err.message : 'Geçersiz hamle.' });
+        set({
+          gameError: err instanceof Error ? err.message : 'Geçersiz hamle.',
+        });
       }
       return;
     }

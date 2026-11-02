@@ -77,4 +77,23 @@ describe('useGameStore (Local PvP)', () => {
       finalBoard: [0, 0, 0, 0, 0, 0, 26, 0, 0, 0, 0, 0, 0, 22],
     });
   });
+
+  it('should_trigger_bot_move_automatically_after_thinking_delay_in_bot_mode', () => {
+    // Arrange
+    useGameStore.getState().startBotGame('medium');
+
+    // Act — Oyuncu 1 kuyu 0'dan oynar, sıra bota ('p2') geçer
+    useGameStore.getState().makeMove(0);
+    expect(useGameStore.getState().currentPlayerId).toBe('p2');
+
+    // Bot düşünme süresi (800ms) ilerletilir (medium bot kuyu 10'dan ekstra hamle alır ve tekrar oynar)
+    vi.advanceTimersByTime(800);
+    expect(useGameStore.getState().board[13]).toBeGreaterThanOrEqual(1);
+
+    // İkinci hamlesini de yapması için 800ms daha ilerletilir
+    vi.advanceTimersByTime(800);
+
+    // Assert — Sıra tekrar insan oyuncuya ('p1') dönmüş olmalı
+    expect(useGameStore.getState().currentPlayerId).toBe('p1');
+  });
 });
