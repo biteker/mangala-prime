@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/ws-exception-filter
+Aktif Branch: feature/frontend-tests
 
 ---
 
@@ -69,14 +69,15 @@ Yayın Hazırlığı: ██████████ %100 (v1.0.0 Yayınlandı �
 - **✅ ÇÖZÜLDÜ (B-13 / T-12):** `AGENTS.md`, `docs/spec.md`, `.antigravity/skills/prisma.md`, `REVIEW_CHECKLIST.md` ve `docs/production-backlog.md` gerçek mimariyle senkronize edildi.
 - **✅ ÇÖZÜLDÜ (B-08 / T-08):** Saf Mangala oyun motoru `shared/engine/mangala-engine.ts` altında tekilleştirildi; `frontend/src/lib/game-engine.ts` kaldırıldı.
 - **✅ ÇÖZÜLDÜ (B-11 / T-11):** `WsExceptionFilter` (`backend/src/common/filters/ws-exception.filter.ts`) eklendi; `GameGateway` ve `LobbyGateway` üzerindeki tekrarlayan `try/catch` hata yayınları filtreye devredildi.
+- **✅ ÇÖZÜLDÜ (B-10 / T-09):** Frontend Vitest + Testing Library altyapısı kuruldu; `auth.store`, `api-client`, `game.store` ve `AuthGuard` için 12 birim testi eklendi; `auth.store` Spec 11.1 uyarınca salt-bellek (memory) moduna alındı. Faz B tamamlandı.
 - **Mimari Kararlar:** K-1…K-7 tamamı 2026-10-31'de onaylandı.
 
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-02 — T-11: WebSocket Exception Filter (Spec Uyumu)
+Oturum 2026-11-02 — T-09: Frontend Test Altyapısı
 
 ### Yapılanlar
-- `backend/src/common/filters/ws-exception.filter.ts` ve `ws-exception.filter.spec.ts` (6 birim testi) oluşturuldu.
-- `GameGateway` ve `LobbyGateway` üzerine `@UseFilters(new WsExceptionFilter())` eklendi; 5 adet `try/catch` bloğu kaldırıldı ve manuel hata emit sayısı 12'den 6'ya indirildi.
-- 103/103 birim testi, lint ve build doğrulandı. Sıradaki görev: T-09.
+- `vitest`, `@testing-library/react`, `@testing-library/user-event`, `@testing-library/jest-dom`, `jsdom` kuruldu ve `frontend/vite.config.ts` içine `test` bloğu eklendi.
+- `auth.store.spec.ts`, `api-client.spec.ts`, `game.store.spec.ts` ve `AuthGuard.spec.tsx` (toplam 12 test) oluşturuldu.
+- 115/115 birim testi (103 backend + 12 frontend), lint ve build doğrulandı. Sıradaki görev: T-13.
