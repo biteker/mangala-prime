@@ -36,8 +36,12 @@ export function LobbyPage(): React.JSX.Element {
 
   // Lobiye bağlanma ve ayrılma yönetimi
   useEffect(() => {
+    const { accessToken, fetchMe } = useAuthStore.getState();
+    if (!accessToken) {
+      return;
+    }
     connectLobby();
-    useAuthStore.getState().fetchMe().catch(() => {});
+    fetchMe().catch(() => {});
     return () => {
       disconnectLobby();
     };
