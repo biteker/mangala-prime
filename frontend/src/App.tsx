@@ -1,10 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from './lib/router';
 import { AuthGuard } from './components/AuthGuard';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
 import { LobbyPage } from './components/LobbyPage';
 import { GamePage } from './components/GamePage';
+import { LeaderboardModal } from './components/LeaderboardModal';
+import { ProfileModal } from './components/ProfileModal';
 import { useAuthStore } from './stores/auth.store';
 import { useThemeStore } from './stores/theme.store';
 
@@ -12,6 +14,9 @@ function App(): React.JSX.Element {
   const { route, navigate } = useRouter();
   const { user, logout } = useAuthStore();
   const { theme, setTheme } = useThemeStore();
+
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState<boolean>(false);
+  const [profileUsername, setProfileUsername] = useState<string | null>(null);
 
   // Tema sınıfının root elementine uygulanması
   useEffect(() => {
@@ -70,24 +75,38 @@ function App(): React.JSX.Element {
       {route !== '#/game' && (
         <header className="app-header">
           <div className="brand">Mangala Prime</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="app-header-actions">
             {user && (
               <>
-                <span style={{ fontSize: '14px', fontWeight: 600 }}>
+                <span className="app-header-user-badge">
                   {user.username} ({user.elo} ELO)
                 </span>
-                <button 
-                  type="button" 
-                  className="theme-toggle-btn" 
+                <button
+                  type="button"
+                  className="theme-toggle-btn"
+                  onClick={(): void => setIsLeaderboardOpen(true)}
+                >
+                  🏆 Liderlik Tablosu
+                </button>
+                <button
+                  type="button"
+                  className="theme-toggle-btn"
+                  onClick={(): void => setProfileUsername(user.username)}
+                >
+                  👤 Profilim
+                </button>
+                <button
+                  type="button"
+                  className="theme-toggle-btn"
                   onClick={handleLogout}
                 >
                   Çıkış Yap
                 </button>
               </>
             )}
-            <button 
-              type="button" 
-              className="theme-toggle-btn" 
+            <button
+              type="button"
+              className="theme-toggle-btn"
               onClick={handleThemeToggle}
             >
               Tema: {getThemeLabel()}
@@ -99,6 +118,22 @@ function App(): React.JSX.Element {
       <main className={route === '#/game' ? 'game-page-main' : 'auth-container'}>
         {renderContent()}
       </main>
+
+      <LeaderboardModal
+        isOpen={isLeaderboardOpen}
+        onClose={(): void => setIsLeaderboardOpen(false)}
+        currentUsername={user?.username}
+        onSelectUser={(selectedUsername: string): void => {
+          setIsLeaderboardOpen(false);
+          setProfileUsername(selectedUsername);
+        }}
+      />
+
+      <ProfileModal
+        isOpen={profileUsername !== null}
+        onClose={(): void => setProfileUsername(null)}
+        username={profileUsername}
+      />
     </AuthGuard>
   );
 }
