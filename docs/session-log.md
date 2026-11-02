@@ -23,6 +23,26 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-02] — T-13: Liderlik Tablosu ve Profil Arayüzü
+
+**Tamamlanan Görev:** Mevcut `GET /users/leaderboard` ve `GET /users/:username` uç noktalarını kullanan `LeaderboardModal` ve `ProfileModal` bileşenleri oluşturuldu. Üst bara "🏆 Liderlik Tablosu" ve "👤 Profilim" butonları eklendi, 4 temanın tamamıyla (`theme-wood`, `theme-neon`, `theme-rustic`, `theme-pixijs`) uyumlu CSS değişkenleri ve mobil (<768px) tam ekran modal düzeni tanımlandı. Liderlik tablosunda aktif kullanıcının kendi satırı vurgulandı (`leaderboard-row-self`), profil modalında ise ELO, G/M, kazanma oranı ve son 20 karşılaşma (`Dostluk` rozeti dahil) gösterildi. `LeaderboardModal.spec.tsx` ve `ProfileModal.spec.tsx` ile 7 yeni Vitest birim testi eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/src/components/LeaderboardModal.tsx` — Yeni: İlk 50 liderlik tablosu modalı (loading, boş, hata durumları ve kendi satır vurgusu)
+- `frontend/src/components/ProfileModal.tsx` — Yeni: Oyuncu profili ve son 20 karşılaşma modalı (`Dostluk` maç rozeti dahil)
+- `frontend/src/App.tsx` — Üst bara Liderlik Tablosu ve Profilim butonları eklendi, inline stiller semantik CSS sınıflarına taşındı
+- `frontend/src/index.css` — 4 tema uyumlu ve mobil tam ekran (responsive) modal/tablo stilleri eklendi
+- `frontend/src/components/LeaderboardModal.spec.tsx` — Yeni: 4 birim testi (loading, veri + kendi satır vurgusu, boş liste, hata durumu)
+- `frontend/src/components/ProfileModal.spec.tsx` — Yeni: 3 birim testi (loading, istatistikler + Dostluk rozeti, hata durumu)
+
+**Test Sonuçları:** 122/122 test geçti (Backend: 103/103, Frontend: 19/19)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki adım Faz D: T-14 (Bot / PvE Modu).
+**Bir Sonraki Görev:** T-14 — Bot (PvE) Modu
+**Commit:** feat(frontend): add LeaderboardModal and ProfileModal UI components (T-13)
+**PR:** feature/leaderboard-profile-ui → develop
+
+---
+
 ### Oturum [2026-11-02] — T-09: Frontend Test Altyapısı
 
 **Tamamlanan Görev:** Frontend test altyapısı (`vitest`, `@testing-library/react`, `@testing-library/user-event`, `@testing-library/jest-dom`, `jsdom`) kuruldu ve `frontend/vite.config.ts` içine `test` yapılandırması (`environment: 'jsdom'`, `setupFiles: ['./src/lib/test-setup.ts']`) eklendi. Spec 11.1 kuralına uyum için `frontend/src/stores/auth.store.ts` içindeki `persist` middleware kaldırılarak JWT `accessToken` değerinin yalnızca bellekte (memory) tutulması ve `localStorage`'a yazılmaması garanti altına alındı. Zorunlu 4 test dosyası (`auth.store.spec.ts`, `api-client.spec.ts`, `game.store.spec.ts`, `AuthGuard.spec.tsx`) toplam 12 birim testiyle oluşturuldu ve Faz B tamamlandı.
