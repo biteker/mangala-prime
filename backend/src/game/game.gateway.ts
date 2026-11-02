@@ -13,6 +13,7 @@ import { Server, Socket, type DefaultEventsMap } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { GameService } from './game.service';
 import { MoveDto } from './dto/move.dto';
+import { RematchOfferDto, RematchResponseDto } from './dto/rematch.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import type {
@@ -20,6 +21,8 @@ import type {
   GameReconnectPayload,
   GameChatTogglePayload,
   GameMessagePayload,
+  GameRematchOfferPayload,
+  GameRematchResponsePayload,
 } from '@mangala/shared';
 import { GameEndReason } from '@mangala/shared';
 import { SlidingWindowLimiter } from '../common/guards/sliding-window-limiter';
@@ -48,6 +51,7 @@ export class GameGateway
   private readonly connectionLimiter = new SlidingWindowLimiter(20, 60_000);
   private readonly moveLimiter = new SlidingWindowLimiter(10, 5_000);
   private readonly chatLimiter = new SlidingWindowLimiter(5, 10_000);
+  private readonly rematchLimiter = new SlidingWindowLimiter(5, 10_000);
 
   constructor(
     private readonly gameService: GameService,
@@ -329,6 +333,100 @@ export class GameGateway
       message: sanitizedMessage,
       type: payload.type,
     });
+  }
+
+  @SubscribeMessage('game:rematch_offer')
+  async handleRematchOffer(
+    @ConnectedSocket() client: AuthenticatedGameSocket,
+    @MessageBody() payload: GameRematchOfferPayload,
+  ): Promise<void> {
+    const userId = client.data.userId;
+    if (!userId) {
+      client.disconnect(true);
+      return;
+    }
+
+    if (!this.rematchLimiter.tryConsume(userId)) {
+      client.emit('game:error', {
+        error: {
+          code: 'RATE_LIMITED',
+          message: 'Çok fazla rövanş isteği gönderildi. Lütfen biraz bekleyin.',
+        },
+      });
+      return;
+    }
+
+    const dto = plainToInstance(RematchOfferDto, payload);
+    const errors = await validate(dto);
+    if (errors.length > 0) {
+      throw new BadRequestException({
+        code: 'INVALID_PARAMS',
+        message: 'Geçersiz rövanş parametreleri.',
+      });
+    }
+
+    const result = await this.gameService.offerRematch(payload.matchId, userId);
+
+    if (result.status === 'offered') {
+      this.server.to(result.opponentSocketId).emit('game:rematch_offered', {
+        matchId: result.matchId,
+        fromUserId: result.fromUserId,
+        expiresAt: result.expiresAt,
+      });
+    } else if (result.status === 'started') {
+      this.server.to(result.oldMatchId).emit('game:rematch_start', {
+        oldMatchId: result.oldMatchId,
+        newMatchId: result.newMatchId,
+      });
+    }
+  }
+
+  @SubscribeMessage('game:rematch_response')
+  async handleRematchResponse(
+    @ConnectedSocket() client: AuthenticatedGameSocket,
+    @MessageBody() payload: GameRematchResponsePayload,
+  ): Promise<void> {
+    const userId = client.data.userId;
+    if (!userId) {
+      client.disconnect(true);
+      return;
+    }
+
+    if (!this.rematchLimiter.tryConsume(userId)) {
+      client.emit('game:error', {
+        error: {
+          code: 'RATE_LIMITED',
+          message: 'Çok fazla rövanş isteği gönderildi. Lütfen biraz bekleyin.',
+        },
+      });
+      return;
+    }
+
+    const dto = plainToInstance(RematchResponseDto, payload);
+    const errors = await validate(dto);
+    if (errors.length > 0) {
+      throw new BadRequestException({
+        code: 'INVALID_PARAMS',
+        message: 'Geçersiz rövanş yanıt parametreleri.',
+      });
+    }
+
+    const result = await this.gameService.respondToRematch(
+      payload.matchId,
+      userId,
+      payload.accept,
+    );
+
+    if (result.status === 'declined') {
+      this.server.to(result.matchId).emit('game:rematch_declined', {
+        matchId: result.matchId,
+      });
+    } else if (result.status === 'started') {
+      this.server.to(result.oldMatchId).emit('game:rematch_start', {
+        oldMatchId: result.oldMatchId,
+        newMatchId: result.newMatchId,
+      });
+    }
   }
 
   private sanitizeMessage(message: string): string {

@@ -86,12 +86,16 @@ export function GamePage(): React.JSX.Element {
     isLocalPvP,
     mode,
     lastMoveInfo,
+    rematchState,
+    rematchExpiresAt,
     connectGame,
     disconnectGame,
     makeMove,
     sendChatMessage,
     toggleChat,
     abandonGame,
+    offerRematch,
+    respondRematch,
   } = useGameStore();
 
   const isBotMode = mode === 'bot';
@@ -113,7 +117,22 @@ export function GamePage(): React.JSX.Element {
   const [isAnimating, setIsAnimating] = useState(false);
   const [showForfeitConfirm, setShowForfeitConfirm] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [rematchTick, setRematchTick] = useState<number>(() => Date.now());
   const showGameOverModal = Boolean(gameOverDetails && !isAnimating);
+
+  useEffect(() => {
+    if (!rematchExpiresAt) {
+      return;
+    }
+    const interval = setInterval(() => {
+      setRematchTick(Date.now());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [rematchExpiresAt]);
+
+  const rematchSecondsLeft = rematchExpiresAt
+    ? Math.max(0, Math.ceil((rematchExpiresAt - rematchTick) / 1000))
+    : 30;
 
   const handleForfeitClick = (): void => {
     setShowForfeitConfirm(true);
@@ -751,6 +770,71 @@ export function GamePage(): React.JSX.Element {
                 <span className={`elo-change-value ${myEloChange() >= 0 ? 'positive' : 'negative'}`}>
                   {myEloChange() >= 0 ? `+${myEloChange()}` : myEloChange()} ELO
                 </span>
+              </div>
+            )}
+
+            {/* Rövanş / Tekrar Oyna Alanı */}
+            {(isBotMode || isLocalPvP) && (
+              <button
+                type="button"
+                className="auth-button rematch-offer-btn"
+                onClick={offerRematch}
+                style={{ marginBottom: '10px' }}
+              >
+                🔄 Tekrar Oyna
+              </button>
+            )}
+
+            {!isLocalPvP && gameOverDetails.reason === 'NORMAL' && (
+              <div className="rematch-panel" style={{ marginBottom: '12px' }}>
+                {rematchState === 'idle' && (
+                  <button
+                    type="button"
+                    className="auth-button rematch-offer-btn"
+                    onClick={(): void => {
+                      setRematchTick(Date.now());
+                      offerRematch();
+                    }}
+                  >
+                    🔄 Rövanş Teklif Et
+                  </button>
+                )}
+
+                {rematchState === 'offered_by_me' && (
+                  <div className="rematch-status-box">
+                    ⏳ Rövanş teklifi gönderildi... ({rematchSecondsLeft} sn)
+                  </div>
+                )}
+
+                {rematchState === 'offered_by_opponent' && (
+                  <div className="rematch-incoming-box">
+                    <p className="rematch-incoming-text">
+                      ⚔️ Rakibiniz rövanş teklif ediyor! ({rematchSecondsLeft} sn)
+                    </p>
+                    <div className="modal-actions">
+                      <button
+                        type="button"
+                        className="auth-button accept-invite-btn"
+                        onClick={(): void => respondRematch(true)}
+                      >
+                        Kabul Et
+                      </button>
+                      <button
+                        type="button"
+                        className="auth-button decline-invite-btn"
+                        onClick={(): void => respondRematch(false)}
+                      >
+                        Reddet
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {rematchState === 'declined' && (
+                  <div className="rematch-status-box declined">
+                    Rövanş teklifi reddedildi veya süresi doldu.
+                  </div>
+                )}
               </div>
             )}
 

@@ -16,3 +16,21 @@ export interface GameRoom {
   p2ChatEnabled: boolean;
   turnExpiresAt?: number;
 }
+
+export interface RematchOfferState {
+  fromUserId: string;
+  expiresAt: number;
+  timer: NodeJS.Timeout;
+}
+
+export interface FinishedMatchSession {
+  matchId: string;
+  player1Id: string;
+  player2Id: string;
+  player1Username: string;
+  player2Username: string;
+  player1SocketId: string;
+  player2SocketId: string;
+  offer: RematchOfferState | null;
+  isCreatingRematch: boolean;
+}

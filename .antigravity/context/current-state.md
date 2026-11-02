@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/pve-bot
+Aktif Branch: feature/rematch
 
 ---
 
@@ -72,14 +72,15 @@ Yayın Hazırlığı: ██████████ %100 (v1.0.0 Yayınlandı �
 - **✅ ÇÖZÜLDÜ (B-10 / T-09):** Frontend Vitest + Testing Library altyapısı kuruldu; `auth.store`, `api-client`, `game.store` ve `AuthGuard` için 12 birim testi eklendi; `auth.store` Spec 11.1 uyarınca salt-bellek (memory) moduna alındı. Faz B tamamlandı.
 - **✅ ÇÖZÜLDÜ (T-13):** `LeaderboardModal` ve `ProfileModal` bileşenleri 4 tema ve mobil tam ekran uyumlu olarak eklendi; 7 yeni Vitest birim testiyle doğrulandı.
 - **✅ ÇÖZÜLDÜ (T-14):** Saf `bot-engine.ts` (`easy`, `medium`, `hard` minimax + alpha-beta) ve Lobi/Oyun PvE bot modu eklendi; 6 yeni birim testiyle doğrulandı.
+- **✅ ÇÖZÜLDÜ (T-15):** Maç sonu rövanş (rematch) akışı (`game:rematch_offer`, `game:rematch_offered`, `game:rematch_response`, `game:rematch_declined`, `game:rematch_start`), yeni `Match` kaydı + P1↔P2 rol değişimi (K-7), 30 sn timeout ve çift kabul yarış durumu kilidi eklendi; 8 yeni birim testiyle doğrulandı.
 - **Mimari Kararlar:** K-1…K-7 tamamı 2026-10-31'de onaylandı.
 
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-02 — T-14: Bot (PvE) Modu
+Oturum 2026-11-03 — T-15: Rövanş (Rematch)
 
 ### Yapılanlar
-- `frontend/src/lib/bot-engine.ts` (`chooseBotMove`, 3 zorluk seviyesi) ve `bot-engine.spec.ts` (5 test) oluşturuldu.
-- `game.store.ts`, `LobbyPage.tsx` ve `GamePage.tsx` üzerine PvE Bot modu entegre edildi.
-- 128/128 birim testi (103 backend + 25 frontend), lint ve build doğrulandı. Sıradaki görev: T-15.
+- `shared/types/socket-events.types.ts`, `game.service.ts`, `game.gateway.ts`, `game.store.ts` ve `GamePage.tsx` üzerinde rövanş akışı tamamlandı.
+- `game.service.spec.ts` ve `game.gateway.spec.ts` içine 8 yeni birim testi eklendi.
+- 136/136 birim testi (111 backend + 25 frontend), lint ve build doğrulandı. Sıradaki görev: T-16.

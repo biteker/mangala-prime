@@ -4,7 +4,8 @@ import { GameEngineService } from './game-engine.service';
 import { EloService } from '../elo/elo.service';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { APP_CONFIG, loadAppConfig } from '../common/config/app-config';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import type { Server } from 'socket.io';
 
 describe('GameService', () => {
   let service: GameService;
@@ -12,6 +13,10 @@ describe('GameService', () => {
   const mockPrisma = {
     user: {
       findUnique: jest.fn(),
+    },
+    match: {
+      findUnique: jest.fn(),
+      create: jest.fn(),
     },
     moveHistory: {
       create: jest.fn(),
@@ -340,6 +345,198 @@ describe('GameService', () => {
         'p1_forfeit',
       );
       expect(service.getRoom(matchId)).toBeUndefined();
+    });
+  });
+
+  describe('rematch', () => {
+    const matchId = 'match-finished-1';
+    const p1Id = 'player-1';
+    const p2Id = 'player-2';
+
+    const setupFinishedMatch = async (): Promise<void> => {
+      mockPrisma.user.findUnique
+        .mockResolvedValueOnce({ id: p1Id, username: 'user1' })
+        .mockResolvedValueOnce({ id: p2Id, username: 'user2' });
+      const room = await service.initializeGame(matchId, p1Id, p2Id);
+      room.player1SocketId = 'socket-p1';
+      room.player2SocketId = 'socket-p2';
+
+      mockGameEngine.processMove.mockReturnValue({
+        newBoard: [0, 0, 0, 0, 0, 0, 26, 0, 0, 0, 0, 0, 0, 22],
+        nextPlayer: 0,
+        extraTurn: false,
+        gameOver: true,
+        winner: 0,
+      });
+      mockEloService.updateEloScores.mockResolvedValue({
+        p1EloChange: 15,
+        p2EloChange: -15,
+      });
+
+      await service.processMove({ matchId, pitIndex: 5 });
+    };
+
+    it('should_throw_bad_request_when_rematch_offered_for_unfinished_match', async () => {
+      // Arrange
+      mockPrisma.user.findUnique
+        .mockResolvedValueOnce({ id: p1Id, username: 'user1' })
+        .mockResolvedValueOnce({ id: p2Id, username: 'user2' });
+      await service.initializeGame('active-match-1', p1Id, p2Id);
+
+      // Act & Assert
+      await expect(
+        service.offerRematch('active-match-1', p1Id),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should_emit_rematch_declined_when_30s_offer_timeout_expires', async () => {
+      // Arrange
+      await setupFinishedMatch();
+      mockPrisma.match.findUnique.mockResolvedValueOnce({
+        id: matchId,
+        status: 'FINISHED',
+        isFriendly: false,
+      });
+
+      const mockEmit = jest.fn();
+      const mockServer = {
+        to: jest.fn().mockReturnValue({ emit: mockEmit }),
+      };
+      service.setServer(mockServer as unknown as Server);
+
+      // Act
+      const offerResult = await service.offerRematch(matchId, p1Id);
+      expect(offerResult.status).toBe('offered');
+
+      jest.advanceTimersByTime(30_000);
+
+      // Assert
+      expect(mockServer.to).toHaveBeenCalledWith(matchId);
+      expect(mockEmit).toHaveBeenCalledWith('game:rematch_declined', {
+        matchId,
+      });
+      expect(service.getFinishedMatch(matchId)).toBeUndefined();
+    });
+
+    it('should_create_new_match_and_swap_roles_when_rematch_accepted', async () => {
+      // Arrange
+      await setupFinishedMatch();
+      mockPrisma.match.findUnique
+        .mockResolvedValueOnce({
+          id: matchId,
+          status: 'FINISHED',
+          isFriendly: true,
+        })
+        .mockResolvedValueOnce({
+          id: matchId,
+          status: 'FINISHED',
+          isFriendly: true,
+        });
+      mockPrisma.match.create.mockResolvedValueOnce({
+        id: 'match-rematch-2',
+        player1Id: p2Id,
+        player2Id: p1Id,
+        status: 'ACTIVE',
+        isFriendly: true,
+      });
+      mockPrisma.user.findUnique
+        .mockResolvedValueOnce({ id: p2Id, username: 'user2' })
+        .mockResolvedValueOnce({ id: p1Id, username: 'user1' });
+
+      await service.offerRematch(matchId, p1Id);
+
+      // Act
+      const response = await service.respondToRematch(matchId, p2Id, true);
+
+      // Assert
+      expect(response.status).toBe('started');
+      if (response.status === 'started') {
+        expect(response.oldMatchId).toBe(matchId);
+        expect(response.newMatchId).toBe('match-rematch-2');
+        expect(response.newRoom.player1Id).toBe(p2Id);
+        expect(response.newRoom.player2Id).toBe(p1Id);
+      }
+      expect(mockPrisma.match.create).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.match.create).toHaveBeenCalledWith({
+        data: {
+          player1Id: p2Id,
+          player2Id: p1Id,
+          status: 'ACTIVE',
+          isFriendly: true,
+        },
+      });
+    });
+
+    it('should_create_only_single_match_on_concurrent_double_accept', async () => {
+      // Arrange
+      await setupFinishedMatch();
+      mockPrisma.match.findUnique
+        .mockResolvedValueOnce({
+          id: matchId,
+          status: 'FINISHED',
+          isFriendly: false,
+        })
+        .mockResolvedValueOnce({
+          id: matchId,
+          status: 'FINISHED',
+          isFriendly: false,
+        });
+      mockPrisma.match.create.mockResolvedValue({
+        id: 'match-rematch-single',
+        player1Id: p2Id,
+        player2Id: p1Id,
+        status: 'ACTIVE',
+        isFriendly: false,
+      });
+      mockPrisma.user.findUnique
+        .mockResolvedValueOnce({ id: p2Id, username: 'user2' })
+        .mockResolvedValueOnce({ id: p1Id, username: 'user1' });
+
+      await service.offerRematch(matchId, p1Id);
+
+      // Act — Eşzamanlı çift kabul (race condition)
+      const [res1, res2] = await Promise.all([
+        service.respondToRematch(matchId, p2Id, true),
+        service.respondToRematch(matchId, p2Id, true),
+      ]);
+
+      // Assert
+      const startedCount = [res1, res2].filter(
+        (r) => r.status === 'started',
+      ).length;
+      const ignoredCount = [res1, res2].filter(
+        (r) => r.status === 'ignored',
+      ).length;
+      expect(startedCount).toBe(1);
+      expect(ignoredCount).toBe(1);
+      expect(mockPrisma.match.create).toHaveBeenCalledTimes(1);
+    });
+
+    it('should_cancel_pending_rematch_offer_when_player_disconnects', async () => {
+      // Arrange
+      await setupFinishedMatch();
+      mockPrisma.match.findUnique.mockResolvedValueOnce({
+        id: matchId,
+        status: 'FINISHED',
+        isFriendly: false,
+      });
+
+      const mockEmit = jest.fn();
+      const mockServer = {
+        to: jest.fn().mockReturnValue({ emit: mockEmit }),
+      };
+      service.setServer(mockServer as unknown as Server);
+
+      await service.offerRematch(matchId, p1Id);
+
+      // Act — Rakip oyuncu lobiye döner (disconnect)
+      await service.handlePlayerDisconnect('socket-p2');
+
+      // Assert
+      expect(mockEmit).toHaveBeenCalledWith('game:rematch_declined', {
+        matchId,
+      });
+      expect(service.getFinishedMatch(matchId)).toBeUndefined();
     });
   });
 });

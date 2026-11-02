@@ -9,7 +9,7 @@ import { PrismaService } from '../common/prisma/prisma.service';
 import { APP_CONFIG, type AppConfig } from '../common/config/app-config';
 import { GameEngineService } from './game-engine.service';
 import { EloService } from '../elo/elo.service';
-import { GameRoom } from './types/game-room.types';
+import { FinishedMatchSession, GameRoom } from './types/game-room.types';
 import { BoardState, Player, GameEndReason } from '@mangala/shared';
 import { GameMovePayload } from '@mangala/shared';
 import { Server } from 'socket.io';
@@ -29,9 +29,46 @@ export interface ProcessMoveResult {
   p2EloChange?: number;
 }
 
+export type RematchOfferResult =
+  | {
+      status: 'offered';
+      matchId: string;
+      fromUserId: string;
+      opponentSocketId: string;
+      expiresAt: number;
+    }
+  | {
+      status: 'started';
+      oldMatchId: string;
+      newMatchId: string;
+      newRoom: GameRoom;
+    }
+  | {
+      status: 'ignored';
+    };
+
+export type RematchResponseResult =
+  | {
+      status: 'declined';
+      matchId: string;
+    }
+  | {
+      status: 'started';
+      oldMatchId: string;
+      newMatchId: string;
+      newRoom: GameRoom;
+    }
+  | {
+      status: 'ignored';
+    };
+
+const REMATCH_TIMEOUT_MS = 30_000;
+
 @Injectable()
 export class GameService {
   private readonly rooms = new Map<string, GameRoom>();
+  private readonly finishedMatches = new Map<string, FinishedMatchSession>();
+  private readonly completedRematches = new Set<string>();
   private readonly reconnectTimers = new Map<string, NodeJS.Timeout>();
   private server: Server | null = null;
 
@@ -52,6 +89,10 @@ export class GameService {
 
   getRoom(matchId: string): GameRoom | undefined {
     return this.rooms.get(matchId);
+  }
+
+  getFinishedMatch(matchId: string): FinishedMatchSession | undefined {
+    return this.finishedMatches.get(matchId);
   }
 
   getRoomForUser(userId: string): GameRoom | undefined {
@@ -179,6 +220,27 @@ export class GameService {
         });
       }
     }
+
+    // Tamamlanmış maçta oyunculardan biri ayrılırsa (lobiye dönerse) bekleyen rövanş teklifini iptal et
+    for (const [fMatchId, session] of this.finishedMatches.entries()) {
+      if (
+        session.player1SocketId === socketId ||
+        session.player2SocketId === socketId
+      ) {
+        if (session.offer) {
+          clearTimeout(session.offer.timer);
+          session.offer = null;
+          if (this.server) {
+            this.server
+              .to(fMatchId)
+              .emit('game:rematch_declined', { matchId: fMatchId });
+          }
+        }
+        this.finishedMatches.delete(fMatchId);
+        break;
+      }
+    }
+
     return Promise.resolve(null);
   }
 
@@ -344,6 +406,18 @@ export class GameService {
       p1EloChange = eloChanges.p1EloChange;
       p2EloChange = eloChanges.p2EloChange;
 
+      this.finishedMatches.set(room.matchId, {
+        matchId: room.matchId,
+        player1Id: room.player1Id,
+        player2Id: room.player2Id,
+        player1Username: room.player1Username,
+        player2Username: room.player2Username,
+        player1SocketId: room.player1SocketId,
+        player2SocketId: room.player2SocketId,
+        offer: null,
+        isCreatingRematch: false,
+      });
+
       this.cleanUpRoom(room.matchId);
     } else {
       // Oyun devam ediyorsa sonraki oyuncunun durumuna bak
@@ -466,6 +540,228 @@ export class GameService {
     this.clearReconnectTimer(room.player2Id);
 
     this.rooms.delete(matchId);
+  }
+
+  async offerRematch(
+    matchId: string,
+    userId: string,
+  ): Promise<RematchOfferResult> {
+    if (this.rooms.has(matchId)) {
+      throw new BadRequestException({
+        code: 'MATCH_NOT_FINISHED',
+        message: 'Bitmemiş bir maç için rövanş teklif edilemez.',
+      });
+    }
+
+    if (this.completedRematches.has(matchId)) {
+      return { status: 'ignored' };
+    }
+
+    const session = this.finishedMatches.get(matchId);
+    if (!session) {
+      throw new BadRequestException({
+        code: 'MATCH_NOT_FINISHED',
+        message: 'Rövanş teklif edilebilecek tamamlanmış maç bulunamadı.',
+      });
+    }
+
+    if (session.player1Id !== userId && session.player2Id !== userId) {
+      throw new BadRequestException({
+        code: 'INVALID_PLAYER',
+        message: 'Bu maçta oyuncu değilsiniz.',
+      });
+    }
+
+    if (!session.player1SocketId || !session.player2SocketId) {
+      throw new BadRequestException({
+        code: 'OPPONENT_OFFLINE',
+        message: 'Rakip oyuncu ayrıldığı için rövanş teklif edilemez.',
+      });
+    }
+
+    try {
+      const dbMatch = await this.prisma.match.findUnique({
+        where: { id: matchId },
+      });
+      if (!dbMatch || dbMatch.status !== 'FINISHED') {
+        throw new BadRequestException({
+          code: 'MATCH_NOT_FINISHED',
+          message:
+            'Yalnızca tamamlanmış (FINISHED) maçlar için rövanş teklif edilebilir.',
+        });
+      }
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+      throw new InternalServerErrorException({
+        code: 'DATABASE_ERROR',
+        message: 'Maç durumu kontrol edilirken veritabanı hatası oluştu.',
+      });
+    }
+
+    if (session.isCreatingRematch) {
+      return { status: 'ignored' };
+    }
+
+    if (session.offer) {
+      if (session.offer.fromUserId === userId) {
+        throw new BadRequestException({
+          code: 'REMATCH_ALREADY_OFFERED',
+          message: 'Zaten aktif bir rövanş teklifiniz var.',
+        });
+      }
+      // Karşı oyuncu zaten teklif ettiyse eşzamanlı teklifi kabul olarak değerlendir
+      const responseResult = await this.respondToRematch(matchId, userId, true);
+      if (responseResult.status === 'started') {
+        return responseResult;
+      }
+      return { status: 'ignored' };
+    }
+
+    const expiresAt = Date.now() + REMATCH_TIMEOUT_MS;
+    const timer = setTimeout(() => {
+      this.handleRematchTimeout(matchId);
+    }, REMATCH_TIMEOUT_MS);
+
+    session.offer = {
+      fromUserId: userId,
+      expiresAt,
+      timer,
+    };
+
+    const opponentSocketId =
+      userId === session.player1Id
+        ? session.player2SocketId
+        : session.player1SocketId;
+
+    return {
+      status: 'offered',
+      matchId,
+      fromUserId: userId,
+      opponentSocketId,
+      expiresAt,
+    };
+  }
+
+  async respondToRematch(
+    matchId: string,
+    userId: string,
+    accept: boolean,
+  ): Promise<RematchResponseResult> {
+    if (this.completedRematches.has(matchId)) {
+      return { status: 'ignored' };
+    }
+
+    const session = this.finishedMatches.get(matchId);
+    if (!session) {
+      throw new BadRequestException({
+        code: 'NO_ACTIVE_REMATCH_OFFER',
+        message: 'Aktif bir rövanş teklifi bulunamadı.',
+      });
+    }
+
+    if (session.isCreatingRematch) {
+      return { status: 'ignored' };
+    }
+
+    if (!session.offer) {
+      throw new BadRequestException({
+        code: 'NO_ACTIVE_REMATCH_OFFER',
+        message: 'Aktif bir rövanş teklifi bulunamadı.',
+      });
+    }
+
+    if (
+      userId === session.offer.fromUserId ||
+      (userId !== session.player1Id && userId !== session.player2Id)
+    ) {
+      throw new BadRequestException({
+        code: 'INVALID_REMATCH_RESPONSE',
+        message: 'Bu rövanş teklifine yanıt veremezsiniz.',
+      });
+    }
+
+    clearTimeout(session.offer.timer);
+    session.offer = null;
+
+    if (!accept) {
+      this.finishedMatches.delete(matchId);
+      return {
+        status: 'declined',
+        matchId,
+      };
+    }
+
+    if (!session.player1SocketId || !session.player2SocketId) {
+      this.finishedMatches.delete(matchId);
+      throw new BadRequestException({
+        code: 'OPPONENT_OFFLINE',
+        message: 'Rakip oyuncu ayrıldığı için rövanş başlatılamadı.',
+      });
+    }
+
+    // Yarış durumuna (çift kabul) karşı senkron kilit
+    session.isCreatingRematch = true;
+
+    const newPlayer1Id = session.player2Id;
+    const newPlayer2Id = session.player1Id;
+    const newP1SocketId = session.player2SocketId;
+    const newP2SocketId = session.player1SocketId;
+
+    try {
+      const oldMatch = await this.prisma.match.findUnique({
+        where: { id: matchId },
+      });
+      const isFriendly = Boolean(oldMatch?.isFriendly);
+
+      const newMatch = await this.prisma.match.create({
+        data: {
+          player1Id: newPlayer1Id,
+          player2Id: newPlayer2Id,
+          status: 'ACTIVE',
+          isFriendly,
+        },
+      });
+
+      const newRoom = await this.initializeGame(
+        newMatch.id,
+        newPlayer1Id,
+        newPlayer2Id,
+      );
+      newRoom.player1SocketId = newP1SocketId;
+      newRoom.player2SocketId = newP2SocketId;
+
+      this.completedRematches.add(matchId);
+      this.finishedMatches.delete(matchId);
+
+      return {
+        status: 'started',
+        oldMatchId: matchId,
+        newMatchId: newMatch.id,
+        newRoom,
+      };
+    } catch (error) {
+      session.isCreatingRematch = false;
+      if (error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException({
+        code: 'DATABASE_ERROR',
+        message: 'Rövanş maçı oluşturulurken veritabanı hatası oluştu.',
+      });
+    }
+  }
+
+  private handleRematchTimeout(matchId: string): void {
+    const session = this.finishedMatches.get(matchId);
+    if (!session || !session.offer || session.isCreatingRematch) {
+      return;
+    }
+
+    clearTimeout(session.offer.timer);
+    session.offer = null;
+    this.finishedMatches.delete(matchId);
+
+    if (this.server) {
+      this.server.to(matchId).emit('game:rematch_declined', { matchId });
+    }
   }
 
   // --- Turn Timer Helpers ---

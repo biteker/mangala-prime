@@ -23,6 +23,27 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-03] — T-15: Rövanş (Rematch)
+
+**Tamamlanan Görev:** `@mangala/shared` (`shared/types/socket-events.types.ts`) altına rövanş WebSocket olay tipleri (`game:rematch_offer`, `game:rematch_offered`, `game:rematch_response`, `game:rematch_declined`, `game:rematch_start`) eklendi. `GameService` ve `GameGateway` üzerinde yalnızca `FINISHED` durumundaki maçlar için 30 saniye süreli rövanş teklifi, kabulde yeni `Match` kaydı oluşturulması ve P1↔P2 rollerinin yer değiştirmesi (K-7), aynı-IP → Friendly kuralının korunması, eşzamanlı çift kabul/teklif yarış durumu kilidi (`isCreatingRematch`) ve oyuncu ayrıldığında teklif iptali gerçeklendi. Frontend `game.store.ts` ve `GamePage.tsx` oyun sonu modalına rövanş teklif/yanıt ve geri sayım arayüzü eklendi. `game.service.spec.ts` ve `game.gateway.spec.ts` ile 8 yeni birim testi eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `shared/types/socket-events.types.ts` — 5 rövanş WebSocket payload tipi eklendi
+- `backend/src/game/dto/rematch.dto.ts` — Yeni: `RematchOfferDto` ve `RematchResponseDto` (`class-validator`)
+- `backend/src/game/types/game-room.types.ts` — `FinishedMatchSession` ve `RematchOfferState` tipleri eklendi
+- `backend/src/game/game.service.ts` — `offerRematch`, `respondToRematch`, 30 sn timeout ve oyuncu ayrılma iptali eklendi
+- `backend/src/game/game.gateway.ts` — `game:rematch_offer` ve `game:rematch_response` handler'ları + rate limiter eklendi
+- `backend/src/game/game.service.spec.ts` & `backend/src/game/game.gateway.spec.ts` — 8 yeni birim testi eklendi
+- `frontend/src/stores/game.store.ts`, `frontend/src/components/GamePage.tsx` & `frontend/src/index.css` — Oyun sonu modalı rövanş arayüzü ve geri sayımı bağlandı
+
+**Test Sonuçları:** 136/136 test geçti (Backend: 111/111, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki adım Faz D: T-16 (SEO, Favicon ve PWA).
+**Bir Sonraki Görev:** T-16 — SEO, Favicon ve PWA
+**Commit:** feat(game): add post-match rematch flow with role swap and 30s timeout (T-15)
+**PR:** feature/rematch → develop
+
+---
+
 ### Oturum [2026-11-02] — T-14: Bot (PvE) Modu
 
 **Tamamlanan Görev:** `@mangala/shared` saf oyun motorunu (`applyMove`, `getLegalMoves`) kullanan `frontend/src/lib/bot-engine.ts` (`chooseBotMove`) oluşturuldu ve 3 zorluk seviyesi (`easy`: rastgele + enjekte edilebilir RNG, `medium`: ekstra hamle > taş yakalama > rakip fırsat minimizasyonu açgözlü heuristic, `hard`: derinlik 6 minimax + alpha-beta budama) gerçeklendi. `game.store.ts` içine `mode: 'online' | 'local' | 'bot'` ve 800 ms bot düşünme gecikmesi eklendi. Lobiye zorluk seçicili "🤖 Bota Karşı Oyna (PvE)" paneli ve `GamePage.tsx` içine bot sırası / oyun sonu durumları bağlandı. `bot-engine.spec.ts` ve `game.store.spec.ts` ile 6 yeni birim testi eklendi.
