@@ -23,6 +23,28 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-02] — T-09: Frontend Test Altyapısı
+
+**Tamamlanan Görev:** Frontend test altyapısı (`vitest`, `@testing-library/react`, `@testing-library/user-event`, `@testing-library/jest-dom`, `jsdom`) kuruldu ve `frontend/vite.config.ts` içine `test` yapılandırması (`environment: 'jsdom'`, `setupFiles: ['./src/lib/test-setup.ts']`) eklendi. Spec 11.1 kuralına uyum için `frontend/src/stores/auth.store.ts` içindeki `persist` middleware kaldırılarak JWT `accessToken` değerinin yalnızca bellekte (memory) tutulması ve `localStorage`'a yazılmaması garanti altına alındı. Zorunlu 4 test dosyası (`auth.store.spec.ts`, `api-client.spec.ts`, `game.store.spec.ts`, `AuthGuard.spec.tsx`) toplam 12 birim testiyle oluşturuldu ve Faz B tamamlandı.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/package.json` & `package-lock.json` — Vitest ve Testing Library devDependencies eklendi; `"test": "vitest run"` tanımlandı
+- `frontend/vite.config.ts` — `vitest/config` üzerinden `test` bloğu (`jsdom` + `setupFiles`) eklendi
+- `frontend/src/lib/test-setup.ts` — Yeni: `@testing-library/jest-dom/vitest`, Web Audio (`AudioContext`) ve `pixi.js` mock tanımları
+- `frontend/src/stores/auth.store.ts` — Spec 11.1 gereği `persist` kaldırıldı; `accessToken` yalnızca memory'de saklanıyor
+- `frontend/src/stores/auth.store.spec.ts` — Yeni: 3 birim testi (login sonrası memory token + profil çekme, logout temizliği, `localStorage`'a token yazmama)
+- `frontend/src/lib/api-client.spec.ts` — Yeni: 3 birim testi (401 → `/auth/refresh` + orijinal isteği tekrarlama, refresh 401 → logout, eşzamanlı 401'lerde tek refresh isteği)
+- `frontend/src/stores/game.store.spec.ts` — Yeni: 4 birim testi (Yerel PvP başlangıç tahtası, normal hamlede sıra değişimi, hazine hamlesinde ekstra tur, oyun sonu ve kazanan tespiti)
+- `frontend/src/components/AuthGuard.spec.tsx` — Yeni: 2 birim testi (token yokken `#/login`'e yönlendirme, token varken `#/login`'den `#/lobby`'ye yönlendirme)
+
+**Test Sonuçları:** 115/115 test geçti (Backend: 103/103, Frontend: 12/12)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Faz B tamamlandı. Sıradaki adım Faz D: T-13 (Liderlik Tablosu ve Profil UI).
+**Bir Sonraki Görev:** T-13 — Liderlik Tablosu ve Profil UI
+**Commit:** test(frontend): set up Vitest and add store, api-client, and AuthGuard tests (T-09)
+**PR:** feature/frontend-tests → develop
+
+---
+
 ### Oturum [2026-11-02] — T-11: WebSocket Exception Filter (Spec Uyumu)
 
 **Tamamlanan Görev:** Spec 13.3 ve 17 ile uyumlu `WsExceptionFilter` (`backend/src/common/filters/ws-exception.filter.ts`) oluşturularak `BaseWsExceptionFilter` genişletildi. Filtre, yakalanan `HttpException`, `WsException` ve beklenmeyen hataları soketin namespace'ine göre (`/game` → `game:error`, `/lobby` → `lobby:error`) `{ error: { code, message } }` formatında emit edecek ve beklenmeyen hatalarda stack trace sızdırmadan `INTERNAL_ERROR` döndürecek şekilde yapılandırıldı. `GameGateway` ve `LobbyGateway` üzerine `@UseFilters(new WsExceptionFilter())` eklendi; gateway'lerdeki 5 adet `try/catch → client.emit('...:error')` bloğu ve 3 adet manuel `INVALID_PARAMS` hata yayını filtreye devredilerek manuel hata emit sayısı 12'den 4'e indirildi (`INVALID_MOVE` durumunda `board` alanı gönderildiği için spec 13.3 gereği korundu).

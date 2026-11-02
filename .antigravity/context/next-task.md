@@ -2,32 +2,31 @@
 
 ---
 
-## Görev: T-09 — Frontend Test Altyapısı
+## Görev: T-13 — Liderlik Tablosu ve Profil Arayüzü
 
-> **Tam tasarım:** `docs/architecture-roadmap.md` → Bölüm 5, **T-09**. Bu dosya özet bilgi verir; bağlayıcı olan roadmap dokümanıdır.
+> **Tam tasarım:** `docs/architecture-roadmap.md` → Bölüm 7, **T-13**. Bu dosya özet bilgi verir; bağlayıcı olan roadmap dokümanıdır.
 
 ### Ön Koşullar (Başlamadan Kontrol Et)
-- [ ] T-11 (`feature/ws-exception-filter`) `develop`'a merge edildi mi?
+- [ ] T-09 (`feature/frontend-tests`) `develop`'a merge edildi mi?
 
 ### Branch
-`feature/frontend-tests` (base: güncel `origin/develop`)
+`feature/leaderboard-profile-ui` (base: güncel `origin/develop`)
 
 ### Ne Yapılacak? (Özet)
-1. `frontend/package.json` içine devDependencies olarak `vitest`, `@testing-library/react`, `@testing-library/user-event`, `@testing-library/jest-dom`, `jsdom` paketlerini ekle ve `"test": "vitest run"` script'ini tanımla.
-2. `frontend/vite.config.ts` içine `test` bloğunu (`environment: 'jsdom'`, `setupFiles`) ekle (ayrı config dosyası açılmaz). PixiJS ve Web Audio mock'lanır.
-3. Zorunlu test dosyalarını oluştur:
-   - `frontend/src/stores/auth.store.spec.ts` (login sonrası token memory'de, logout temizler, token localStorage'a yazılmaz)
-   - `frontend/src/lib/api-client.spec.ts` (401 → `/auth/refresh` → orijinal istek tekrarlanır; refresh 401 dönerse logout; eşzamanlı 401'lerde tek refresh)
-   - `frontend/src/stores/game.store.spec.ts` (Yerel PvP: başlangıç tahtası, geçerli hamle sırayı değiştirir, hazine hamlesinde sıra korunur, oyun sonu tespiti)
-   - `frontend/src/components/AuthGuard.spec.tsx` (Token yoksa login'e yönlendirir)
+1. Backend hazır (`GET /users/leaderboard`, `GET /users/me`, `GET /users/:username`). Backend'e dokunulmaz.
+2. Yeni bileşenleri oluştur:
+   - `frontend/src/components/LeaderboardModal.tsx`: Sıra, kullanıcı adı, ELO, G/M, galibiyet oranı; kendi satırı vurgulanır; loading, boş ve hata durumları.
+   - `frontend/src/components/ProfileModal.tsx`: ELO, toplam maç, son 20 maç (rakip, sonuç, ELO değişimi, tarih).
+3. Lobi üst barına "Liderlik Tablosu" ve "Profilim" butonlarını ekle; mobilde tam ekran modal ve 4 temayla uyumlu görünüm sağla.
+4. Vitest ile bileşen testlerini (`LeaderboardModal.spec.tsx`, `ProfileModal.spec.tsx`) yaz (loading/hata/veri render, kendi satır vurgusu).
 
 ### İlgili Referanslar
-- `docs/architecture-roadmap.md` Bölüm 5, T-09 (Bulgu B-10) · `.antigravity/skills/testing.md` · `.antigravity/skills/frontend.md`
+- `docs/architecture-roadmap.md` Bölüm 7, T-13 · `.antigravity/skills/frontend.md` · `.antigravity/skills/api-contract.md`
 
 ### Kabul Kriterleri
-- [ ] `npm run test -w frontend` gerçek testler çalıştırıyor ve yeşil
-- [ ] CI pipeline'ında frontend test sonuçları görünüyor
+- [ ] Mobil (<768px) ve masaüstünde düzgün görünüm, 4 temada okunabilir
+- [ ] Loading, boş ve hata durumları kullanıcı dostu mesajlarla ele alınmış ve Vitest ile test edilmiş
 - [ ] `npm run lint`, `npm run test` ve `npm run build` yeşil
 
 ### Sonraki Görev
-T-13 — Liderlik Tablosu ve Profil UI (`feature/leaderboard-profile-ui`)
+T-14 — Bot / PvE Modu (`feature/bot-pve`)
