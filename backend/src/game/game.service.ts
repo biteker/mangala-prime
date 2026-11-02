@@ -178,6 +178,15 @@ export class GameService {
         break;
       }
     }
+
+    for (const session of this.finishedMatches.values()) {
+      if (session.player1Id === userId) {
+        session.player1SocketId = socketId;
+      } else if (session.player2Id === userId) {
+        session.player2SocketId = socketId;
+      }
+    }
+
     return Promise.resolve();
   }
 
@@ -477,6 +486,17 @@ export class GameService {
     } catch {
       // Hata durumunda logla
     } finally {
+      this.finishedMatches.set(room.matchId, {
+        matchId: room.matchId,
+        player1Id: room.player1Id,
+        player2Id: room.player2Id,
+        player1Username: room.player1Username,
+        player2Username: room.player2Username,
+        player1SocketId: room.player1SocketId,
+        player2SocketId: room.player2SocketId,
+        offer: null,
+        isCreatingRematch: false,
+      });
       this.cleanUpRoom(matchId);
     }
   }
@@ -513,6 +533,17 @@ export class GameService {
     } catch {
       // log error
     } finally {
+      this.finishedMatches.set(room.matchId, {
+        matchId: room.matchId,
+        player1Id: room.player1Id,
+        player2Id: room.player2Id,
+        player1Username: room.player1Username,
+        player2Username: room.player2Username,
+        player1SocketId: room.player1SocketId,
+        player2SocketId: room.player2SocketId,
+        offer: null,
+        isCreatingRematch: false,
+      });
       this.cleanUpRoom(matchId);
     }
   }

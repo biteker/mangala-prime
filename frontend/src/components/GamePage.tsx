@@ -216,8 +216,14 @@ export function GamePage(): React.JSX.Element {
       const prevTotal = prevBoard.reduce((a, b) => a + b, 0);
       const nextTotal = nextBoard.reduce((a, b) => a + b, 0);
 
-      // Eşleşme başlangıcı, reconnect veya geçersiz durumlarda animasyon oynatmadan direkt eşitle
-      if (prevTotal !== nextTotal || prevTotal === 0) {
+      // Eşleşme başlangıcı, rövanş sıfırlaması, reconnect veya geçersiz durumlarda animasyon oynatmadan direkt eşitle
+      if (
+        prevTotal !== nextTotal ||
+        prevTotal === 0 ||
+        nextState.matchId !== prevState.matchId ||
+        (prevState.gameOverDetails !== null && nextState.gameOverDetails === null)
+      ) {
+        setIsAnimating(false);
         setBoardData({ board: nextBoard, lastMove: null });
         return;
       }
@@ -785,7 +791,7 @@ export function GamePage(): React.JSX.Element {
               </button>
             )}
 
-            {!isLocalPvP && gameOverDetails.reason === 'NORMAL' && (
+            {!isLocalPvP && gameOverDetails.reason !== 'DISCONNECT' && (
               <div className="rematch-panel" style={{ marginBottom: '12px' }}>
                 {rematchState === 'idle' && (
                   <button
