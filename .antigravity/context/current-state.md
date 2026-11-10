@@ -79,9 +79,8 @@ Yayın Hazırlığı: ██████████ %100 (Faz A, Faz B, Faz C v
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-10 — T-16: SEO, Favicon ve PWA (Yol Haritası Tamamlandı)
+Oturum 2026-11-11 — Okul Laboratuvarı (Tek IP / NAT) Hız Sınırları Güncellemesi
 
 ### Yapılanlar
-- `frontend/index.html` içine Türkçe SEO başlığı, meta description, Open Graph (`og:*`), Twitter Card (`summary_large_image`) ve PWA manifest bağlantıları eklendi.
-- `frontend/public/` altında Mangala temalı `favicon.svg`, `favicon-32x32.png`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `og-image.png` (1200×630) ve `manifest.webmanifest` oluşturuldu.
-- 136/136 birim testi (111 backend + 25 frontend), lint ve build doğrulandı. Tüm yol haritası (`T-01…T-16`) tamamlandı.
+- Okul ağında (tek ortak IP) 18–40 öğrencinin aynı anda giriş/kayıt yapabilmesi için `login` (60/dk), `register` (40/10dk), `refresh` (120/dk), global HTTP (600/dk) ve WebSocket bağlantı (120/dk) limitleri güncellendi.
+- 136/136 birim testi (111 backend + 25 frontend), lint ve build doğrulandı.
