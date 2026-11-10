@@ -48,7 +48,7 @@ export class GameGateway
   @WebSocketServer()
   server!: Server;
 
-  private readonly connectionLimiter = new SlidingWindowLimiter(20, 60_000);
+  private readonly connectionLimiter = new SlidingWindowLimiter(120, 60_000);
   private readonly moveLimiter = new SlidingWindowLimiter(10, 5_000);
   private readonly chatLimiter = new SlidingWindowLimiter(5, 10_000);
   private readonly rematchLimiter = new SlidingWindowLimiter(5, 10_000);

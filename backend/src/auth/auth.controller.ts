@@ -37,7 +37,7 @@ export class AuthController {
   ) {}
 
   @Public()
-  @Throttle({ default: { limit: 3, ttl: 600_000 } })
+  @Throttle({ default: { limit: 40, ttl: 600_000 } })
   @Post('register')
   async register(
     @Body() registerDto: RegisterDto,
@@ -46,7 +46,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
@@ -59,7 +59,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Throttle({ default: { limit: 120, ttl: 60_000 } })
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(

@@ -19,7 +19,7 @@ import { join } from 'path';
     ThrottlerModule.forRoot([
       {
         ttl: 60_000,
-        limit: 100,
+        limit: 600,
       },
     ]),
     PrismaModule,
