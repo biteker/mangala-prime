@@ -39,6 +39,8 @@ describe('GameGateway', () => {
     getRoom: jest.fn(),
     getRoomForUser: jest.fn(),
     getTurnTimeLimit: jest.fn().mockReturnValue(15),
+    offerRematch: jest.fn(),
+    respondToRematch: jest.fn(),
   };
 
   const mockJwtService = {
@@ -386,6 +388,101 @@ describe('GameGateway', () => {
         message:
           '&lt;script&gt;alert(&quot;xss&quot;)&lt;&#x2F;script&gt;hello',
         type: 'text',
+      });
+    });
+  });
+
+  describe('rematch_events', () => {
+    let mockSocket: MockGameSocket;
+    let mockServer: MockGameServer;
+
+    beforeEach(() => {
+      mockSocket = {
+        id: 'socket-p1',
+        data: { userId: 'user-1', username: 'user1' },
+        emit: jest.fn(),
+      };
+      mockServer = {
+        to: jest.fn().mockReturnThis(),
+        emit: jest.fn(),
+      };
+      gateway.server = mockServer as unknown as Server;
+    });
+
+    it('should_emit_rematch_offered_to_opponent_when_offer_is_valid', async () => {
+      // Arrange
+      mockGameService.offerRematch.mockResolvedValue({
+        status: 'offered',
+        matchId: 'match-123',
+        fromUserId: 'user-1',
+        opponentSocketId: 'socket-p2',
+        expiresAt: 1700000030000,
+      });
+
+      // Act
+      await gateway.handleRematchOffer(
+        mockSocket as unknown as AuthenticatedGameSocket,
+        { matchId: 'match-123' },
+      );
+
+      // Assert
+      expect(mockGameService.offerRematch).toHaveBeenCalledWith(
+        'match-123',
+        'user-1',
+      );
+      expect(mockServer.to).toHaveBeenCalledWith('socket-p2');
+      expect(mockServer.emit).toHaveBeenCalledWith('game:rematch_offered', {
+        matchId: 'match-123',
+        fromUserId: 'user-1',
+        expiresAt: 1700000030000,
+      });
+    });
+
+    it('should_emit_rematch_start_when_rematch_is_accepted', async () => {
+      // Arrange
+      mockGameService.respondToRematch.mockResolvedValue({
+        status: 'started',
+        oldMatchId: 'match-123',
+        newMatchId: 'match-456',
+        newRoom: {},
+      });
+
+      // Act
+      await gateway.handleRematchResponse(
+        mockSocket as unknown as AuthenticatedGameSocket,
+        { matchId: 'match-123', accept: true },
+      );
+
+      // Assert
+      expect(mockGameService.respondToRematch).toHaveBeenCalledWith(
+        'match-123',
+        'user-1',
+        true,
+      );
+      expect(mockServer.to).toHaveBeenCalledWith('match-123');
+      expect(mockServer.emit).toHaveBeenCalledWith('game:rematch_start', {
+        oldMatchId: 'match-123',
+        newMatchId: 'match-456',
+      });
+    });
+
+    it('should_emit_rematch_declined_when_rematch_is_rejected', async () => {
+      // Arrange
+      mockGameService.respondToRematch.mockResolvedValue({
+        status: 'declined',
+        matchId: 'match-123',
+      });
+
+      // Act
+      await gateway.handleRematchResponse(
+        mockSocket as unknown as AuthenticatedGameSocket,
+        { matchId: 'match-123', accept: false },
+      );
+
+      // Assert
+      expect(mockServer.to).toHaveBeenCalledWith('match-123');
+      expect(mockServer.emit).toHaveBeenCalledWith('game:rematch_declined', {
+        matchId: 'match-123',
       });
     });
   });

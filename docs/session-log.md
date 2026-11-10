@@ -23,6 +23,185 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-10] — T-16: SEO, Favicon ve PWA (Yol Haritası Tamamlandı)
+
+**Tamamlanan Görev:** Mimari ve ürün yol haritasının son görevi olan T-16 (SEO, Favicon ve PWA) tamamlandı. `frontend/index.html` Türkçe dil (`lang="tr"`), `<title>Mangala Prime — Online Türk Zeka Oyunu</title>`, meta description, Open Graph (`og:title`, `og:description`, `og:type`, `og:url`, `og:image` 1200×630) ve Twitter Card (`summary_large_image`) etiketleriyle güncellendi. `frontend/public/` altında özel Mangala tahtası ve değerli taş temalı `favicon.svg`, `favicon-32x32.png`, `apple-touch-icon.png` (180×180), `icon-192.png`, `icon-512.png`, `og-image.png` (1200×630) ve `manifest.webmanifest` (`display: standalone`, `orientation: landscape`, `#1b120c` tema rengi) oluşturuldu.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/index.html` — Türkçe SEO, Open Graph, Twitter Card ve PWA manifest/ikon bağlantıları eklendi
+- `frontend/public/favicon.svg` — Mangala kuyusu ve 4 değerli taş temalı vektörel ikon
+- `frontend/public/favicon-32x32.png`, `frontend/public/apple-touch-icon.png`, `frontend/public/icon-192.png`, `frontend/public/icon-512.png` — Yeni: Çoklu boyutlu PNG uygulama ikonları
+- `frontend/public/og-image.png` — Yeni: 1200×630 sosyal medya paylaşım görseli
+- `frontend/public/manifest.webmanifest` — Yeni: PWA manifest dosyası (`standalone`, `landscape`)
+- `docs/architecture-roadmap.md`, `.antigravity/context/current-state.md`, `.antigravity/context/next-task.md` — T-16 ve yol haritası tamamlandı olarak güncellendi
+
+**Test Sonuçları:** 136/136 test geçti (Backend: 111/111, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Tüm yol haritası (T-01…T-16) tamamlandı.
+**Bir Sonraki Görev:** Tüm Faz A, B, C, D görevleri tamamlandı (`develop` → `main` final release).
+**Commit:** feat(seo,pwa): add SEO meta tags, Open Graph banner, favicon set, and webmanifest (T-16)
+**PR:** feature/seo-pwa → develop
+
+---
+
+### Oturum [2026-11-10] — Canlı Sunucu CSP, PixiJS unsafe-eval ve Ekran Yönü Düzeltmesi
+
+**Tamamlanan Görev:** Canlı sunucuda (`mangala-prime.egitimhaber.gen.tr`) Helmet Content-Security-Policy (CSP) kaynaklı PixiJS shader derleme hatası (`Current environment does not allow unsafe-eval`), Google Fonts (`Outfit` & `Inter`) stil/font engeli, Cloudflare Web Analytics (`beacon.min.js`) engeli ve `GamePage.tsx` üzerindeki tam ekran dışı `screen.orientation.lock` konsol hatası giderildi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `backend/src/main.ts` — CSP direktiflerine Google Fonts (`https://fonts.googleapis.com`, `https://fonts.gstatic.com`) ve Cloudflare Insights (`https://static.cloudflareinsights.com`, `https://cloudflareinsights.com`) eklendi
+- `frontend/src/components/MangalaBoard/MangalaBoard.ts` & `frontend/src/components/MangalaBoard/MangalaReactBoard.tsx` — `import 'pixi.js/unsafe-eval'` eklenerek `unsafe-eval` açılmadan PixiJS v8 shader uyumluluğu sağlandı
+- `frontend/src/lib/test-setup.ts` — Vitest için `pixi.js/unsafe-eval` mock tanımı eklendi
+- `frontend/src/components/GamePage.tsx` — `screen.orientation.lock('landscape')` çağrısı yalnızca `isFullscreen` aktifken çalışacak şekilde sınırlandırıldı
+
+**Test Sonuçları:** 136/136 test geçti (Backend: 111/111, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki adım Faz D: T-16 (SEO, Favicon ve PWA).
+**Bir Sonraki Görev:** T-16 — SEO, Favicon ve PWA
+**Commit:** fix(csp,board): add pixi.js/unsafe-eval polyfill and allow Google Fonts & Cloudflare in CSP
+**PR:** fix/csp-and-pixi-unsafe-eval → develop
+
+---
+
+### Oturum [2026-11-03] — T-15: Rövanş (Rematch)
+
+**Tamamlanan Görev:** `@mangala/shared` (`shared/types/socket-events.types.ts`) altına rövanş WebSocket olay tipleri (`game:rematch_offer`, `game:rematch_offered`, `game:rematch_response`, `game:rematch_declined`, `game:rematch_start`) eklendi. `GameService` ve `GameGateway` üzerinde yalnızca `FINISHED` durumundaki maçlar için 30 saniye süreli rövanş teklifi, kabulde yeni `Match` kaydı oluşturulması ve P1↔P2 rollerinin yer değiştirmesi (K-7), aynı-IP → Friendly kuralının korunması, eşzamanlı çift kabul/teklif yarış durumu kilidi (`isCreatingRematch`) ve oyuncu ayrıldığında teklif iptali gerçeklendi. Frontend `game.store.ts` ve `GamePage.tsx` oyun sonu modalına rövanş teklif/yanıt ve geri sayım arayüzü eklendi. `game.service.spec.ts` ve `game.gateway.spec.ts` ile 8 yeni birim testi eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `shared/types/socket-events.types.ts` — 5 rövanş WebSocket payload tipi eklendi
+- `backend/src/game/dto/rematch.dto.ts` — Yeni: `RematchOfferDto` ve `RematchResponseDto` (`class-validator`)
+- `backend/src/game/types/game-room.types.ts` — `FinishedMatchSession` ve `RematchOfferState` tipleri eklendi
+- `backend/src/game/game.service.ts` — `offerRematch`, `respondToRematch`, 30 sn timeout ve oyuncu ayrılma iptali eklendi
+- `backend/src/game/game.gateway.ts` — `game:rematch_offer` ve `game:rematch_response` handler'ları + rate limiter eklendi
+- `backend/src/game/game.service.spec.ts` & `backend/src/game/game.gateway.spec.ts` — 8 yeni birim testi eklendi
+- `frontend/src/stores/game.store.ts`, `frontend/src/components/GamePage.tsx` & `frontend/src/index.css` — Oyun sonu modalı rövanş arayüzü ve geri sayımı bağlandı
+
+**Test Sonuçları:** 136/136 test geçti (Backend: 111/111, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki adım Faz D: T-16 (SEO, Favicon ve PWA).
+**Bir Sonraki Görev:** T-16 — SEO, Favicon ve PWA
+**Commit:** feat(game): add post-match rematch flow with role swap and 30s timeout (T-15)
+**PR:** feature/rematch → develop
+
+---
+
+### Oturum [2026-11-02] — T-14: Bot (PvE) Modu
+
+**Tamamlanan Görev:** `@mangala/shared` saf oyun motorunu (`applyMove`, `getLegalMoves`) kullanan `frontend/src/lib/bot-engine.ts` (`chooseBotMove`) oluşturuldu ve 3 zorluk seviyesi (`easy`: rastgele + enjekte edilebilir RNG, `medium`: ekstra hamle > taş yakalama > rakip fırsat minimizasyonu açgözlü heuristic, `hard`: derinlik 6 minimax + alpha-beta budama) gerçeklendi. `game.store.ts` içine `mode: 'online' | 'local' | 'bot'` ve 800 ms bot düşünme gecikmesi eklendi. Lobiye zorluk seçicili "🤖 Bota Karşı Oyna (PvE)" paneli ve `GamePage.tsx` içine bot sırası / oyun sonu durumları bağlandı. `bot-engine.spec.ts` ve `game.store.spec.ts` ile 6 yeni birim testi eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/src/lib/bot-engine.ts` — Yeni: Saf Mangala bot motoru (`chooseBotMove`, `BotLevel`: `easy` | `medium` | `hard`)
+- `frontend/src/lib/bot-engine.spec.ts` — Yeni: 5 birim testi (tüm seviyelerde yasal hamle, deterministik RNG, medium ekstra hamle tercihi, hard 1 hamlede kazanma, <500ms performans)
+- `frontend/src/stores/game.store.ts` — `mode`, `botLevel`, `startBotGame` ve 800ms düşünme gecikmeli otomatik bot hamlesi eklendi
+- `frontend/src/stores/game.store.spec.ts` — Bot modunda otomatik yanıt ve ekstra tur zinciri testi eklendi
+- `frontend/src/components/LobbyPage.tsx` & `frontend/src/index.css` — Zorluk seviyesi seçicisi (`Kolay`, `Orta`, `Zor`) ve "🤖 Bota Karşı Oyna (PvE)" butonu eklendi
+- `frontend/src/components/GamePage.tsx` — Bot modunda sıranın bota geçmesi, kuyu tıklama kilidi ve oyun sonu modalı mesajları güncellendi
+
+**Test Sonuçları:** 128/128 test geçti (Backend: 103/103, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki adım Faz D: T-15 (Rövanş / Rematch).
+**Bir Sonraki Görev:** T-15 — Rövanş (Rematch)
+**Commit:** feat(frontend): add pure PvE bot engine with 3 difficulty levels (T-14)
+**PR:** feature/pve-bot → develop
+
+---
+
+### Oturum [2026-11-02] — T-13: Liderlik Tablosu ve Profil Arayüzü
+
+**Tamamlanan Görev:** Mevcut `GET /users/leaderboard` ve `GET /users/:username` uç noktalarını kullanan `LeaderboardModal` ve `ProfileModal` bileşenleri oluşturuldu. Üst bara "🏆 Liderlik Tablosu" ve "👤 Profilim" butonları eklendi, 4 temanın tamamıyla (`theme-wood`, `theme-neon`, `theme-rustic`, `theme-pixijs`) uyumlu CSS değişkenleri ve mobil (<768px) tam ekran modal düzeni tanımlandı. Liderlik tablosunda aktif kullanıcının kendi satırı vurgulandı (`leaderboard-row-self`), profil modalında ise ELO, G/M, kazanma oranı ve son 20 karşılaşma (`Dostluk` rozeti dahil) gösterildi. `LeaderboardModal.spec.tsx` ve `ProfileModal.spec.tsx` ile 7 yeni Vitest birim testi eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/src/components/LeaderboardModal.tsx` — Yeni: İlk 50 liderlik tablosu modalı (loading, boş, hata durumları ve kendi satır vurgusu)
+- `frontend/src/components/ProfileModal.tsx` — Yeni: Oyuncu profili ve son 20 karşılaşma modalı (`Dostluk` maç rozeti dahil)
+- `frontend/src/App.tsx` — Üst bara Liderlik Tablosu ve Profilim butonları eklendi, inline stiller semantik CSS sınıflarına taşındı
+- `frontend/src/index.css` — 4 tema uyumlu ve mobil tam ekran (responsive) modal/tablo stilleri eklendi
+- `frontend/src/components/LeaderboardModal.spec.tsx` — Yeni: 4 birim testi (loading, veri + kendi satır vurgusu, boş liste, hata durumu)
+- `frontend/src/components/ProfileModal.spec.tsx` — Yeni: 3 birim testi (loading, istatistikler + Dostluk rozeti, hata durumu)
+
+**Test Sonuçları:** 122/122 test geçti (Backend: 103/103, Frontend: 19/19)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki adım Faz D: T-14 (Bot / PvE Modu).
+**Bir Sonraki Görev:** T-14 — Bot (PvE) Modu
+**Commit:** feat(frontend): add LeaderboardModal and ProfileModal UI components (T-13)
+**PR:** feature/leaderboard-profile-ui → develop
+
+---
+
+### Oturum [2026-11-02] — T-09: Frontend Test Altyapısı
+
+**Tamamlanan Görev:** Frontend test altyapısı (`vitest`, `@testing-library/react`, `@testing-library/user-event`, `@testing-library/jest-dom`, `jsdom`) kuruldu ve `frontend/vite.config.ts` içine `test` yapılandırması (`environment: 'jsdom'`, `setupFiles: ['./src/lib/test-setup.ts']`) eklendi. Spec 11.1 kuralına uyum için `frontend/src/stores/auth.store.ts` içindeki `persist` middleware kaldırılarak JWT `accessToken` değerinin yalnızca bellekte (memory) tutulması ve `localStorage`'a yazılmaması garanti altına alındı. Zorunlu 4 test dosyası (`auth.store.spec.ts`, `api-client.spec.ts`, `game.store.spec.ts`, `AuthGuard.spec.tsx`) toplam 12 birim testiyle oluşturuldu ve Faz B tamamlandı.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/package.json` & `package-lock.json` — Vitest ve Testing Library devDependencies eklendi; `"test": "vitest run"` tanımlandı
+- `frontend/vite.config.ts` — `vitest/config` üzerinden `test` bloğu (`jsdom` + `setupFiles`) eklendi
+- `frontend/src/lib/test-setup.ts` — Yeni: `@testing-library/jest-dom/vitest`, Web Audio (`AudioContext`) ve `pixi.js` mock tanımları
+- `frontend/src/stores/auth.store.ts` — Spec 11.1 gereği `persist` kaldırıldı; `accessToken` yalnızca memory'de saklanıyor
+- `frontend/src/stores/auth.store.spec.ts` — Yeni: 3 birim testi (login sonrası memory token + profil çekme, logout temizliği, `localStorage`'a token yazmama)
+- `frontend/src/lib/api-client.spec.ts` — Yeni: 3 birim testi (401 → `/auth/refresh` + orijinal isteği tekrarlama, refresh 401 → logout, eşzamanlı 401'lerde tek refresh isteği)
+- `frontend/src/stores/game.store.spec.ts` — Yeni: 4 birim testi (Yerel PvP başlangıç tahtası, normal hamlede sıra değişimi, hazine hamlesinde ekstra tur, oyun sonu ve kazanan tespiti)
+- `frontend/src/components/AuthGuard.spec.tsx` — Yeni: 2 birim testi (token yokken `#/login`'e yönlendirme, token varken `#/login`'den `#/lobby`'ye yönlendirme)
+
+**Test Sonuçları:** 115/115 test geçti (Backend: 103/103, Frontend: 12/12)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Faz B tamamlandı. Sıradaki adım Faz D: T-13 (Liderlik Tablosu ve Profil UI).
+**Bir Sonraki Görev:** T-13 — Liderlik Tablosu ve Profil UI
+**Commit:** test(frontend): set up Vitest and add store, api-client, and AuthGuard tests (T-09)
+**PR:** feature/frontend-tests → develop
+
+---
+
+### Oturum [2026-11-02] — T-11: WebSocket Exception Filter (Spec Uyumu)
+
+**Tamamlanan Görev:** Spec 13.3 ve 17 ile uyumlu `WsExceptionFilter` (`backend/src/common/filters/ws-exception.filter.ts`) oluşturularak `BaseWsExceptionFilter` genişletildi. Filtre, yakalanan `HttpException`, `WsException` ve beklenmeyen hataları soketin namespace'ine göre (`/game` → `game:error`, `/lobby` → `lobby:error`) `{ error: { code, message } }` formatında emit edecek ve beklenmeyen hatalarda stack trace sızdırmadan `INTERNAL_ERROR` döndürecek şekilde yapılandırıldı. `GameGateway` ve `LobbyGateway` üzerine `@UseFilters(new WsExceptionFilter())` eklendi; gateway'lerdeki 5 adet `try/catch → client.emit('...:error')` bloğu ve 3 adet manuel `INVALID_PARAMS` hata yayını filtreye devredilerek manuel hata emit sayısı 12'den 4'e indirildi (`INVALID_MOVE` durumunda `board` alanı gönderildiği için spec 13.3 gereği korundu).
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `backend/src/common/filters/ws-exception.filter.ts` — Yeni: Namespace duyarlı (`game:error` / `lobby:error`), `extractErrorCode` tabanlı ve stack trace sızdırmayan WebSocket exception filter
+- `backend/src/common/filters/ws-exception.filter.spec.ts` — Yeni: 6 birim testi (`HttpException` kod çıkarımı, durum kodu fallback, `WsException`, bilinmeyen hata ve 500 maskeleme)
+- `backend/src/game/game.gateway.ts` — `@UseFilters(new WsExceptionFilter())` eklendi; `handleMove`, `handleReconnect` ve `handleAbandon` içindeki tekrarlayan `try/catch` ve `INVALID_PARAMS` blokları filtreye devredildi (manuel hata emit: 8 → 4)
+- `backend/src/lobby/lobby.gateway.ts` — `@UseFilters(new WsExceptionFilter())` eklendi; `handleInviteSend` ve `handleInviteResponse` içindeki tekrarlayan `try/catch` ve `INVALID_PARAMS` blokları filtreye devredildi (manuel hata emit: 4 → 2)
+
+**Test Sonuçları:** 103/103 test geçti (15 test suite)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki adım T-09 (Frontend Test Altyapısı).
+**Bir Sonraki Görev:** T-09 — Frontend Test Altyapısı
+**Commit:** feat(ws): add WsExceptionFilter and delegate gateway error handling (T-11)
+**PR:** feature/ws-exception-filter → develop
+
+---
+
+### Oturum [2026-11-01] — T-08: Ortak (Shared) Saf Oyun Motoru
+
+**Tamamlanan Görev:** Geçiş öncesinde backend (`GameEngineService.processMove`) ve frontend (`processLocalMove`) motorları 1.000 rastgele maç (39.001 hamle) üzerinden diferansiyel test ile karşılaştırıldı (`divergences: 0`). Ardından saf, dış bağımlılıksız Mangala kural motoru (`applyMove`, `getLegalMoves`, `createInitialBoard`, `MangalaRuleError`) `@mangala/shared` paketi altında `shared/engine/mangala-engine.ts` içine taşındı. Backend `GameEngineService` ince bir NestJS adaptörüne dönüştürüldü, frontend `frontend/src/lib/game-engine.ts` silinerek `game.store.ts` doğrudan ortak motora bağlandı.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `shared/engine/mangala-engine.ts` — Yeni: Saf Mangala oyun motoru (`applyMove`, `getLegalMoves`, `createInitialBoard`, `MangalaRuleError`)
+- `shared/engine/index.ts` & `shared/index.ts` — Yeni: Barrel export dosyaları
+- `shared/tsconfig.json` & `frontend/vite.config.ts` — `@mangala/shared` kök barrel yapısı ve derleme kapsamı güncellendi
+- `backend/src/game/game-engine.service.ts` — `applyMove` çağıran ve `MangalaRuleError`'ı `BadRequestException`'a dönüştüren ince adaptör
+- `backend/src/game/game-engine.spec.ts` — 8 zorunlu kural testi + `getLegalMoves`, immutability ve `MangalaRuleError` birim testleri (toplam 15 motor testi)
+- `frontend/src/stores/game.store.ts` — `applyMove` ve `createInitialBoard` entegrasyonu
+- `frontend/src/lib/game-engine.ts` — Silindi (kod tekrarı sıfırlandı)
+
+**Test Sonuçları:** 97/97 test geçti (14 test suite)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki adım T-11 (WebSocket Exception Filter).
+**Bir Sonraki Görev:** T-11 — WebSocket Exception Filter
+**Commit:** refactor(engine): extract pure mangala engine into @mangala/shared (T-08)
+**PR:** feature/shared-game-engine → develop
+
+---
+
+### Oturum [2026-11-01] — T-10 & T-12: v1.0.0 Release, Git Hijyeni ve Doküman Senkronizasyonu
+
+**Tamamlanan Görev:** `develop` → `main` Release PR'ı (#32) merge edilerek `v1.0.0` sürüm etiketi (`git tag -a v1.0.0`) oluşturuldu ve `origin`'e gönderildi. Yerelde ve `origin` üzerinde merge edilmiş/eski 19 adet `feature/*` ve `pixijs` branch'i silinerek depoda yalnızca `main` ve `develop` bırakıldı. Canlı sunucu (`https://mangala-prime.egitimhaber.gen.tr/health`) üzerinde `200 OK`, CSP/HSTS başlıkları ve `/test-match` (404) doğrulandı. Ardından T-12 kapsamında `AGENTS.md`, `docs/spec.md`, `.antigravity/skills/prisma.md`, `docs/production-backlog.md` ve `REVIEW_CHECKLIST.md` dosyalarındaki eski SQLite/LibSQL/PM2/CSS-tahta referansları gerçek mimariyle (PostgreSQL 16 + `@prisma/adapter-pg`, PixiJS v8 + GSAP + Web Audio, Docker + GHCR + `prisma migrate deploy`, K-1/K-2/K-5 klasör yapısı) senkronize edildi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `AGENTS.md` — Prisma 7 kuralındaki LibSQL referansı `@prisma/adapter-pg` olarak güncellendi
+- `docs/spec.md` — Bölüm 5.1, 8.3 (Rate limit & CSP), 9.2/9.4 (PixiJS v8 & GSAP), 10.2 (CI/CD Docker pipeline), 14 (`/health`), 17 (K-1/K-2/K-5 klasör yapısı) güncellendi
+- `.antigravity/skills/prisma.md` — PostgreSQL 16 + `@prisma/adapter-pg` + `env('DATABASE_URL')` standardına göre güncellendi
+- `docs/production-backlog.md` — Tamamlanan Faz A ve Local PvP maddeleri işaretlendi
+- `REVIEW_CHECKLIST.md` — CI/CD kontrol listesi Docker ve `/health` standardına göre güncellendi
+
+**Test Sonuçları:** 94/94 test geçti (14 test suite)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Faz A ve Faz C tamamlandı. Sıradaki adım Faz B: T-08 (Ortak Saf Oyun Motoru).
+**Bir Sonraki Görev:** T-08 — Ortak (Shared) Saf Oyun Motoru
+**Commit:** docs(architecture): sync spec, skills, and checklists with v1.0.0 architecture (T-12)
+**PR:** docs/architecture-sync → develop
+
+---
+
 ### Oturum [2026-11-01] — T-07: Prisma Config Tekilleştirme
 
 **Tamamlanan Görev:** Mükerrer olan `prisma/prisma.config.ts` kaldırılarak kökteki `/prisma.config.ts` tek kaynak haline getirildi. Kökteki yapılandırma dosyasındaki `dummy_password_for_ci_only` fallback'i silinerek `env('DATABASE_URL')` kullanımı zorunlu kılındı. `backend/package.json` içindeki mükerrer `prisma.seed` tanımı kaldırılarak `prisma.config.ts > migrations.seed` tekilleştirildi. CI iş akışı (`.github/workflows/ci-cd.yml`) ve `Dockerfile` derleme aşamasında `npx prisma generate` adımlarına açık derleme zamanı `DATABASE_URL` ortam değişkeni eklendi.

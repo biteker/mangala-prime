@@ -96,3 +96,27 @@ export interface GameMessagePayload {
   message: string;
   type: 'text' | 'preset';
 }
+
+export interface GameRematchOfferPayload {
+  matchId: string;
+}
+
+export interface GameRematchOfferedPayload {
+  matchId: string;
+  fromUserId: string;
+  expiresAt: number;
+}
+
+export interface GameRematchResponsePayload {
+  matchId: string;
+  accept: boolean;
+}
+
+export interface GameRematchDeclinedPayload {
+  matchId: string;
+}
+
+export interface GameRematchStartPayload {
+  oldMatchId: string;
+  newMatchId: string;
+}

@@ -1,8 +1,15 @@
 import { GameEngineService } from './game-engine.service';
-import { BoardState, Player } from '@mangala/shared';
+import {
+  applyMove,
+  createInitialBoard,
+  getLegalMoves,
+  MangalaRuleError,
+  type BoardState,
+  type Player,
+} from '@mangala/shared';
 import { BadRequestException } from '@nestjs/common';
 
-describe('GameEngineService', () => {
+describe('GameEngineService & Shared MangalaEngine', () => {
   let service: GameEngineService;
 
   beforeEach(() => {
@@ -139,7 +146,61 @@ describe('GameEngineService', () => {
     ]);
   });
 
-  describe('Validations', () => {
+  describe('Shared Engine Utilities & Immutability', () => {
+    it('should_create_fresh_initial_board_and_never_mutate_input_board', () => {
+      // Arrange
+      const board = createInitialBoard();
+      const snapshot = [...board];
+
+      // Act
+      const result = applyMove(board, 2, 0);
+
+      // Assert
+      expect(board).toEqual(snapshot);
+      expect(result.newBoard).not.toBe(board);
+    });
+
+    it('should_return_correct_legal_moves_for_both_players', () => {
+      // Arrange
+      const board: BoardState = [4, 0, 2, 0, 0, 1, 10, 0, 3, 0, 5, 0, 0, 8];
+
+      // Act & Assert
+      expect(getLegalMoves(board, 0)).toEqual([0, 2, 5]);
+      expect(getLegalMoves(board, 1)).toEqual([8, 10]);
+    });
+
+    it('should_throw_typed_mangala_rule_error_with_exact_error_codes', () => {
+      const board = createInitialBoard();
+      board[2] = 0;
+
+      expect(() => applyMove([1, 2], 0, 0)).toThrow(MangalaRuleError);
+      try {
+        applyMove([1, 2], 0, 0);
+      } catch (err) {
+        expect((err as MangalaRuleError).code).toBe('INVALID_BOARD');
+      }
+
+      try {
+        applyMove(board, 6, 0);
+      } catch (err) {
+        expect((err as MangalaRuleError).code).toBe('INVALID_PIT');
+      }
+
+      try {
+        applyMove(board, 8, 0);
+      } catch (err) {
+        expect((err as MangalaRuleError).code).toBe('NOT_YOUR_PIT');
+      }
+
+      try {
+        applyMove(board, 2, 0);
+      } catch (err) {
+        expect((err as MangalaRuleError).code).toBe('EMPTY_PIT');
+      }
+    });
+  });
+
+  describe('Validations (NestJS Adapter)', () => {
     it('should_throw_bad_request_if_board_length_is_invalid', () => {
       const board: BoardState = [4, 4, 4];
       expect(() => service.processMove(board, 0, 0)).toThrow(

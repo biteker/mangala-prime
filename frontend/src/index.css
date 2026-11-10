@@ -2182,7 +2182,7 @@ html.theme-pixijs .mobile-turn-indicator {
 }
 
 /* Sadece mobil dikey ekranda uyarıyı göster */
-@media (max-width: 950px) and (orientation: portrait) {
+@media (max-width: 640px) and (orientation: portrait) {
   .orientation-warning-overlay {
     display: flex;
   }
@@ -2701,15 +2701,425 @@ html.theme-pixijs .game-layout {
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
-  padding: 0 !important;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
 }
 
-.game-content-container.local-pvp-mode .mangala-board-canvas-container {
-  width: 100% !important;
-  max-width: 1200px !important;
-  aspect-ratio: 1400 / 600 !important;
-  min-height: 460px !important;
+@media (min-width: 1024px) and (min-height: 521px) {
+  .game-content-container.local-pvp-mode .board-panel-container {
+    padding: 0 !important;
+  }
+
+  .game-content-container.local-pvp-mode .mangala-board-canvas-container {
+    width: 100% !important;
+    max-width: 1200px !important;
+    aspect-ratio: 1400 / 600 !important;
+    min-height: 460px !important;
+  }
 }
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .game-content-container.local-pvp-mode .board-panel-container {
+    padding: 46px 0 10px 0 !important;
+    height: 100vh !important;
+  }
+
+  .game-content-container.local-pvp-mode .mangala-board-canvas-container {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    aspect-ratio: auto !important;
+  }
+
+  .game-over-modal {
+    padding: 20px 24px !important;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+}
+
+
+/* --- T-13: Liderlik Tablosu & Profil Modalları (4 Tema + Mobil Uyumlu) --- */
+.app-header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.app-header-user-badge {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-panel {
+  max-width: 720px;
+  width: 92vw;
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  overflow: hidden;
+}
+
+.modal-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-panel-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.modal-close-btn {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s ease, transform 0.1s ease;
+}
+
+.modal-close-btn:hover {
+  border-color: var(--accent-color);
+}
+
+.modal-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-state-box {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.modal-error-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.modal-error-text {
+  margin: 0;
+}
+
+.modal-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--input-bg);
+}
+
+.modal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  text-align: left;
+  color: var(--text-primary);
+}
+
+.modal-table th {
+  padding: 12px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.leaderboard-row-self {
+  background: var(--shadow-color);
+  font-weight: 700;
+}
+
+.leaderboard-rank-cell {
+  font-family: var(--mono);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.leaderboard-elo-cell {
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--accent-color);
+}
+
+.leaderboard-user-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: underline;
+}
+
+.leaderboard-user-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.self-pill,
+.friendly-match-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--accent-color);
+  color: #ffffff;
+  margin-left: 6px;
+}
+
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.profile-stat-card {
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+}
+
+.profile-stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.profile-stat-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.profile-section-subtitle {
+  margin: 4px 0 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.match-result-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.match-result-badge.result-win {
+  background: var(--alert-success-bg);
+  color: var(--alert-success-text);
+}
+
+.match-result-badge.result-loss {
+  background: var(--alert-error-bg);
+  color: var(--alert-error-text);
+}
+
+.match-result-badge.result-draw {
+  background: var(--shadow-color);
+  color: var(--text-primary);
+}
+
+.elo-delta-pos {
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--alert-success-text);
+}
+
+.elo-delta-neg {
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--alert-error-text);
+}
+
+.elo-delta-neutral {
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+
+  .app-header-actions {
+    gap: 8px;
+  }
+
+  .theme-toggle-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .modal-panel {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    padding: 16px;
+  }
+
+  .profile-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+/* --- T-14: Bot (PvE) Modu Lobi Seçicisi --- */
+.lobby-mode-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lobby-mode-actions .start-queue-btn {
+  max-width: 100%;
+}
+
+.local-pvp-btn {
+  background: linear-gradient(135deg, #1f4037 0%, #99f2c8 100%);
+  color: #0d2218;
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(153, 242, 200, 0.25);
+}
+
+.bot-mode-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  margin-top: 4px;
+}
+
+.bot-level-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.bot-level-pill {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bot-level-pill.active {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #ffffff;
+}
+
+.bot-pve-btn {
+  margin-top: 0;
+  width: 100%;
+}
+
+/* --- T-15: Rövanş (Rematch) Modalı Stilleri --- */
+.rematch-panel {
+  width: 100%;
+}
+
+.rematch-offer-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.rematch-status-box {
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.rematch-status-box.declined {
+  color: var(--alert-error-text, #ff453a);
+  border-color: rgba(255, 69, 58, 0.35);
+}
+
+.rematch-incoming-box {
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--accent-color);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rematch-incoming-text {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+}
+

@@ -84,13 +84,21 @@ export function GamePage(): React.JSX.Element {
     disconnectedPlayerId,
     reconnectWindowSecs,
     isLocalPvP,
+    mode,
+    lastMoveInfo,
+    rematchState,
+    rematchExpiresAt,
     connectGame,
     disconnectGame,
     makeMove,
     sendChatMessage,
     toggleChat,
     abandonGame,
+    offerRematch,
+    respondRematch,
   } = useGameStore();
+
+  const isBotMode = mode === 'bot';
 
   const [chatInput, setChatInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -109,7 +117,22 @@ export function GamePage(): React.JSX.Element {
   const [isAnimating, setIsAnimating] = useState(false);
   const [showForfeitConfirm, setShowForfeitConfirm] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [rematchTick, setRematchTick] = useState<number>(() => Date.now());
   const showGameOverModal = Boolean(gameOverDetails && !isAnimating);
+
+  useEffect(() => {
+    if (!rematchExpiresAt) {
+      return;
+    }
+    const interval = setInterval(() => {
+      setRematchTick(Date.now());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [rematchExpiresAt]);
+
+  const rematchSecondsLeft = rematchExpiresAt
+    ? Math.max(0, Math.ceil((rematchExpiresAt - rematchTick) / 1000))
+    : 30;
 
   const handleForfeitClick = (): void => {
     setShowForfeitConfirm(true);
@@ -179,90 +202,115 @@ export function GamePage(): React.JSX.Element {
       console.warn('Fullscreen error:', err);
     }
   };
-  const prevBoardRef = useRef<number[]>(board);
-  const prevPlayerIdRef = useRef<string | null>(currentPlayerId);
-
-  // Store'daki board güncellemelerini yakalayıp animasyon adımlarını belirler
+  // Store'daki board güncellemelerini dinleyip animasyon adımlarını belirler
   useEffect(() => {
-    const prevBoard = prevBoardRef.current;
-    prevBoardRef.current = board;
-
-    const prevPlayerId = prevPlayerIdRef.current;
-    prevPlayerIdRef.current = currentPlayerId;
-
-    const prevTotal = prevBoard.reduce((a, b) => a + b, 0);
-    const nextTotal = board.reduce((a, b) => a + b, 0);
-
-    // Eşleşme başlangıcı, reconnect veya geçersiz durumlarda animasyon oynatmadan direkt eşitle
-    if (prevTotal !== nextTotal || prevTotal === 0) {
-      setBoardData({ board, lastMove: null });
-      return;
-    }
-
-    // Taş kaybeden kuyu başlangıç kuyusudur.
-    // Kapma (capture) durumlarında hem hamleyi başlatan kuyu hem de kapılan rakip kuyu taş kaybeder.
-    // Hangisinin başlangıç kuyusu olduğunu son hamle yapan oyuncunun sırasına göre belirleriz.
-    const p1PitsLosing: number[] = [];
-    const p2PitsLosing: number[] = [];
-    for (let i = 0; i < 6; i++) {
-      if (board[i] < prevBoard[i]) {
-        p1PitsLosing.push(i);
+    const unsubscribe = useGameStore.subscribe((nextState, prevState) => {
+      if (nextState.board === prevState.board) {
+        return;
       }
-    }
-    for (let i = 7; i < 13; i++) {
-      if (board[i] < prevBoard[i]) {
-        p2PitsLosing.push(i);
+
+      const prevBoard = prevState.board;
+      const nextBoard = nextState.board;
+      const prevPlayerId = prevState.currentPlayerId;
+
+      const prevTotal = prevBoard.reduce((a, b) => a + b, 0);
+      const nextTotal = nextBoard.reduce((a, b) => a + b, 0);
+
+      // Eşleşme başlangıcı, rövanş sıfırlaması, reconnect veya geçersiz durumlarda animasyon oynatmadan direkt eşitle
+      if (
+        prevTotal !== nextTotal ||
+        prevTotal === 0 ||
+        nextState.matchId !== prevState.matchId ||
+        (prevState.gameOverDetails !== null && nextState.gameOverDetails === null)
+      ) {
+        setIsAnimating(false);
+        setBoardData({ board: nextBoard, lastMove: null });
+        return;
       }
-    }
 
-    let lastMovePit = -1;
-    if (p1PitsLosing.length > 0 && p2PitsLosing.length === 0) {
-      // Sadece Player 1 kuyularından taş eksilmiş
-      lastMovePit = p1PitsLosing[0];
-    } else if (p2PitsLosing.length > 0 && p1PitsLosing.length === 0) {
-      // Sadece Player 2 kuyularından taş eksilmiş
-      lastMovePit = p2PitsLosing[0];
-    } else if (p1PitsLosing.length > 0 && p2PitsLosing.length > 0) {
-      // İki taraftan da taş eksilmiş (hamle başlatan kuyu + kapılan rakip kuyu)
-      // Sıra kimdeyken hamle yapıldığını kontrol edip o oyuncunun kuyularına bakarız
-      const wasMyTurn = currentUser ? prevPlayerId === currentUser.id : false;
-      const myPitsStart = yourColor === 1 ? 7 : 0;
-      const myPitsEnd = yourColor === 1 ? 12 : 5;
-
-      if (wasMyTurn) {
-        // Hamleyi ben yaptım, o halde başlangıç kuyusu benim tarafımda olmalı
-        lastMovePit = p1PitsLosing.find(p => p >= myPitsStart && p <= myPitsEnd) ?? 
-                      p2PitsLosing.find(p => p >= myPitsStart && p <= myPitsEnd) ?? -1;
-      } else {
-        // Hamleyi rakip yaptı, o halde başlangıç kuyusu rakip tarafında olmalı
-        lastMovePit = p1PitsLosing.find(p => !(p >= myPitsStart && p <= myPitsEnd)) ?? 
-                      p2PitsLosing.find(p => !(p >= myPitsStart && p <= myPitsEnd)) ?? -1;
+      // Yerel PvP ve Bot modlarında store'dan gelen kesin hamle bilgisini kullan
+      if (
+        nextState.lastMoveInfo &&
+        nextState.lastMoveInfo !== prevState.lastMoveInfo
+      ) {
+        const steps = calculateAnimationSteps(
+          nextState.lastMoveInfo.pitIndex,
+          nextState.lastMoveInfo.stoneCount,
+        );
+        if (steps.length === 0) {
+          setBoardData({ board: nextBoard, lastMove: null });
+          return;
+        }
+        setIsAnimating(true);
+        setBoardData({
+          board: nextBoard,
+          lastMove: {
+            startPit: nextState.lastMoveInfo.pitIndex,
+            steps,
+            nextState: nextBoard,
+          },
+        });
+        return;
       }
-    }
 
-    if (lastMovePit === -1) {
-      setBoardData({ board, lastMove: null });
-      return;
-    }
-
-    const startStones = prevBoard[lastMovePit];
-    const steps = calculateAnimationSteps(lastMovePit, startStones);
-
-    if (steps.length === 0) {
-      setBoardData({ board, lastMove: null });
-      return;
-    }
-
-    setIsAnimating(true);
-    setBoardData({
-      board,
-      lastMove: {
-        startPit: lastMovePit,
-        steps,
-        nextState: board
+      // Online modda taş kaybeden kuyuyu tespit et
+      const p1PitsLosing: number[] = [];
+      const p2PitsLosing: number[] = [];
+      for (let i = 0; i < 6; i++) {
+        if (nextBoard[i] < prevBoard[i]) {
+          p1PitsLosing.push(i);
+        }
       }
+      for (let i = 7; i < 13; i++) {
+        if (nextBoard[i] < prevBoard[i]) {
+          p2PitsLosing.push(i);
+        }
+      }
+
+      let lastMovePit = -1;
+      if (p1PitsLosing.length > 0 && p2PitsLosing.length === 0) {
+        lastMovePit = p1PitsLosing[0];
+      } else if (p2PitsLosing.length > 0 && p1PitsLosing.length === 0) {
+        lastMovePit = p2PitsLosing[0];
+      } else if (p1PitsLosing.length > 0 && p2PitsLosing.length > 0) {
+        const wasP1Move =
+          nextState.mode === 'bot' || nextState.isLocalPvP
+            ? prevPlayerId === 'p1'
+            : currentUser
+              ? (nextState.yourColor === 0
+                  ? prevPlayerId === currentUser.id
+                  : prevPlayerId !== currentUser.id)
+              : true;
+
+        lastMovePit = wasP1Move ? p1PitsLosing[0] : p2PitsLosing[0];
+      }
+
+      if (lastMovePit === -1) {
+        setBoardData({ board: nextBoard, lastMove: null });
+        return;
+      }
+
+      const startStones = prevBoard[lastMovePit];
+      const steps = calculateAnimationSteps(lastMovePit, startStones);
+
+      if (steps.length === 0) {
+        setBoardData({ board: nextBoard, lastMove: null });
+        return;
+      }
+
+      setIsAnimating(true);
+      setBoardData({
+        board: nextBoard,
+        lastMove: {
+          startPit: lastMovePit,
+          steps,
+          nextState: nextBoard,
+        },
+      });
     });
-  }, [board]);
+
+    return unsubscribe;
+  }, [currentUser]);
 
   const handleAnimationComplete = (): void => {
     setIsAnimating(false);
@@ -280,19 +328,22 @@ export function GamePage(): React.JSX.Element {
     }
   }, [matchId, connectGame, navigate, isLocalPvP]);
 
-  // Ekranı yatay (landscape) moda kilitleme girişimi (mobil cihazlar için)
+  // Ekranı yatay (landscape) moda kilitleme girişimi (yalnızca tam ekran modunda güvenli şekilde)
   useEffect(() => {
+    if (!isFullscreen) {
+      return;
+    }
     try {
       const orientation = window.screen?.orientation as (ScreenOrientation & LockableScreenOrientation) | undefined;
       if (orientation && typeof orientation.lock === 'function') {
-        orientation.lock('landscape')?.catch((err: unknown) => {
-          console.log('Screen orientation lock failed:', err);
+        orientation.lock('landscape')?.catch(() => {
+          // Tarayıcı yatay kilitlemeyi desteklemiyorsa sessizce yoksay
         });
       }
     } catch {
       // ignore
     }
-    
+
     return () => {
       try {
         const orientation = window.screen?.orientation as (ScreenOrientation & LockableScreenOrientation) | undefined;
@@ -303,20 +354,35 @@ export function GamePage(): React.JSX.Element {
         // ignore
       }
     };
-  }, []);
+  }, [isFullscreen]);
 
   // Yeni mesaj geldiğinde sohbeti aşağı kaydır
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const isMyTurn = isLocalPvP ? true : Boolean(currentUser && currentPlayerId === currentUser.id);
+  const isMyTurn = isBotMode
+    ? currentPlayerId === 'p1'
+    : isLocalPvP
+      ? true
+      : Boolean(currentUser && currentPlayerId === currentUser.id);
   const isP1Active = isLocalPvP ? (currentPlayerId === 'p1') : isMyTurn;
   const isP2Active = isLocalPvP ? (currentPlayerId === 'p2') : !isMyTurn;
 
   // Tıklanabilir kuyular dizisi
   const clickablePits = useMemo(() => {
     if (isAnimating) return [];
+
+    if (isBotMode) {
+      if (currentPlayerId !== 'p1') return [];
+      const pits: number[] = [];
+      for (let i = 0; i <= 5; i++) {
+        if (boardData.board[i] > 0) {
+          pits.push(i);
+        }
+      }
+      return pits;
+    }
 
     if (isLocalPvP) {
       const isP1Turn = currentPlayerId === 'p1';
@@ -342,12 +408,15 @@ export function GamePage(): React.JSX.Element {
       }
     }
     return pits;
-  }, [boardData.board, isMyTurn, isAnimating, yourColor, isLocalPvP, currentPlayerId]);
+  }, [boardData.board, isMyTurn, isAnimating, yourColor, isLocalPvP, isBotMode, currentPlayerId]);
 
   // Oyuncu Bilgileri Eşleştirmesi
   const p1Info = useMemo(() => {
     const myUsername = currentUser?.username ?? 'Oyuncu 1';
     const myElo = currentUser?.elo ?? 1000;
+    if (isBotMode) {
+      return { name: myUsername, elo: myElo };
+    }
     if (isLocalPvP) {
       return { name: `${myUsername} (P1)`, elo: myElo };
     }
@@ -356,11 +425,14 @@ export function GamePage(): React.JSX.Element {
     } else {
       return { name: opponentUsername || 'Rakip', elo: opponentElo || 1000 };
     }
-  }, [yourColor, currentUser, opponentUsername, opponentElo, isLocalPvP]);
+  }, [yourColor, currentUser, opponentUsername, opponentElo, isLocalPvP, isBotMode]);
 
   const p2Info = useMemo(() => {
     const myUsername = currentUser?.username ?? 'Oyuncu 1';
     const myElo = currentUser?.elo ?? 1000;
+    if (isBotMode) {
+      return { name: opponentUsername || '🤖 Yapay Zeka', elo: opponentElo || 1200 };
+    }
     if (isLocalPvP) {
       return { name: '2. Oyuncu (P2)', elo: 1000 };
     }
@@ -369,7 +441,7 @@ export function GamePage(): React.JSX.Element {
     } else {
       return { name: opponentUsername || 'Rakip', elo: opponentElo || 1000 };
     }
-  }, [yourColor, currentUser, opponentUsername, opponentElo, isLocalPvP]);
+  }, [yourColor, currentUser, opponentUsername, opponentElo, isLocalPvP, isBotMode]);
 
   if (!currentUser) {
     return <div className="auth-card">Yükleniyor...</div>;
@@ -486,7 +558,19 @@ export function GamePage(): React.JSX.Element {
 
         {/* Orta Bölüm: Başlık ve Zamanlayıcı */}
         <div className="top-bar-center">
-          <div className="game-title">{isLocalPvP ? 'Türk Mangalası (Yerel PvP)' : 'Türk Mangalası'}</div>
+          <div className="game-title">
+            {lastMoveInfo?.extraTurn
+              ? lastMoveInfo.player === 0
+                ? '🎯 Son Taş Hazinede — Ekstra Hamle!'
+                : isBotMode
+                  ? '🤖 Yapay Zeka Ekstra Hamle Kazandı!'
+                  : '🎯 2. Oyuncu Ekstra Hamle Kazandı!'
+              : isBotMode
+                ? (isP1Active ? 'Sıra Sizde' : '🤖 Yapay Zeka Düşünüyor...')
+                : isLocalPvP
+                  ? (isP1Active ? 'Sıra: 1. Oyuncu' : 'Sıra: 2. Oyuncu')
+                  : 'Türk Mangalası'}
+          </div>
           <div className={`game-timer ${turnTimeLeft <= 5 ? 'danger' : ''}`}>
             <ClockIcon />
             <span>{formatTime(turnTimeLeft)}</span>
@@ -647,9 +731,11 @@ export function GamePage(): React.JSX.Element {
       {/* Mobilde ekranın altında sırayı gösteren indicator */}
       <div className="mobile-turn-indicator-container">
         <div className={`mobile-turn-indicator ${isP1Active ? 'my-turn' : 'opponent-turn'}`}>
-          {isLocalPvP
-            ? (isP1Active ? 'Sıra: 1. Oyuncu (Alt Sıra)' : 'Sıra: 2. Oyuncu (Üst Sıra)')
-            : (isMyTurn ? 'Sıra Sizde' : 'Sıra Rakipte')}
+          {isBotMode
+            ? (isP1Active ? 'Sıra Sizde' : 'Yapay Zeka Düşünüyor...')
+            : isLocalPvP
+              ? (isP1Active ? 'Sıra: 1. Oyuncu (Alt Sıra)' : 'Sıra: 2. Oyuncu (Üst Sıra)')
+              : (isMyTurn ? 'Sıra Sizde' : 'Sıra Rakipte')}
         </div>
       </div>
 
@@ -659,7 +745,15 @@ export function GamePage(): React.JSX.Element {
           <div className="auth-card game-over-modal">
             <h2 className="auth-title">Oyun Bitti</h2>
 
-            {isLocalPvP ? (
+            {isBotMode ? (
+              gameOverDetails.winnerId === 'p1' ? (
+                <div className="game-result-title win">Tebrikler, Kazandınız! 🎉</div>
+              ) : gameOverDetails.winnerId === 'p2' ? (
+                <div className="game-result-title lose">Yapay Zeka Kazandı! 🤖</div>
+              ) : (
+                <div className="game-result-title draw">Oyun Berabere! 🤝</div>
+              )
+            ) : isLocalPvP ? (
               gameOverDetails.winnerId === 'p1' ? (
                 <div className="game-result-title win">Tebrikler, 1. Oyuncu Kazandı! 🎉</div>
               ) : gameOverDetails.winnerId === 'p2' ? (
@@ -685,6 +779,71 @@ export function GamePage(): React.JSX.Element {
                 <span className={`elo-change-value ${myEloChange() >= 0 ? 'positive' : 'negative'}`}>
                   {myEloChange() >= 0 ? `+${myEloChange()}` : myEloChange()} ELO
                 </span>
+              </div>
+            )}
+
+            {/* Rövanş / Tekrar Oyna Alanı */}
+            {(isBotMode || isLocalPvP) && (
+              <button
+                type="button"
+                className="auth-button rematch-offer-btn"
+                onClick={offerRematch}
+                style={{ marginBottom: '10px' }}
+              >
+                🔄 Tekrar Oyna
+              </button>
+            )}
+
+            {!isLocalPvP && gameOverDetails.reason !== 'DISCONNECT' && (
+              <div className="rematch-panel" style={{ marginBottom: '12px' }}>
+                {rematchState === 'idle' && (
+                  <button
+                    type="button"
+                    className="auth-button rematch-offer-btn"
+                    onClick={(): void => {
+                      setRematchTick(Date.now());
+                      offerRematch();
+                    }}
+                  >
+                    🔄 Rövanş Teklif Et
+                  </button>
+                )}
+
+                {rematchState === 'offered_by_me' && (
+                  <div className="rematch-status-box">
+                    ⏳ Rövanş teklifi gönderildi... ({rematchSecondsLeft} sn)
+                  </div>
+                )}
+
+                {rematchState === 'offered_by_opponent' && (
+                  <div className="rematch-incoming-box">
+                    <p className="rematch-incoming-text">
+                      ⚔️ Rakibiniz rövanş teklif ediyor! ({rematchSecondsLeft} sn)
+                    </p>
+                    <div className="modal-actions">
+                      <button
+                        type="button"
+                        className="auth-button accept-invite-btn"
+                        onClick={(): void => respondRematch(true)}
+                      >
+                        Kabul Et
+                      </button>
+                      <button
+                        type="button"
+                        className="auth-button decline-invite-btn"
+                        onClick={(): void => respondRematch(false)}
+                      >
+                        Reddet
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {rematchState === 'declined' && (
+                  <div className="rematch-status-box declined">
+                    Rövanş teklifi reddedildi veya süresi doldu.
+                  </div>
+                )}
               </div>
             )}
 

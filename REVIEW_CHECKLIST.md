@@ -86,10 +86,10 @@ merge edilmez ve bir sonraki modüle geçilmez.
 
 ## CI/CD İNCELEME
 
-- [ ] GitHub Actions pipeline yeşil
+- [ ] GitHub Actions pipeline yeşil (`lint`, `test`, `build`, `deploy`)
 - [ ] Hetzner sunucusuna deploy başarılı
-- [ ] Prisma migration hatasız uygulandı
-- [ ] PM2 servisi çalışıyor
+- [ ] Prisma migration hatasız uygulandı (`npx prisma migrate deploy`)
+- [ ] Docker konteyner sağlıklı (`GET /health` → `200 OK`)
 
 ---
 

@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/prisma-config-single-source
+Aktif Branch: feature/seo-pwa
 
 ---
 
@@ -8,7 +8,7 @@ Aktif Branch: feature/prisma-config-single-source
 
 ```
 Faz 1 MVP: ██████████ %100
-Yayın Hazırlığı: ██████████ %95  (Faz A: T-01..T-07 tamamlandı — bkz. docs/architecture-roadmap.md)
+Yayın Hazırlığı: ██████████ %100 (Faz A, Faz B, Faz C ve Faz D dahil T-01…T-16 tamamlandı)
 ```
 
 ---
@@ -65,14 +65,23 @@ Yayın Hazırlığı: ██████████ %95  (Faz A: T-01..T-07 tam
 - **✅ ÇÖZÜLDÜ (B-06 / T-05):** `helmet` CSP, HTTP `@nestjs/throttler` ve WS `SlidingWindowLimiter` devreye alındı.
 - **✅ ÇÖZÜLDÜ (B-07 / T-06):** Kod tabanındaki tüm `any` kullanımları kaldırıldı, ESLint `no-explicit-any: error` ve CI `npm run lint` kapısı eklendi.
 - **✅ ÇÖZÜLDÜ (B-09 / T-07):** `prisma/prisma.config.ts` silinerek kök `/prisma.config.ts` tek kaynak yapıldı; DB URL fallback'i kaldırıldı.
-- **Mimari Kararlar:** K-1…K-7 tamamı 2026-10-31'de onaylandı (K-4: yalnızca şifre rotasyonu).
+- **✅ ÇÖZÜLDÜ (B-12 / T-10):** `develop` → `main` (`v1.0.0`) release yapıldı ve 19 eski branch temizlendi.
+- **✅ ÇÖZÜLDÜ (B-13 / T-12):** `AGENTS.md`, `docs/spec.md`, `.antigravity/skills/prisma.md`, `REVIEW_CHECKLIST.md` ve `docs/production-backlog.md` gerçek mimariyle senkronize edildi.
+- **✅ ÇÖZÜLDÜ (B-08 / T-08):** Saf Mangala oyun motoru `shared/engine/mangala-engine.ts` altında tekilleştirildi; `frontend/src/lib/game-engine.ts` kaldırıldı.
+- **✅ ÇÖZÜLDÜ (B-11 / T-11):** `WsExceptionFilter` (`backend/src/common/filters/ws-exception.filter.ts`) eklendi; `GameGateway` ve `LobbyGateway` üzerindeki tekrarlayan `try/catch` hata yayınları filtreye devredildi.
+- **✅ ÇÖZÜLDÜ (B-10 / T-09):** Frontend Vitest + Testing Library altyapısı kuruldu; `auth.store`, `api-client`, `game.store` ve `AuthGuard` için 12 birim testi eklendi; `auth.store` Spec 11.1 uyarınca salt-bellek (memory) moduna alındı. Faz B tamamlandı.
+- **✅ ÇÖZÜLDÜ (T-13):** `LeaderboardModal` ve `ProfileModal` bileşenleri 4 tema ve mobil tam ekran uyumlu olarak eklendi; 7 yeni Vitest birim testiyle doğrulandı.
+- **✅ ÇÖZÜLDÜ (T-14):** Saf `bot-engine.ts` (`easy`, `medium`, `hard` minimax + alpha-beta) ve Lobi/Oyun PvE bot modu eklendi; 6 yeni birim testiyle doğrulandı.
+- **✅ ÇÖZÜLDÜ (T-15):** Maç sonu rövanş (rematch) akışı (`game:rematch_offer`, `game:rematch_offered`, `game:rematch_response`, `game:rematch_declined`, `game:rematch_start`), yeni `Match` kaydı + P1↔P2 rol değişimi (K-7), 30 sn timeout ve çift kabul yarış durumu kilidi eklendi; 8 yeni birim testiyle doğrulandı.
+- **✅ ÇÖZÜLDÜ (T-16):** `frontend/index.html` Türkçe SEO, Open Graph ve Twitter Card meta etiketleriyle güncellendi; `favicon.svg`, `favicon-32x32.png`, `apple-touch-icon.png` (180×180), `og-image.png` (1200×630), PWA ikonları (`icon-192.png`, `icon-512.png`) ve `manifest.webmanifest` oluşturuldu. Faz D ve tüm Mimari & Ürün Yol Haritası (`T-01…T-16`) tamamlandı.
+- **Mimari Kararlar:** K-1…K-7 tamamı 2026-10-31'de onaylandı.
 
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-01 — T-07: Prisma Config Tekilleştirme
+Oturum 2026-11-10 — T-16: SEO, Favicon ve PWA (Yol Haritası Tamamlandı)
 
 ### Yapılanlar
-- `prisma/prisma.config.ts` silindi; kökteki `/prisma.config.ts` içinde `env('DATABASE_URL')` zorunlu kılındı ve fallback kaldırıldı.
-- `backend/package.json` içindeki mükerrer `prisma.seed` alanı temizlendi; CI ve `Dockerfile` `prisma generate` adımları güncellendi.
-- `npx prisma validate`, `npx prisma migrate deploy`, 94/94 birim testi ve monorepo build doğrulandı. Sıradaki görev: T-10.
+- `frontend/index.html` içine Türkçe SEO başlığı, meta description, Open Graph (`og:*`), Twitter Card (`summary_large_image`) ve PWA manifest bağlantıları eklendi.
+- `frontend/public/` altında Mangala temalı `favicon.svg`, `favicon-32x32.png`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `og-image.png` (1200×630) ve `manifest.webmanifest` oluşturuldu.
+- 136/136 birim testi (111 backend + 25 frontend), lint ve build doğrulandı. Tüm yol haritası (`T-01…T-16`) tamamlandı.

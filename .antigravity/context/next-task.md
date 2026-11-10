@@ -2,26 +2,14 @@
 
 ---
 
-## Görev: T-10 — Release Süreci ve Git Hijyeni
+## Durum: Tüm Görevler Tamamlandı (T-01…T-16 ✅)
 
-> **Tam tasarım:** `docs/architecture-roadmap.md` → Bölüm 6, **T-10**. Bu dosya özet bilgi verir; bağlayıcı olan roadmap dokümanıdır.
+> `docs/architecture-roadmap.md` içerisindeki Faz A (Güvenlik Sertleştirmesi), Faz B (Mimari Borç), Faz C (Release & Dokümantasyon) ve Faz D (Ürün & UX: Liderlik/Profil UI, PvE Bot, Rövanş, SEO & PWA) kapsamındaki **16 görevin tamamı** eksiksiz tamamlanmış ve doğrulanmıştır.
 
-### Ön Koşullar (Başlamadan Kontrol Et)
-- [ ] Faz A görevlerinin tamamı (T-01…T-07) `develop`'a merge edildi mi?
+### Tamamlanan T-16 Kabul Kriterleri
+- [x] `frontend/index.html` Türkçe dil, SEO meta, Open Graph, Twitter Card ve manifest bağlantılarıyla güncellendi
+- [x] Favicon seti (`favicon.svg`, `favicon-32x32.png`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `og-image.png`) ve `manifest.webmanifest` `frontend/public/` altında eksiksiz oluşturuldu
+- [x] `npm run lint`, `npm run test` (136/136) ve `npm run build` yeşil
 
-### Ne Yapılacak? (Özet)
-1. `develop` → `main` PR'ını aç: PR açıklamasına Faz 1 MVP + Faz A (T-01…T-07) güvenlik ve mimari sertleştirme özetini ekle.
-2. İnsan onayı sonrası `main`'e merge et ve `v1.0.0` tag'i oluştur (`git tag -a v1.0.0`).
-3. Merge edilmiş eski `feature/*` branch'lerini listele ve insan onayıyla hem yerelde hem remote'ta temizle.
-4. Canlı UAT kontrol listesini (`GET /health`, kayıt/giriş/sessiz refresh, 429 rate limit, online maç, reconnect, yerel PvP, CSP/CORS kontrolü) doğrula.
-
-### İlgili Referanslar
-- `docs/architecture-roadmap.md` Bölüm 6, T-10 · `REVIEW_CHECKLIST.md`
-
-### Kabul Kriterleri
-- [ ] `develop` → `main` PR'ı merge edildi ve `v1.0.0` etiketi oluşturuldu
-- [ ] Merge edilmiş eski `feature/*` branch'leri temizlendi
-- [ ] Canlı UAT maddeleri doğrulandı
-
-### Sonraki Görev
-T-12 — Doküman Senkronizasyonu (`docs/architecture-sync`)
+### Sonraki Adım
+- Yeni özellik talepleri veya kullanıcı geri bildirimlerine göre bakım/geliştirme.

@@ -32,20 +32,24 @@ async function bootstrap(): Promise<void> {
 
   const connectSrcDirectives =
     config.nodeEnv === 'production'
-      ? ["'self'", 'wss:']
-      : ["'self'", 'wss:', 'ws:'];
+      ? ["'self'", 'wss:', 'https://cloudflareinsights.com']
+      : ["'self'", 'wss:', 'ws:', 'https://cloudflareinsights.com'];
 
   app.use(
     helmet({
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
-          scriptSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
+          scriptSrc: ["'self'", 'https://static.cloudflareinsights.com'],
+          styleSrc: [
+            "'self'",
+            "'unsafe-inline'",
+            'https://fonts.googleapis.com',
+          ],
           imgSrc: ["'self'", 'data:', 'blob:'],
           connectSrc: connectSrcDirectives,
           workerSrc: ["'self'", 'blob:'],
-          fontSrc: ["'self'", 'data:'],
+          fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
         },
       },
     }),

@@ -9,5 +9,5 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["types/**/*"]
+  "include": ["index.ts", "types/**/*", "engine/**/*"]
 }
