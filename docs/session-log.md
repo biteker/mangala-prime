@@ -23,6 +23,24 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-10] — Canlı Sunucu CSP, PixiJS unsafe-eval ve Ekran Yönü Düzeltmesi
+
+**Tamamlanan Görev:** Canlı sunucuda (`mangala-prime.egitimhaber.gen.tr`) Helmet Content-Security-Policy (CSP) kaynaklı PixiJS shader derleme hatası (`Current environment does not allow unsafe-eval`), Google Fonts (`Outfit` & `Inter`) stil/font engeli, Cloudflare Web Analytics (`beacon.min.js`) engeli ve `GamePage.tsx` üzerindeki tam ekran dışı `screen.orientation.lock` konsol hatası giderildi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `backend/src/main.ts` — CSP direktiflerine Google Fonts (`https://fonts.googleapis.com`, `https://fonts.gstatic.com`) ve Cloudflare Insights (`https://static.cloudflareinsights.com`, `https://cloudflareinsights.com`) eklendi
+- `frontend/src/components/MangalaBoard/MangalaBoard.ts` & `frontend/src/components/MangalaBoard/MangalaReactBoard.tsx` — `import 'pixi.js/unsafe-eval'` eklenerek `unsafe-eval` açılmadan PixiJS v8 shader uyumluluğu sağlandı
+- `frontend/src/lib/test-setup.ts` — Vitest için `pixi.js/unsafe-eval` mock tanımı eklendi
+- `frontend/src/components/GamePage.tsx` — `screen.orientation.lock('landscape')` çağrısı yalnızca `isFullscreen` aktifken çalışacak şekilde sınırlandırıldı
+
+**Test Sonuçları:** 136/136 test geçti (Backend: 111/111, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki adım Faz D: T-16 (SEO, Favicon ve PWA).
+**Bir Sonraki Görev:** T-16 — SEO, Favicon ve PWA
+**Commit:** fix(csp,board): add pixi.js/unsafe-eval polyfill and allow Google Fonts & Cloudflare in CSP
+**PR:** fix/csp-and-pixi-unsafe-eval → develop
+
+---
+
 ### Oturum [2026-11-03] — T-15: Rövanş (Rematch)
 
 **Tamamlanan Görev:** `@mangala/shared` (`shared/types/socket-events.types.ts`) altına rövanş WebSocket olay tipleri (`game:rematch_offer`, `game:rematch_offered`, `game:rematch_response`, `game:rematch_declined`, `game:rematch_start`) eklendi. `GameService` ve `GameGateway` üzerinde yalnızca `FINISHED` durumundaki maçlar için 30 saniye süreli rövanş teklifi, kabulde yeni `Match` kaydı oluşturulması ve P1↔P2 rollerinin yer değiştirmesi (K-7), aynı-IP → Friendly kuralının korunması, eşzamanlı çift kabul/teklif yarış durumu kilidi (`isCreatingRematch`) ve oyuncu ayrıldığında teklif iptali gerçeklendi. Frontend `game.store.ts` ve `GamePage.tsx` oyun sonu modalına rövanş teklif/yanıt ve geri sayım arayüzü eklendi. `game.service.spec.ts` ve `game.gateway.spec.ts` ile 8 yeni birim testi eklendi.

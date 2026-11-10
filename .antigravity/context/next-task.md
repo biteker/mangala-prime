@@ -7,7 +7,7 @@
 > **Tam tasarım:** `docs/architecture-roadmap.md` → Bölüm 7, **T-16**. Bu dosya özet bilgi verir; bağlayıcı olan roadmap dokümanıdır.
 
 ### Ön Koşullar (Başlamadan Kontrol Et)
-- [ ] T-15 (`feature/rematch`) `develop`'a merge edildi mi?
+- [x] T-15 (`feature/rematch`) `develop`'a merge edildi mi?
 
 ### Branch
 `feature/seo-pwa` (base: güncel `origin/develop`)

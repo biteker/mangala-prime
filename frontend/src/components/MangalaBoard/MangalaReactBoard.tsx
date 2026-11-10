@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import 'pixi.js/unsafe-eval';
 import * as PIXI from 'pixi.js';
 import { MangalaBoard } from './MangalaBoard';
 

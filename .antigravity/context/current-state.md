@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/rematch
+Aktif Branch: fix/csp-and-pixi-unsafe-eval
 
 ---
 
@@ -78,9 +78,10 @@ Yayın Hazırlığı: ██████████ %100 (v1.0.0 Yayınlandı �
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-03 — T-15: Rövanş (Rematch)
+Oturum 2026-11-10 — Canlı Sunucu CSP, PixiJS unsafe-eval ve Ekran Yönü Düzeltmesi
 
 ### Yapılanlar
-- `shared/types/socket-events.types.ts`, `game.service.ts`, `game.gateway.ts`, `game.store.ts` ve `GamePage.tsx` üzerinde rövanş akışı tamamlandı.
-- `game.service.spec.ts` ve `game.gateway.spec.ts` içine 8 yeni birim testi eklendi.
+- `MangalaBoard.ts` ve `MangalaReactBoard.tsx` içine `import 'pixi.js/unsafe-eval'` eklendi.
+- `backend/src/main.ts` CSP direktiflerine Google Fonts ve Cloudflare Insights kaynakları eklendi.
+- `GamePage.tsx` içinde `screen.orientation.lock` yalnızca tam ekran (`isFullscreen`) modunda çağrılacak şekilde güncellendi.
 - 136/136 birim testi (111 backend + 25 frontend), lint ve build doğrulandı. Sıradaki görev: T-16.

@@ -44,6 +44,7 @@ if (typeof window !== 'undefined') {
 }
 
 // Mock PixiJS Application / Canvas rendering in jsdom
+vi.mock('pixi.js/unsafe-eval', () => ({}));
 vi.mock('pixi.js', () => ({
   Application: class {
     canvas = document.createElement('canvas');
