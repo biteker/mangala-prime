@@ -612,7 +612,7 @@ flowchart LR
 | T-13 | ✅ Liderlik + Profil UI (Tamamlandı) | D | P3 | Ajan | T-09 | — |
 | T-14 | ✅ Bot (PvE) (Tamamlandı) | D | P3 | Ajan | T-08 | — |
 | T-15 | ✅ Rövanş (Tamamlandı) | D | P3 | Ajan | T-11 | K-7 |
-| T-16 | SEO / PWA | D | P3 | Ajan | T-10 | — |
+| T-16 | ✅ SEO / PWA (Tamamlandı) | D | P3 | Ajan | T-10 | — |
 
 ---
 

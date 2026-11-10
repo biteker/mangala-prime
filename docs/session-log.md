@@ -23,6 +23,26 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-10] — T-16: SEO, Favicon ve PWA (Yol Haritası Tamamlandı)
+
+**Tamamlanan Görev:** Mimari ve ürün yol haritasının son görevi olan T-16 (SEO, Favicon ve PWA) tamamlandı. `frontend/index.html` Türkçe dil (`lang="tr"`), `<title>Mangala Prime — Online Türk Zeka Oyunu</title>`, meta description, Open Graph (`og:title`, `og:description`, `og:type`, `og:url`, `og:image` 1200×630) ve Twitter Card (`summary_large_image`) etiketleriyle güncellendi. `frontend/public/` altında özel Mangala tahtası ve değerli taş temalı `favicon.svg`, `favicon-32x32.png`, `apple-touch-icon.png` (180×180), `icon-192.png`, `icon-512.png`, `og-image.png` (1200×630) ve `manifest.webmanifest` (`display: standalone`, `orientation: landscape`, `#1b120c` tema rengi) oluşturuldu.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/index.html` — Türkçe SEO, Open Graph, Twitter Card ve PWA manifest/ikon bağlantıları eklendi
+- `frontend/public/favicon.svg` — Mangala kuyusu ve 4 değerli taş temalı vektörel ikon
+- `frontend/public/favicon-32x32.png`, `frontend/public/apple-touch-icon.png`, `frontend/public/icon-192.png`, `frontend/public/icon-512.png` — Yeni: Çoklu boyutlu PNG uygulama ikonları
+- `frontend/public/og-image.png` — Yeni: 1200×630 sosyal medya paylaşım görseli
+- `frontend/public/manifest.webmanifest` — Yeni: PWA manifest dosyası (`standalone`, `landscape`)
+- `docs/architecture-roadmap.md`, `.antigravity/context/current-state.md`, `.antigravity/context/next-task.md` — T-16 ve yol haritası tamamlandı olarak güncellendi
+
+**Test Sonuçları:** 136/136 test geçti (Backend: 111/111, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Tüm yol haritası (T-01…T-16) tamamlandı.
+**Bir Sonraki Görev:** Tüm Faz A, B, C, D görevleri tamamlandı (`develop` → `main` final release).
+**Commit:** feat(seo,pwa): add SEO meta tags, Open Graph banner, favicon set, and webmanifest (T-16)
+**PR:** feature/seo-pwa → develop
+
+---
+
 ### Oturum [2026-11-10] — Canlı Sunucu CSP, PixiJS unsafe-eval ve Ekran Yönü Düzeltmesi
 
 **Tamamlanan Görev:** Canlı sunucuda (`mangala-prime.egitimhaber.gen.tr`) Helmet Content-Security-Policy (CSP) kaynaklı PixiJS shader derleme hatası (`Current environment does not allow unsafe-eval`), Google Fonts (`Outfit` & `Inter`) stil/font engeli, Cloudflare Web Analytics (`beacon.min.js`) engeli ve `GamePage.tsx` üzerindeki tam ekran dışı `screen.orientation.lock` konsol hatası giderildi.

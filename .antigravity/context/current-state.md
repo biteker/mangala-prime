@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: fix/csp-and-pixi-unsafe-eval
+Aktif Branch: feature/seo-pwa
 
 ---
 
@@ -8,7 +8,7 @@ Aktif Branch: fix/csp-and-pixi-unsafe-eval
 
 ```
 Faz 1 MVP: ██████████ %100
-Yayın Hazırlığı: ██████████ %100 (v1.0.0 Yayınlandı — Faz A & Faz C tamamlandı, bkz. docs/architecture-roadmap.md)
+Yayın Hazırlığı: ██████████ %100 (Faz A, Faz B, Faz C ve Faz D dahil T-01…T-16 tamamlandı)
 ```
 
 ---
@@ -73,15 +73,15 @@ Yayın Hazırlığı: ██████████ %100 (v1.0.0 Yayınlandı �
 - **✅ ÇÖZÜLDÜ (T-13):** `LeaderboardModal` ve `ProfileModal` bileşenleri 4 tema ve mobil tam ekran uyumlu olarak eklendi; 7 yeni Vitest birim testiyle doğrulandı.
 - **✅ ÇÖZÜLDÜ (T-14):** Saf `bot-engine.ts` (`easy`, `medium`, `hard` minimax + alpha-beta) ve Lobi/Oyun PvE bot modu eklendi; 6 yeni birim testiyle doğrulandı.
 - **✅ ÇÖZÜLDÜ (T-15):** Maç sonu rövanş (rematch) akışı (`game:rematch_offer`, `game:rematch_offered`, `game:rematch_response`, `game:rematch_declined`, `game:rematch_start`), yeni `Match` kaydı + P1↔P2 rol değişimi (K-7), 30 sn timeout ve çift kabul yarış durumu kilidi eklendi; 8 yeni birim testiyle doğrulandı.
+- **✅ ÇÖZÜLDÜ (T-16):** `frontend/index.html` Türkçe SEO, Open Graph ve Twitter Card meta etiketleriyle güncellendi; `favicon.svg`, `favicon-32x32.png`, `apple-touch-icon.png` (180×180), `og-image.png` (1200×630), PWA ikonları (`icon-192.png`, `icon-512.png`) ve `manifest.webmanifest` oluşturuldu. Faz D ve tüm Mimari & Ürün Yol Haritası (`T-01…T-16`) tamamlandı.
 - **Mimari Kararlar:** K-1…K-7 tamamı 2026-10-31'de onaylandı.
 
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-10 — Canlı Sunucu CSP, PixiJS unsafe-eval ve Ekran Yönü Düzeltmesi
+Oturum 2026-11-10 — T-16: SEO, Favicon ve PWA (Yol Haritası Tamamlandı)
 
 ### Yapılanlar
-- `MangalaBoard.ts` ve `MangalaReactBoard.tsx` içine `import 'pixi.js/unsafe-eval'` eklendi.
-- `backend/src/main.ts` CSP direktiflerine Google Fonts ve Cloudflare Insights kaynakları eklendi.
-- `GamePage.tsx` içinde `screen.orientation.lock` yalnızca tam ekran (`isFullscreen`) modunda çağrılacak şekilde güncellendi.
-- 136/136 birim testi (111 backend + 25 frontend), lint ve build doğrulandı. Sıradaki görev: T-16.
+- `frontend/index.html` içine Türkçe SEO başlığı, meta description, Open Graph (`og:*`), Twitter Card (`summary_large_image`) ve PWA manifest bağlantıları eklendi.
+- `frontend/public/` altında Mangala temalı `favicon.svg`, `favicon-32x32.png`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `og-image.png` (1200×630) ve `manifest.webmanifest` oluşturuldu.
+- 136/136 birim testi (111 backend + 25 frontend), lint ve build doğrulandı. Tüm yol haritası (`T-01…T-16`) tamamlandı.
