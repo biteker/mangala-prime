@@ -1,3 +1,4 @@
+import 'pixi.js/unsafe-eval';
 import * as PIXI from 'pixi.js';
 import { gsap } from 'gsap';
 import type { PhysicsStone, PhysicsBoundary } from './physics';

@@ -328,19 +328,22 @@ export function GamePage(): React.JSX.Element {
     }
   }, [matchId, connectGame, navigate, isLocalPvP]);
 
-  // Ekranı yatay (landscape) moda kilitleme girişimi (mobil cihazlar için)
+  // Ekranı yatay (landscape) moda kilitleme girişimi (yalnızca tam ekran modunda güvenli şekilde)
   useEffect(() => {
+    if (!isFullscreen) {
+      return;
+    }
     try {
       const orientation = window.screen?.orientation as (ScreenOrientation & LockableScreenOrientation) | undefined;
       if (orientation && typeof orientation.lock === 'function') {
-        orientation.lock('landscape')?.catch((err: unknown) => {
-          console.log('Screen orientation lock failed:', err);
+        orientation.lock('landscape')?.catch(() => {
+          // Tarayıcı yatay kilitlemeyi desteklemiyorsa sessizce yoksay
         });
       }
     } catch {
       // ignore
     }
-    
+
     return () => {
       try {
         const orientation = window.screen?.orientation as (ScreenOrientation & LockableScreenOrientation) | undefined;
@@ -351,7 +354,7 @@ export function GamePage(): React.JSX.Element {
         // ignore
       }
     };
-  }, []);
+  }, [isFullscreen]);
 
   // Yeni mesaj geldiğinde sohbeti aşağı kaydır
   useEffect(() => {
