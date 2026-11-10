@@ -43,7 +43,7 @@ export class LobbyGateway
   @WebSocketServer()
   server!: Server;
 
-  private readonly connectionLimiter = new SlidingWindowLimiter(20, 60_000);
+  private readonly connectionLimiter = new SlidingWindowLimiter(120, 60_000);
 
   constructor(
     private readonly lobbyService: LobbyService,

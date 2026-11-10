@@ -33,7 +33,7 @@ describe('AuthController Rate Limiting & Error Format', () => {
         ThrottlerModule.forRoot([
           {
             ttl: 60_000,
-            limit: 100,
+            limit: 600,
           },
         ]),
       ],
@@ -60,20 +60,20 @@ describe('AuthController Rate Limiting & Error Format', () => {
     await app.close();
   });
 
-  it('should_reject_6th_login_attempt_within_60s_with_429_RATE_LIMITED_format', async () => {
+  it('should_reject_61st_login_attempt_within_60s_with_429_RATE_LIMITED_format', async () => {
     // Arrange
     const server = app.getHttpServer() as Server;
     const loginPayload = { username: 'player1', password: 'password123' };
 
-    // Act — first 5 requests within 60s are allowed
-    for (let i = 0; i < 5; i++) {
+    // Act — first 60 requests within 60s are allowed (school lab capacity)
+    for (let i = 0; i < 60; i++) {
       const okResponse = await request(server)
         .post('/auth/login')
         .send(loginPayload);
       expect(okResponse.status).toBe(200);
     }
 
-    // 6th request exceeds the 5 req / 60s throttle limit
+    // 61st request exceeds the 60 req / 60s throttle limit
     const throttledResponse = await request(server)
       .post('/auth/login')
       .send(loginPayload);

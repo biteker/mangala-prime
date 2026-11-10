@@ -23,6 +23,24 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-11] — Okul Laboratuvarı (Tek IP / NAT) Hız Sınırları Güncellemesi
+
+**Tamamlanan Görev:** Okul laboratuvarındaki (18–40 bilgisayarın tek bir dış IP adresinden çıktığı NAT ortamı) turnuvalarda öğrencilerin aynı anda kayıt olurken, giriş yaparken ve lobi/oyun WebSocket bağlantısı kurarken `429 RATE_LIMITED` engeline takılmaması için IP bazlı hız sınırları sınıf kapasitesine uygun şekilde yükseltildi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `backend/src/auth/auth.controller.ts` — `/auth/login` (5 → 60/60sn), `/auth/register` (3 → 40/10dk), `/auth/refresh` (20 → 120/60sn) olarak güncellendi
+- `backend/src/app.module.ts` — Global HTTP rate limit 100 → 600/60sn olarak güncellendi
+- `backend/src/game/game.gateway.ts` & `backend/src/lobby/lobby.gateway.ts` — WebSocket bağlantı limiti 20 → 120/60sn olarak güncellendi
+- `backend/src/auth/auth.controller.spec.ts` — Yeni `login` (60/60sn) limitine göre e2e testi güncellendi
+
+**Test Sonuçları:** 136/136 test geçti (Backend: 111/111, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok.
+**Bir Sonraki Görev:** Kullanıcı geri bildirimlerine göre bakım/geliştirme.
+**Commit:** feat(security): increase IP rate limits to support school lab tournaments
+**PR:** feat/school-network-rate-limits → develop → main
+
+---
+
 ### Oturum [2026-11-10] — T-16: SEO, Favicon ve PWA (Yol Haritası Tamamlandı)
 
 **Tamamlanan Görev:** Mimari ve ürün yol haritasının son görevi olan T-16 (SEO, Favicon ve PWA) tamamlandı. `frontend/index.html` Türkçe dil (`lang="tr"`), `<title>Mangala Prime — Online Türk Zeka Oyunu</title>`, meta description, Open Graph (`og:title`, `og:description`, `og:type`, `og:url`, `og:image` 1200×630) ve Twitter Card (`summary_large_image`) etiketleriyle güncellendi. `frontend/public/` altında özel Mangala tahtası ve değerli taş temalı `favicon.svg`, `favicon-32x32.png`, `apple-touch-icon.png` (180×180), `icon-192.png`, `icon-512.png`, `og-image.png` (1200×630) ve `manifest.webmanifest` (`display: standalone`, `orientation: landscape`, `#1b120c` tema rengi) oluşturuldu.
