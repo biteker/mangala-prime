@@ -2,11 +2,14 @@
 
 ---
 
-## Görev: T-19 — Saf İsviçre (Swiss) Eşleştirme & Puanlama Motoru
+## Görev: T-20 — Turnuva Backend Modülü (REST + WS `/tournament`) + T-22 Check-in & Hakem
 
 ### Branch
-`feature/swiss-pairing-engine` (base: `develop`)
+`feature/tournament-backend` (base: `develop`)
 
 ### Ne Yapılacak?
-- `shared/engine/tournament-pairing.ts`: Dış bağımlılıksız, saf İsviçre (Swiss) eşleştirme (`generateSwissRound`) ve Buchholz eşitlik bozmalı puanlama (`calculateStandings`) fonksiyonları.
-- 18 oyunculu 5 turluk simülasyon, tek sayılı oyuncu BAY kuralı, tekrar eşleşmeme ve Buchholz doğrulama birim testleri.
+- `TournamentModule` (`backend/src/tournament/`):
+  - Turnuva oluşturma (`POST /tournaments`, `@Roles('TEACHER', 'ADMIN')`, benzersiz `joinCode`, `setsPerMatch: 1|2`, `affectsGlobalElo`).
+  - Öğrenci katılımı (`POST /tournaments/join`), Check-in yoklama (`POST /tournaments/:id/check-in`), Tur başlatma (`POST /tournaments/:id/start-round`), Hakem hükmen karar (`PATCH /tournaments/:id/pairings/:pairingId/result`), Diskalifiye (`PATCH /tournaments/:id/participants/:userId/disqualify`), CSV dışa aktarma (`GET /tournaments/:id/export`).
+  - `TournamentGateway` (`/tournament` namespace): Canlı turnuva odası, `tournament:updated` ve `tournament:match_assigned` event'leri.
+  - `GameService` entegrasyonu: Turnuva maçı bittiğinde 2 setlik maçta otomatik P1↔P2 taraf değişimli 2. seti açma, puan/Buchholz güncelleme ve aktif turnuva maçında bot kilidi bilgisi.

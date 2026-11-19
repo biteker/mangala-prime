@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/admin-dashboard-school-ip
+Aktif Branch: feature/swiss-pairing-engine
 
 ---
 
@@ -79,8 +79,8 @@ Yayın Hazırlığı: ██████████ %100 (Faz A, Faz B, Faz C v
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-20 — T-18: Güvenilir Okul IP Kuralı & Admin Dashboard
+Oturum 2026-11-20 — T-19: Saf İsviçre (Swiss) Eşleştirme & Puanlama Motoru
 
 ### Yapılanlar
-- `AdminModule` (`GET /admin/my-ip`, `/admin/school-ips`, `/admin/users`, `/admin/settings`), `TrustedSchoolIp` tabanlı puanlı okul maçı kuralı ve `#/admin` Dashboard arayüzü tamamlandı.
-- 148/148 birim testi (123 backend + 25 frontend), lint ve build doğrulandı. Sıradaki görev: T-19.
+- `shared/engine/tournament-pairing.ts` (`generateSwissRound`, `calculateStandings`) eklendi ve 18 oyunculu 5 turluk simülasyon + BAY + Buchholz testleriyle doğrulandı.
+- 152/152 birim testi (127 backend + 25 frontend), lint ve build doğrulandı. Sıradaki görev: T-20.

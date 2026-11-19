@@ -615,7 +615,7 @@ flowchart LR
 | T-16 | ✅ SEO / PWA (Tamamlandı) | D | P3 | Ajan | T-10 | — |
 | T-17 | ✅ Rol, Okul IP & Turnuva Veritabanı Şeması (Tamamlandı) | E | P1 | Ajan | T-16 | K-8, K-10 |
 | T-18 | ✅ Güvenilir Okul IP Kuralı & Admin Dashboard (Tamamlandı) | E | P1 | Ajan | T-17 | K-8, K-10 |
-| T-19 | Saf İsviçre (Swiss) Eşleştirme & Puanlama Motoru | E | P1 | Ajan | T-17 | K-9 |
+| T-19 | ✅ Saf İsviçre (Swiss) Eşleştirme & Puanlama Motoru (Tamamlandı) | E | P1 | Ajan | T-17 | K-9 |
 | T-20 | Turnuva Backend Modülü (REST + WS `/tournament`) | E | P1 | Ajan | T-18, T-19 | K-9 |
 | T-21 | Turnuva Frontend (Öğretmen, Öğrenci, Projeksiyon) | E | P1 | Ajan | T-20 | K-9, K-11 |
 | T-22 | Evden Turnuva: Check-in & Otomatik `NO_SHOW` | E | P2 | Ajan | T-21 | — |

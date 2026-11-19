@@ -23,6 +23,22 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-20] — T-19: Saf İsviçre (Swiss) Eşleştirme & Puanlama Motoru
+
+**Tamamlanan Görev:** `@mangala/shared` altında dış bağımlılıksız, saf İsviçre (Swiss) eşleştirme ve puanlama motoru (`shared/engine/tournament-pairing.ts`) geliştirildi. `generateSwissRound` (puan sırası, backtracking ile tekrar eşleşme engeli, tek sayılı oyuncu BAY dağıtımı, P1/P2 renk dengelemesi, diskalifiye dışlaması) ve `calculateStandings` (puan + Buchholz eşitlik bozma + galibiyet + ELO sıralaması) fonksiyonları yazıldı. 18 oyunculu 5 turluk tam simülasyon dahil 4 yeni birim testi eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `shared/engine/tournament-pairing.ts` & `shared/engine/index.ts` — Yeni: Saf Swiss eşleştirme ve Buchholz puanlama motoru
+- `backend/src/game/tournament-pairing.spec.ts` — Yeni: 4 kapsamlı birim testi
+
+**Test Sonuçları:** 152/152 test geçti (Backend: 127/127, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki görev: T-20 (Turnuva Backend Modülü — REST + WS `/tournament`).
+**Bir Sonraki Görev:** T-20 — Turnuva Backend Modülü (REST + WS `/tournament`)
+**Commit:** feat(engine): add pure Swiss tournament pairing and Buchholz standings engine (T-19)
+**PR:** feature/swiss-pairing-engine → develop
+
+---
+
 ### Oturum [2026-11-20] — T-18: Güvenilir Okul IP Kuralı & Admin Dashboard
 
 **Tamamlanan Görev:** Admin Dashboard backend (`AdminModule`, `AdminController`, `AdminService`) ve frontend (`AdminPage.tsx`, `#/admin` rotası) geliştirildi. `LobbyService` içindeki aynı-IP kuralı güncellenerek: ev ağlarında `sameIp → isFriendly` anti-hile kuralı korunurken, Admin'in `TrustedSchoolIp` listesinde aktif olarak tanımladığı statik okul IP'lerinde (günlük aynı iki oyuncu arası max puanlı maç limiti dahilinde) puanlı (ranked) maç oynanabilmesi sağlandı. Admin paneline mevcut IP'yi tek tıkla forma aktarma, okul IP CRUD, kullanıcı arama / rol atama (`STUDENT`/`TEACHER`/`ADMIN`), tek tıkla şifre sıfırlama ve sistem ayarları yönetimi eklendi. 8 yeni birim testi (`admin.service.spec.ts` + `lobby.service.spec.ts`) eklendi.
