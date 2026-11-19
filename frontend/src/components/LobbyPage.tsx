@@ -46,12 +46,12 @@ export function LobbyPage(): React.JSX.Element {
     connectLobby();
     useAuthStore.getState().fetchMe().catch(() => {});
     apiClient
-      .get<{ data: { hasActiveTournamentMatch: boolean } }>(
+      .get<never, { hasActiveTournamentMatch: boolean }>(
         '/tournaments/my-active-status',
       )
       .then((res) => {
         if (!cancelled) {
-          setBotLockedForTournament(Boolean(res.data.data?.hasActiveTournamentMatch));
+          setBotLockedForTournament(Boolean(res?.hasActiveTournamentMatch));
         }
       })
       .catch(() => {});

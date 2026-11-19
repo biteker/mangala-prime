@@ -78,10 +78,10 @@ export function TournamentPage(): React.JSX.Element {
 
   const loadList = useCallback(async (school?: string): Promise<void> => {
     try {
-      const res = await apiClient.get<{ data: TournamentSummary[] }>('/tournaments', {
+      const list = await apiClient.get<never, TournamentSummary[]>('/tournaments', {
         params: school?.trim() ? { schoolName: school.trim() } : undefined,
       });
-      setTournaments(res.data.data);
+      setTournaments(list);
     } catch {
       setErrorMessage('Turnuva listesi yüklenemedi.');
     }
@@ -89,10 +89,10 @@ export function TournamentPage(): React.JSX.Element {
 
   const loadDetail = useCallback(async (id: string): Promise<void> => {
     try {
-      const res = await apiClient.get<{ data: TournamentDetailResponse }>(
+      const loaded = await apiClient.get<never, TournamentDetailResponse>(
         `/tournaments/${id}`,
       );
-      setDetail(res.data.data);
+      setDetail(loaded);
     } catch {
       setErrorMessage('Turnuva detayları yüklenemedi.');
     }
@@ -103,9 +103,9 @@ export function TournamentPage(): React.JSX.Element {
     let cancelled = false;
     const init = async (): Promise<void> => {
       try {
-        const res = await apiClient.get<{ data: TournamentSummary[] }>('/tournaments');
+        const list = await apiClient.get<never, TournamentSummary[]>('/tournaments');
         if (!cancelled) {
-          setTournaments(res.data.data);
+          setTournaments(list);
         }
       } catch {
         if (!cancelled) {
@@ -173,7 +173,7 @@ export function TournamentPage(): React.JSX.Element {
     e.preventDefault();
     clearAlerts();
     try {
-      const res = await apiClient.post<{ data: { tournamentId: string } }>(
+      const joined = await apiClient.post<never, { tournamentId: string }>(
         '/tournaments/join',
         {
           joinCode: joinCodeInput.trim().toUpperCase(),
@@ -184,7 +184,7 @@ export function TournamentPage(): React.JSX.Element {
       setClassLabelInput('');
       setStatusMessage('Turnuvaya başarıyla katıldınız!');
       await loadList(schoolFilter);
-      await handleSelectTournament(res.data.data.tournamentId);
+      await handleSelectTournament(joined.tournamentId);
     } catch {
       setErrorMessage('Katılım başarısız. Kodu kontrol edin veya turnuva kayıtları kapanmış olabilir.');
     }
@@ -194,7 +194,7 @@ export function TournamentPage(): React.JSX.Element {
     e.preventDefault();
     clearAlerts();
     try {
-      const res = await apiClient.post<{ data: TournamentSummary }>('/tournaments', {
+      const created = await apiClient.post<never, TournamentSummary>('/tournaments', {
         name: createName.trim(),
         schoolName: createSchool.trim() || undefined,
         format: 'SWISS',
@@ -205,9 +205,9 @@ export function TournamentPage(): React.JSX.Element {
       });
       setShowCreateForm(false);
       setCreateName('');
-      setStatusMessage(`Turnuva oluşturuldu! Katılım Kodu: ${res.data.data.joinCode}`);
+      setStatusMessage(`Turnuva oluşturuldu! Katılım Kodu: ${created.joinCode}`);
       await loadList(schoolFilter);
-      await handleSelectTournament(res.data.data.id);
+      await handleSelectTournament(created.id);
     } catch {
       setErrorMessage('Turnuva oluşturulamadı.');
     }
@@ -241,11 +241,12 @@ export function TournamentPage(): React.JSX.Element {
     if (!detail) return;
     clearAlerts();
     try {
-      const res = await apiClient.post<{
-        data: { round: number; pairingsCreated: number };
-      }>(`/tournaments/${detail.id}/start-round`, {});
+      const started = await apiClient.post<
+        never,
+        { round: number; pairingsCreated: number }
+      >(`/tournaments/${detail.id}/start-round`, {});
       setStatusMessage(
-        `${res.data.data.round}. Tur başlatıldı (${res.data.data.pairingsCreated} masa oluşturuldu).`,
+        `${started.round}. Tur başlatıldı (${started.pairingsCreated} masa oluşturuldu).`,
       );
       await loadDetail(detail.id);
     } catch {
@@ -296,10 +297,13 @@ export function TournamentPage(): React.JSX.Element {
   const handleExportCsv = async (): Promise<void> => {
     if (!detail) return;
     try {
-      const res = await apiClient.get<Blob>(`/tournaments/${detail.id}/export`, {
-        responseType: 'blob',
-      });
-      const url = window.URL.createObjectURL(res.data);
+      const csvBlob = await apiClient.get<never, Blob>(
+        `/tournaments/${detail.id}/export`,
+        {
+          responseType: 'blob',
+        },
+      );
+      const url = window.URL.createObjectURL(csvBlob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `turnuva-${detail.joinCode}.csv`;
