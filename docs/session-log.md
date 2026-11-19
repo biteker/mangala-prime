@@ -23,6 +23,25 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-20] — T-20: Turnuva Backend Modülü (REST + WS `/tournament`)
+
+**Tamamlanan Görev:** `TournamentModule` (`TournamentController`, `TournamentService`, `TournamentGateway`) oluşturuldu ve `GameService` maç bitiş kancasına (`registerOnMatchFinished`) bağlandı. Turnuva oluşturma (benzersiz 6 haneli `joinCode`, `setsPerMatch: 1|2`, `affectsGlobalElo`), öğrenci katılımı, Check-in yoklama akışı, Swiss tur başlatma + otomatik maç açma, 2 setlik maçlarda Set 1 bitiminde P1↔P2 yer değiştirerek otomatik Set 2 açma, hakem hükmen karar (`P1_WIN`, `P2_WIN`, `DRAW`, `NO_SHOW_P1`, `NO_SHOW_P2`), diskalifiye, ortak ağ/IP uyarı tespiti (`sharedNetworkWarning`), aktif turnuva maçı kontrolü ve UTF-8 BOM'lu CSV dışa aktarma tamamlandı. 5 yeni birim testi eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `shared/types/api-response.types.ts` & `socket-events.types.ts` — Turnuva REST & WebSocket tipleri eklendi
+- `backend/src/game/game.service.ts` — `registerOnMatchFinished` callback kancası eklendi
+- `backend/src/tournament/dto/tournament.dto.ts`, `tournament.service.ts`, `tournament.controller.ts`, `tournament.gateway.ts`, `tournament.module.ts` — Yeni: Tam turnuva backend modülü
+- `backend/src/tournament/tournament.service.spec.ts` — Yeni: 5 birim testi
+- `backend/src/app.module.ts` — `TournamentModule` eklendi
+
+**Test Sonuçları:** 157/157 test geçti (Backend: 132/132, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki görev: T-21…T-24 (Turnuva Frontend Arayüzü, Check-in, Hakem Paneli, Bot Kilidi & CSV/Yazdır).
+**Bir Sonraki Görev:** T-21..T-24 — Turnuva Frontend Arayüzü & Faz E Tamamlama
+**Commit:** feat(tournament): add tournament backend module with Swiss rounds, 2-set swap, check-in, referee and CSV export (T-20)
+**PR:** feature/tournament-backend → develop
+
+---
+
 ### Oturum [2026-11-20] — T-19: Saf İsviçre (Swiss) Eşleştirme & Puanlama Motoru
 
 **Tamamlanan Görev:** `@mangala/shared` altında dış bağımlılıksız, saf İsviçre (Swiss) eşleştirme ve puanlama motoru (`shared/engine/tournament-pairing.ts`) geliştirildi. `generateSwissRound` (puan sırası, backtracking ile tekrar eşleşme engeli, tek sayılı oyuncu BAY dağıtımı, P1/P2 renk dengelemesi, diskalifiye dışlaması) ve `calculateStandings` (puan + Buchholz eşitlik bozma + galibiyet + ELO sıralaması) fonksiyonları yazıldı. 18 oyunculu 5 turluk tam simülasyon dahil 4 yeni birim testi eklendi.

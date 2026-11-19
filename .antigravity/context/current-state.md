@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/swiss-pairing-engine
+Aktif Branch: feature/tournament-backend
 
 ---
 
@@ -79,8 +79,8 @@ Yayın Hazırlığı: ██████████ %100 (Faz A, Faz B, Faz C v
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-20 — T-19: Saf İsviçre (Swiss) Eşleştirme & Puanlama Motoru
+Oturum 2026-11-20 — T-20: Turnuva Backend Modülü (REST + WS `/tournament`)
 
 ### Yapılanlar
-- `shared/engine/tournament-pairing.ts` (`generateSwissRound`, `calculateStandings`) eklendi ve 18 oyunculu 5 turluk simülasyon + BAY + Buchholz testleriyle doğrulandı.
-- 152/152 birim testi (127 backend + 25 frontend), lint ve build doğrulandı. Sıradaki görev: T-20.
+- `TournamentModule` (REST + `/tournament` WebSocket + 2-set otomatik P1↔P2 değişimi + Check-in + Hakem hükmen karar + Diskalifiye + Ortak IP uyarısı + CSV export) ve 5 yeni birim testi eklendi.
+- 157/157 birim testi (132 backend + 25 frontend), lint ve build doğrulandı. Sıradaki görev: T-21..T-24 (Turnuva Frontend Arayüzü).

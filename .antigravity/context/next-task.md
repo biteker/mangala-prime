@@ -2,14 +2,14 @@
 
 ---
 
-## Görev: T-20 — Turnuva Backend Modülü (REST + WS `/tournament`) + T-22 Check-in & Hakem
+## Görev: T-21…T-24 — Turnuva Frontend (Öğretmen, Öğrenci, Projeksiyon, Check-in, Hakem, Bot Kilidi & CSV/Yazdır)
 
 ### Branch
-`feature/tournament-backend` (base: `develop`)
+`feature/tournament-frontend` (base: `develop`)
 
 ### Ne Yapılacak?
-- `TournamentModule` (`backend/src/tournament/`):
-  - Turnuva oluşturma (`POST /tournaments`, `@Roles('TEACHER', 'ADMIN')`, benzersiz `joinCode`, `setsPerMatch: 1|2`, `affectsGlobalElo`).
-  - Öğrenci katılımı (`POST /tournaments/join`), Check-in yoklama (`POST /tournaments/:id/check-in`), Tur başlatma (`POST /tournaments/:id/start-round`), Hakem hükmen karar (`PATCH /tournaments/:id/pairings/:pairingId/result`), Diskalifiye (`PATCH /tournaments/:id/participants/:userId/disqualify`), CSV dışa aktarma (`GET /tournaments/:id/export`).
-  - `TournamentGateway` (`/tournament` namespace): Canlı turnuva odası, `tournament:updated` ve `tournament:match_assigned` event'leri.
-  - `GameService` entegrasyonu: Turnuva maçı bittiğinde 2 setlik maçta otomatik P1↔P2 taraf değişimli 2. seti açma, puan/Buchholz güncelleme ve aktif turnuva maçında bot kilidi bilgisi.
+- `#/tournaments` rotası ve üst barda "🏆 Turnuvalar" butonu (`App.tsx`, `router.ts`).
+- `TournamentPage.tsx`:
+  - Öğrenci: 6 haneli kodla turnuvaya katılma (opsiyonel sınıf etiketi), Check-in ("✅ Hazırım") butonu, `/tournament` WebSocket üzerinden `tournament:match_assigned` geldiğinde otomatik `#/game` tahtasına yönlendirme.
+  - Öğretmen / Admin: Turnuva oluşturma formu (Ad, Okul, Tur sayısı, Tek/Çift set, ELO etkilesin mi, Hamle süresi), büyük punto katılım kodu ekranı, Yoklama (Check-in) açma, Turu Başlatma, Projeksiyon/Canlı Masalar + Puan Tablosu, ortak ağ/IP sarı uyarı rozeti (`⚠️ Ortak Ağ`), hakem hükmen karar (`P1_WIN`, `P2_WIN`, `DRAW`, `NO_SHOW`), diskalifiye, okul filtresi ve CSV indirme / Yazdır butonu.
+- `LobbyPage.tsx`: Aktif turnuva maçı varken PvE Bot modunu kilitleme (`GET /tournaments/my-active-status`).
