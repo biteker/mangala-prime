@@ -39,6 +39,8 @@ export class UserService {
       return {
         id: user.id,
         username: user.username,
+        role: user.role,
+        schoolName: user.schoolName,
         elo: user.eloScore,
         totalMatches,
         wins: user.wins,

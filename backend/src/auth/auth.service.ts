@@ -37,10 +37,15 @@ export class AuthService {
 
       const passwordHash = await bcrypt.hash(password, 12);
 
+      const isInitialAdmin =
+        Boolean(this.config.initialAdminUsername) &&
+        this.config.initialAdminUsername === username;
+
       const user = await this.prisma.user.create({
         data: {
           username,
           passwordHash,
+          role: isInitialAdmin ? 'ADMIN' : 'STUDENT',
           eloScore: 1000,
           wins: 0,
           losses: 0,
@@ -88,9 +93,17 @@ export class AuthService {
 
       const tokens = await this.generateTokens(user.id, user.username);
 
+      const shouldPromoteAdmin =
+        Boolean(this.config.initialAdminUsername) &&
+        this.config.initialAdminUsername === user.username &&
+        user.role !== 'ADMIN';
+
       await this.prisma.user.update({
         where: { id: user.id },
-        data: { refreshToken: tokens.refreshToken },
+        data: {
+          refreshToken: tokens.refreshToken,
+          ...(shouldPromoteAdmin ? { role: 'ADMIN' } : {}),
+        },
       });
 
       return tokens;
@@ -127,9 +140,17 @@ export class AuthService {
 
       const tokens = await this.generateTokens(user.id, user.username);
 
+      const shouldPromoteAdmin =
+        Boolean(this.config.initialAdminUsername) &&
+        this.config.initialAdminUsername === user.username &&
+        user.role !== 'ADMIN';
+
       await this.prisma.user.update({
         where: { id: user.id },
-        data: { refreshToken: tokens.refreshToken },
+        data: {
+          refreshToken: tokens.refreshToken,
+          ...(shouldPromoteAdmin ? { role: 'ADMIN' } : {}),
+        },
       });
 
       return tokens;

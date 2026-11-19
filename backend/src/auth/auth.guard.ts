@@ -30,6 +30,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       const isApi =
         reqPath.startsWith('/auth') ||
         reqPath.startsWith('/users') ||
+        reqPath.startsWith('/admin') ||
+        reqPath.startsWith('/tournaments') ||
         reqPath.startsWith('/api');
       if (!isApi) {
         return true;

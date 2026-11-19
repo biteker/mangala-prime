@@ -12,6 +12,8 @@ model User {
   id                String   @id @default(uuid())
   username          String   @unique
   passwordHash      String
+  role              UserRole @default(STUDENT)
+  schoolName        String?
   eloScore          Int      @default(1000)
   wins              Int      @default(0)
   losses            Int      @default(0)
@@ -20,26 +22,132 @@ model User {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  matchesAsP1 Match[]       @relation("Player1")
-  matchesAsP2 Match[]       @relation("Player2")
-  moves       MoveHistory[]
+  matchesAsP1             Match[]                 @relation("Player1")
+  matchesAsP2             Match[]                 @relation("Player2")
+  moves                   MoveHistory[]
+  createdTournaments      Tournament[]            @relation("TournamentCreator")
+  tournamentEntries       TournamentParticipant[]
+  tournamentPairingsAsP1  TournamentPairing[]     @relation("PairingPlayer1")
+  tournamentPairingsAsP2  TournamentPairing[]     @relation("PairingPlayer2")
+  createdTrustedSchoolIps TrustedSchoolIp[]       @relation("TrustedSchoolIpCreator")
+}
+
+model TrustedSchoolIp {
+  id          String   @id @default(uuid())
+  schoolName  String
+  ipAddress   String   @unique
+  isActive    Boolean  @default(true)
+  notes       String?
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy User? @relation("TrustedSchoolIpCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([isActive, ipAddress])
+}
+
+model SystemSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model Tournament {
+  id                String           @id @default(uuid())
+  name              String
+  joinCode          String           @unique
+  schoolName        String?
+  format            TournamentFormat @default(SWISS)
+  status            TournamentStatus @default(REGISTRATION)
+  totalRounds       Int              @default(5)
+  currentRound      Int              @default(0)
+  setsPerMatch      Int              @default(2)
+  turnTimeLimitSecs Int              @default(59)
+  affectsGlobalElo  Boolean          @default(false)
+  createdById       String
+  createdAt         DateTime         @default(now())
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  updatedAt         DateTime         @updatedAt
+
+  createdBy    User                    @relation("TournamentCreator", fields: [createdById], references: [id])
+  participants TournamentParticipant[]
+  pairings     TournamentPairing[]
+  matches      Match[]
+
+  @@index([status])
+  @@index([createdById])
+}
+
+model TournamentParticipant {
+  id              String   @id @default(uuid())
+  tournamentId    String
+  userId          String
+  classLabel      String?
+  points          Float    @default(0)
+  buchholz        Float    @default(0)
+  wins            Int      @default(0)
+  draws           Int      @default(0)
+  losses          Int      @default(0)
+  checkedIn       Boolean  @default(false)
+  disqualified    Boolean  @default(false)
+  lastIp          String?
+  lastFingerprint String?
+  joinedAt        DateTime @default(now())
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tournamentId, userId])
+  @@index([tournamentId, points])
+}
+
+model TournamentPairing {
+  id           String        @id @default(uuid())
+  tournamentId String
+  round        Int
+  tableNumber  Int
+  player1Id    String
+  player2Id    String?
+  setNumber    Int           @default(1)
+  p1SetWins    Int           @default(0)
+  p2SetWins    Int           @default(0)
+  result       PairingResult @default(PENDING)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  player1    User       @relation("PairingPlayer1", fields: [player1Id], references: [id])
+  player2    User?      @relation("PairingPlayer2", fields: [player2Id], references: [id])
+  matches    Match[]
+
+  @@unique([tournamentId, round, tableNumber])
+  @@index([tournamentId, round])
 }
 
 model Match {
-  id          String      @id @default(uuid())
-  player1Id   String
-  player2Id   String
-  winnerId    String?
-  status      MatchStatus @default(ACTIVE)
-  isFriendly  Boolean     @default(false)
-  p1EloChange Int?
-  p2EloChange Int?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id                  String      @id @default(uuid())
+  player1Id           String
+  player2Id           String
+  winnerId            String?
+  status              MatchStatus @default(ACTIVE)
+  isFriendly          Boolean     @default(false)
+  p1EloChange         Int?
+  p2EloChange         Int?
+  tournamentId        String?
+  tournamentPairingId String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
 
-  player1 User          @relation("Player1", fields: [player1Id], references: [id])
-  player2 User          @relation("Player2", fields: [player2Id], references: [id])
-  moves   MoveHistory[]
+  player1           User               @relation("Player1", fields: [player1Id], references: [id])
+  player2           User               @relation("Player2", fields: [player2Id], references: [id])
+  tournament        Tournament?        @relation(fields: [tournamentId], references: [id], onDelete: SetNull)
+  tournamentPairing TournamentPairing? @relation(fields: [tournamentPairingId], references: [id], onDelete: SetNull)
+  moves             MoveHistory[]
+
+  @@index([tournamentId])
+  @@index([tournamentPairingId])
 }
 
 model MoveHistory {
@@ -54,8 +162,38 @@ model MoveHistory {
   player User  @relation(fields: [playerId], references: [id])
 }
 
+enum UserRole {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
 enum MatchStatus {
   ACTIVE
   FINISHED
   ABANDONED
+}
+
+enum TournamentFormat {
+  SWISS
+  KNOCKOUT
+}
+
+enum TournamentStatus {
+  DRAFT
+  REGISTRATION
+  CHECK_IN
+  IN_PROGRESS
+  FINISHED
+  CANCELLED
+}
+
+enum PairingResult {
+  PENDING
+  P1_WIN
+  P2_WIN
+  DRAW
+  BYE
+  NO_SHOW_P1
+  NO_SHOW_P2
 }
