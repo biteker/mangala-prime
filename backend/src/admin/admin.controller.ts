@@ -16,7 +16,11 @@ import {
   CreateSchoolIpDto,
   UpdateSchoolIpDto,
   UpdateUserRoleDto,
+  UpdateUserProfileDto,
   ResetUserPasswordDto,
+  BulkDeleteUsersDto,
+  BulkCreateUsersDto,
+  ResetEloDto,
   UpdateAdminSettingsDto,
 } from './dto/admin.dto';
 import type {
@@ -24,6 +28,10 @@ import type {
   AdminUserItem,
   AdminSettingsResponse,
   AdminMyIpResponse,
+  AdminBulkDeleteResult,
+  AdminBulkCreateResult,
+  AdminResetEloResult,
+  TournamentSummary,
 } from '@mangala/shared';
 
 @Controller('admin')
@@ -105,5 +113,45 @@ export class AdminController {
     @Body() dto: UpdateAdminSettingsDto,
   ): Promise<AdminSettingsResponse> {
     return this.adminService.updateSettings(dto);
+  }
+
+  @Post('users/bulk-delete')
+  async bulkDeleteUsers(
+    @Body() dto: BulkDeleteUsersDto,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<AdminBulkDeleteResult> {
+    return this.adminService.bulkDeleteUsers(dto.userIds, req.user?.id ?? '');
+  }
+
+  @Patch('users/:id/profile')
+  async updateUserProfile(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserProfileDto,
+  ): Promise<AdminUserItem> {
+    return this.adminService.updateUserProfile(id, dto);
+  }
+
+  @Post('users/bulk-create')
+  async bulkCreateUsers(
+    @Body() dto: BulkCreateUsersDto,
+  ): Promise<AdminBulkCreateResult> {
+    return this.adminService.bulkCreateUsers(dto);
+  }
+
+  @Post('users/reset-elo')
+  async resetUsersElo(@Body() dto: ResetEloDto): Promise<AdminResetEloResult> {
+    return this.adminService.resetUsersElo(dto.userIds);
+  }
+
+  @Get('tournaments')
+  async listTournaments(): Promise<TournamentSummary[]> {
+    return this.adminService.listAllTournaments();
+  }
+
+  @Delete('tournaments/:id')
+  async deleteTournament(
+    @Param('id') id: string,
+  ): Promise<{ deleted: boolean }> {
+    return this.adminService.deleteTournament(id);
   }
 }

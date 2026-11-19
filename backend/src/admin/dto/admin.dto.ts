@@ -1,10 +1,13 @@
 import {
+  ArrayMinSize,
+  IsArray,
   IsBoolean,
   IsIP,
   IsInt,
   IsEnum,
   IsOptional,
   IsString,
+  Matches,
   Max,
   MaxLength,
   Min,
@@ -80,4 +83,51 @@ export class UpdateAdminSettingsDto {
   @Min(10)
   @Max(300)
   defaultTurnTimeLimitSecs?: number;
+}
+
+export class BulkDeleteUsersDto {
+  @IsArray()
+  @ArrayMinSize(1, { message: 'Silmek için en az 1 kullanıcı seçmelisiniz.' })
+  @IsString({ each: true })
+  userIds!: string[];
+}
+
+export class UpdateUserProfileDto {
+  @IsString()
+  @MinLength(3, { message: 'Kullanıcı adı en az 3 karakter olmalıdır.' })
+  @MaxLength(30, { message: 'Kullanıcı adı en fazla 30 karakter olabilir.' })
+  @Matches(/^[a-zA-Z0-9_.-]+$/, {
+    message:
+      'Kullanıcı adı yalnızca harf, rakam, nokta, tire ve alt çizgi içerebilir.',
+  })
+  username!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  schoolName?: string;
+}
+
+export class BulkCreateUsersDto {
+  @IsArray()
+  @ArrayMinSize(1, { message: 'En az 1 kullanıcı adı girmelisiniz.' })
+  @IsString({ each: true })
+  usernames!: string[];
+
+  @IsString()
+  @MinLength(6, { message: 'Başlangıç şifresi en az 6 karakter olmalıdır.' })
+  @MaxLength(72)
+  defaultPassword!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  schoolName?: string;
+}
+
+export class ResetEloDto {
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  userIds?: string[];
 }

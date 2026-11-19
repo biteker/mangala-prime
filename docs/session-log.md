@@ -23,6 +23,23 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-20] — Admin Toplu Yönetim Araçları (Silme, Düzenleme, Toplu Oluşturma, ELO Sıfırlama, Turnuva Silme)
+
+**Tamamlanan Görev:** Admin Dashboard üzerine 5 yeni toplu yönetim aracı eklendi: (1) Çoklu checkbox seçimiyle toplu kullanıcı silme (`POST /admin/users/bulk-delete` — ilişkili maç, hamle ve turnuva kayıtlarını tek transaction içinde temizler, admin'in kendini silmesini engeller), (2) kullanıcı adı ve okul adı düzenleme (`PATCH /admin/users/:id/profile`), (3) satır satır yapıştırmayla toplu öğrenci hesabı oluşturma (`POST /admin/users/bulk-create`), (4) seçili veya tüm kullanıcıların ELO/G/M istatistiklerini sıfırlama (`POST /admin/users/reset-elo`), (5) Admin Paneli `🏆 Turnuvalar` sekmesi ve turnuva silme (`DELETE /admin/tournaments/:id`). 4 yeni birim testi eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `shared/types/api-response.types.ts` — `AdminBulkDeleteResult`, `AdminBulkCreateResult`, `AdminResetEloResult` tipleri eklendi
+- `backend/src/admin/dto/admin.dto.ts`, `admin.service.ts`, `admin.controller.ts` — 6 yeni yönetim endpoint'i ve DTO doğrulamaları
+- `backend/src/admin/admin.service.spec.ts` — 4 yeni birim testi (toplam 10 admin testi)
+- `frontend/src/components/AdminPage.tsx` — Checkbox çoklu seçim, toplu silme, kullanıcı düzenleme, toplu öğrenci oluşturma, ELO sıfırlama ve Turnuvalar sekmesi
+
+**Test Sonuçları:** 161/161 test geçti (Backend: 136/136, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok.
+**Commit:** feat(admin): add bulk user delete/create, profile edit, ELO reset, and tournament deletion
+**PR:** feature/admin-bulk-tools → develop → main
+
+---
+
 ### Oturum [2026-11-20] — T-21…T-24: Turnuva Frontend Merkezi, Check-in, Hakem, Bot Kilidi & CSV/Yazdır (Faz E Tamamlandı)
 
 **Tamamlanan Görev:** `#/tournaments` Turnuva Merkezi (`TournamentPage.tsx`) geliştirildi ve Faz E (`T-17…T-24`) tamamen tamamlandı. Öğrenciler 6 haneli kodla (opsiyonel sınıf etiketiyle) turnuvaya katılabiliyor, Check-in (yoklama) verebiliyor ve `/tournament` WebSocket üzerinden tur başlatıldığında otomatik oyun tahtasına yönlendiriliyor. Öğretmen/Admin kullanıcılar turnuva oluşturma (tur sayısı, 1/2 set, genel ELO seçimi, hamle süresi), büyük punto katılım kodu ekranı, Projeksiyon Modu, canlı masalar + puan tablosu, ortak ağ uyarı rozeti (`⚠️ Ortak Ağ`), hakem hükmen kararları, diskalifiye, okul filtresi, CSV indirme ve yazdırma özelliklerine kavuştu. `LobbyPage.tsx` üzerinde aktif turnuva maçı varken PvE Bot modu otomatik kilitleniyor.
