@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { APP_CONFIG, loadAppConfig } from '../common/config/app-config';
@@ -26,7 +30,17 @@ describe('AdminService', () => {
       findMany: jest.fn(),
       findUnique: jest.fn(),
       update: jest.fn(),
+      updateMany: jest.fn(),
+      createMany: jest.fn(),
+      deleteMany: jest.fn(),
     },
+    tournament: {
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      delete: jest.fn(),
+      updateMany: jest.fn(),
+    },
+    $transaction: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -115,5 +129,46 @@ describe('AdminService', () => {
     await expect(
       service.resetUserPassword('missing', 'newpass123'),
     ).rejects.toThrow(NotFoundException);
+  });
+
+  it('should_prevent_admin_from_bulk_deleting_only_themselves', async () => {
+    await expect(
+      service.bulkDeleteUsers(['admin-1'], 'admin-1'),
+    ).rejects.toThrow(BadRequestException);
+  });
+
+  it('should_bulk_create_new_students_and_skip_existing_usernames', async () => {
+    mockPrisma.user.findMany.mockResolvedValue([{ username: '5A_01' }]);
+    mockPrisma.user.createMany.mockResolvedValue({ count: 2 });
+
+    const res = await service.bulkCreateUsers({
+      usernames: ['5A_01', '5A_02', '5A_03'],
+      defaultPassword: 'password123',
+      schoolName: 'Atatürk Ortaokulu',
+    });
+
+    expect(res.created).toEqual(['5A_02', '5A_03']);
+    expect(res.skipped).toEqual(['5A_01']);
+    expect(mockPrisma.user.createMany).toHaveBeenCalledTimes(1);
+  });
+
+  it('should_reset_elo_for_selected_users', async () => {
+    mockPrisma.user.updateMany.mockResolvedValue({ count: 3 });
+
+    const res = await service.resetUsersElo(['u1', 'u2', 'u3']);
+
+    expect(res.resetCount).toBe(3);
+    expect(mockPrisma.user.updateMany).toHaveBeenCalledWith({
+      where: { id: { in: ['u1', 'u2', 'u3'] } },
+      data: { eloScore: 1000, wins: 0, losses: 0 },
+    });
+  });
+
+  it('should_delete_tournament_when_found', async () => {
+    mockPrisma.tournament.findUnique.mockResolvedValue({ id: 't-1' });
+    mockPrisma.tournament.delete.mockResolvedValue({ id: 't-1' });
+
+    const res = await service.deleteTournament('t-1');
+    expect(res.deleted).toBe(true);
   });
 });

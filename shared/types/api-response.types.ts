@@ -108,6 +108,19 @@ export interface AdminMyIpResponse {
   isTrustedSchoolIp: boolean;
 }
 
+export interface AdminBulkDeleteResult {
+  deletedCount: number;
+}
+
+export interface AdminBulkCreateResult {
+  created: string[];
+  skipped: string[];
+}
+
+export interface AdminResetEloResult {
+  resetCount: number;
+}
+
 // Tournament Types (Phase E: T-20..T-24)
 export type TournamentFormat = 'SWISS' | 'KNOCKOUT';
 export type TournamentStatus =
