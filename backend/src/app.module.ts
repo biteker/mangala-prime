@@ -10,6 +10,7 @@ import { GameModule } from './game/game.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { LobbyModule } from './lobby/lobby.module';
+import { RolesGuard } from './common/guards/roles.guard';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
@@ -39,6 +40,10 @@ import { join } from 'path';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })

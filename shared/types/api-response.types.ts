@@ -22,10 +22,14 @@ export interface AuthRefreshResponse {
   accessToken: string;
 }
 
+export type UserRole = 'STUDENT' | 'TEACHER' | 'ADMIN';
+
 // User Profile Types
 export interface UserProfileResponse {
   id: string;
   username: string;
+  role: UserRole;
+  schoolName?: string | null;
   elo: number;
   totalMatches: number;
   wins: number;

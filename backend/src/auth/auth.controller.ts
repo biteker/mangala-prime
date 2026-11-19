@@ -20,12 +20,14 @@ import {
   AuthRegisterResponse,
   AuthLoginResponse,
   AuthRefreshResponse,
+  type UserRole,
 } from '@mangala/shared';
 
 export interface AuthenticatedRequest extends express.Request {
   user?: {
     readonly id: string;
     readonly username: string;
+    readonly role: UserRole;
   };
 }
 

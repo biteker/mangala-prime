@@ -23,6 +23,27 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-20] — T-17: Rol, Okul IP & Turnuva Veritabanı Şeması + RolesGuard
+
+**Tamamlanan Görev:** Faz E (Turnuva Sistemi & Admin Dashboard) yol haritası (K-8…K-11, T-17…T-24) `docs/architecture-roadmap.md` içine işlendi ve T-17 tamamlandı. `prisma/schema.prisma` üzerinde `UserRole` (`STUDENT`, `TEACHER`, `ADMIN`), `User.role`, `User.schoolName`, `TrustedSchoolIp`, `SystemSetting`, `Tournament`, `TournamentParticipant`, `TournamentPairing` modelleri ve `Match` ilişkileri eklendi; `20261119214122_add_roles_school_ips_and_tournaments` migration'ı üretilip uygulandı. `RolesGuard` ve `@Roles(...)` dekoratörü global guard olarak bağlandı; `INITIAL_ADMIN_USERNAME` ortam değişkeniyle ilk admin ataması ve `JwtStrategy` / `UserProfileResponse` rol desteği eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `docs/architecture-roadmap.md` — Faz E (K-8…K-11 ve T-17…T-24) eklendi, T-17 tamamlandı işaretlendi
+- `prisma/schema.prisma` & `prisma/migrations/20261119214122_add_roles_school_ips_and_tournaments/migration.sql` — Yeni modeller ve enum'lar
+- `shared/types/api-response.types.ts` — `UserRole` tipi ve `UserProfileResponse.role` / `schoolName` alanları eklendi
+- `backend/src/common/guards/roles.guard.ts` & `roles.guard.spec.ts` — Yeni: `RolesGuard`, `@Roles` dekoratörü ve 4 birim testi
+- `backend/src/common/config/app-config.ts` — Opsiyonel `initialAdminUsername` (`INITIAL_ADMIN_USERNAME`) desteği
+- `backend/src/auth/auth.guard.ts`, `strategies/jwt.strategy.ts`, `auth.controller.ts`, `auth.service.ts` — `/admin` ve `/tournaments` API koruması, JWT user role ve ilk admin ataması
+- `backend/src/user/user.service.ts` & `backend/src/app.module.ts` — Profil rol alanı ve global `RolesGuard` kaydı
+
+**Test Sonuçları:** 140/140 test geçti (Backend: 115/115, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki görev: T-18 (Güvenilir Okul IP Kuralı & Admin Dashboard).
+**Bir Sonraki Görev:** T-18 — Güvenilir Okul IP Kuralı & Admin Dashboard
+**Commit:** feat(schema,auth): add roles, trusted school IP, tournament models and RolesGuard (T-17)
+**PR:** feature/tournament-schema-roles → develop
+
+---
+
 ### Oturum [2026-11-11] — Okul Laboratuvarı (Tek IP / NAT) Hız Sınırları Güncellemesi
 
 **Tamamlanan Görev:** Okul laboratuvarındaki (18–40 bilgisayarın tek bir dış IP adresinden çıktığı NAT ortamı) turnuvalarda öğrencilerin aynı anda kayıt olurken, giriş yaparken ve lobi/oyun WebSocket bağlantısı kurarken `429 RATE_LIMITED` engeline takılmaması için IP bazlı hız sınırları sınıf kapasitesine uygun şekilde yükseltildi.

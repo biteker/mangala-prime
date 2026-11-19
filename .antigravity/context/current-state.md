@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/seo-pwa
+Aktif Branch: feature/tournament-schema-roles
 
 ---
 
@@ -79,8 +79,10 @@ Yayın Hazırlığı: ██████████ %100 (Faz A, Faz B, Faz C v
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-11 — Okul Laboratuvarı (Tek IP / NAT) Hız Sınırları Güncellemesi
+Oturum 2026-11-20 — T-17: Rol, Okul IP & Turnuva Veritabanı Şeması + RolesGuard
 
 ### Yapılanlar
-- Okul ağında (tek ortak IP) 18–40 öğrencinin aynı anda giriş/kayıt yapabilmesi için `login` (60/dk), `register` (40/10dk), `refresh` (120/dk), global HTTP (600/dk) ve WebSocket bağlantı (120/dk) limitleri güncellendi.
-- 136/136 birim testi (111 backend + 25 frontend), lint ve build doğrulandı.
+- Faz E (T-17…T-24, K-8…K-11) yol haritasına eklendi.
+- `UserRole`, `TrustedSchoolIp`, `SystemSetting`, `Tournament`, `TournamentParticipant`, `TournamentPairing` Prisma şeması ve migration oluşturuldu.
+- `RolesGuard`, `@Roles(...)` dekoratörü, `INITIAL_ADMIN_USERNAME` desteği ve 4 yeni birim testi eklendi.
+- 140/140 birim testi (115 backend + 25 frontend), lint ve build doğrulandı. Sıradaki görev: T-18.

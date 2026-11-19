@@ -8,6 +8,7 @@ export interface AppConfig {
   readonly corsOrigins: readonly string[];
   readonly turnTimeLimitSecs: number;
   readonly databaseUrl: string;
+  readonly initialAdminUsername?: string;
 }
 
 export const APP_CONFIG = Symbol('APP_CONFIG');
@@ -115,6 +116,10 @@ export function loadAppConfig(env: NodeJS.ProcessEnv): AppConfig {
     port = parsedPort;
   }
 
+  const rawInitialAdmin = env.INITIAL_ADMIN_USERNAME?.trim();
+  const initialAdminUsername =
+    rawInitialAdmin && rawInitialAdmin.length > 0 ? rawInitialAdmin : undefined;
+
   return Object.freeze({
     nodeEnv,
     port,
@@ -123,5 +128,6 @@ export function loadAppConfig(env: NodeJS.ProcessEnv): AppConfig {
     corsOrigins,
     turnTimeLimitSecs,
     databaseUrl,
+    initialAdminUsername,
   });
 }

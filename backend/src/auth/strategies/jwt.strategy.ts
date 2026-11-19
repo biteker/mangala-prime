@@ -4,6 +4,8 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { APP_CONFIG, type AppConfig } from '../../common/config/app-config';
 
+import type { UserRole } from '@mangala/shared';
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
@@ -20,7 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: {
     sub: string;
     username: string;
-  }): Promise<{ id: string; username: string }> {
+  }): Promise<{ id: string; username: string; role: UserRole }> {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id: payload.sub },
@@ -31,7 +33,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
           message: 'Kullanıcı bulunamadı.',
         });
       }
-      return { id: user.id, username: user.username };
+      return {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+      };
     } catch (error) {
       if (error instanceof UnauthorizedException) throw error;
       throw new UnauthorizedException({
