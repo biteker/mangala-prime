@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/tournament-schema-roles
+Aktif Branch: feature/admin-dashboard-school-ip
 
 ---
 
@@ -79,10 +79,8 @@ Yayın Hazırlığı: ██████████ %100 (Faz A, Faz B, Faz C v
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-20 — T-17: Rol, Okul IP & Turnuva Veritabanı Şeması + RolesGuard
+Oturum 2026-11-20 — T-18: Güvenilir Okul IP Kuralı & Admin Dashboard
 
 ### Yapılanlar
-- Faz E (T-17…T-24, K-8…K-11) yol haritasına eklendi.
-- `UserRole`, `TrustedSchoolIp`, `SystemSetting`, `Tournament`, `TournamentParticipant`, `TournamentPairing` Prisma şeması ve migration oluşturuldu.
-- `RolesGuard`, `@Roles(...)` dekoratörü, `INITIAL_ADMIN_USERNAME` desteği ve 4 yeni birim testi eklendi.
-- 140/140 birim testi (115 backend + 25 frontend), lint ve build doğrulandı. Sıradaki görev: T-18.
+- `AdminModule` (`GET /admin/my-ip`, `/admin/school-ips`, `/admin/users`, `/admin/settings`), `TrustedSchoolIp` tabanlı puanlı okul maçı kuralı ve `#/admin` Dashboard arayüzü tamamlandı.
+- 148/148 birim testi (123 backend + 25 frontend), lint ve build doğrulandı. Sıradaki görev: T-19.

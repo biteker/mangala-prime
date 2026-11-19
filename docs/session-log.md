@@ -23,6 +23,26 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-20] — T-18: Güvenilir Okul IP Kuralı & Admin Dashboard
+
+**Tamamlanan Görev:** Admin Dashboard backend (`AdminModule`, `AdminController`, `AdminService`) ve frontend (`AdminPage.tsx`, `#/admin` rotası) geliştirildi. `LobbyService` içindeki aynı-IP kuralı güncellenerek: ev ağlarında `sameIp → isFriendly` anti-hile kuralı korunurken, Admin'in `TrustedSchoolIp` listesinde aktif olarak tanımladığı statik okul IP'lerinde (günlük aynı iki oyuncu arası max puanlı maç limiti dahilinde) puanlı (ranked) maç oynanabilmesi sağlandı. Admin paneline mevcut IP'yi tek tıkla forma aktarma, okul IP CRUD, kullanıcı arama / rol atama (`STUDENT`/`TEACHER`/`ADMIN`), tek tıkla şifre sıfırlama ve sistem ayarları yönetimi eklendi. 8 yeni birim testi (`admin.service.spec.ts` + `lobby.service.spec.ts`) eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `shared/types/api-response.types.ts` — `TrustedSchoolIpItem`, `AdminUserItem`, `AdminSettingsResponse`, `AdminMyIpResponse` tipleri eklendi
+- `backend/src/admin/dto/admin.dto.ts`, `admin.service.ts`, `admin.controller.ts`, `admin.module.ts` — Yeni: `@Roles('ADMIN')` korumalı yönetim modülü
+- `backend/src/admin/admin.service.spec.ts` — Yeni: 6 birim testi
+- `backend/src/lobby/lobby.service.ts`, `lobby.module.ts`, `lobby.service.spec.ts` — Güvenilir okul IP + günlük çift maç limiti kuralı ve 2 yeni test
+- `backend/src/app.module.ts` — `AdminModule` eklendi
+- `frontend/src/components/AdminPage.tsx`, `frontend/src/App.tsx`, `frontend/src/lib/router.ts`, `frontend/src/index.css` — `#/admin` Admin Dashboard arayüzü ve tema uyumlu stiller
+
+**Test Sonuçları:** 148/148 test geçti (Backend: 123/123, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki görev: T-19 (Saf İsviçre Eşleştirme & Puanlama Motoru).
+**Bir Sonraki Görev:** T-19 — Saf İsviçre (Swiss) Eşleştirme & Puanlama Motoru
+**Commit:** feat(admin,lobby): add trusted school IP ranked rule and Admin Dashboard (T-18)
+**PR:** feature/admin-dashboard-school-ip → develop
+
+---
+
 ### Oturum [2026-11-20] — T-17: Rol, Okul IP & Turnuva Veritabanı Şeması + RolesGuard
 
 **Tamamlanan Görev:** Faz E (Turnuva Sistemi & Admin Dashboard) yol haritası (K-8…K-11, T-17…T-24) `docs/architecture-roadmap.md` içine işlendi ve T-17 tamamlandı. `prisma/schema.prisma` üzerinde `UserRole` (`STUDENT`, `TEACHER`, `ADMIN`), `User.role`, `User.schoolName`, `TrustedSchoolIp`, `SystemSetting`, `Tournament`, `TournamentParticipant`, `TournamentPairing` modelleri ve `Match` ilişkileri eklendi; `20261119214122_add_roles_school_ips_and_tournaments` migration'ı üretilip uygulandı. `RolesGuard` ve `@Roles(...)` dekoratörü global guard olarak bağlandı; `INITIAL_ADMIN_USERNAME` ortam değişkeniyle ilk admin ataması ve `JwtStrategy` / `UserProfileResponse` rol desteği eklendi.

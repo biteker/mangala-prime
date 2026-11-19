@@ -16,6 +16,7 @@ describe('useAuthStore', () => {
   const sampleProfile: UserProfileResponse = {
     id: 'user-1',
     username: 'mangala_ustasi',
+    role: 'STUDENT',
     elo: 1200,
     totalMatches: 10,
     wins: 7,

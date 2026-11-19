@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { LobbyService } from './lobby.service';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { GameService } from '../game/game.service';
+import { AdminService } from '../admin/admin.service';
 import { BadRequestException } from '@nestjs/common';
 
 describe('LobbyService', () => {
@@ -13,11 +14,17 @@ describe('LobbyService', () => {
     },
     match: {
       create: jest.fn(),
+      count: jest.fn(),
     },
   };
 
   const mockGameService = {
     initializeGame: jest.fn(),
+  };
+
+  const mockAdminService = {
+    isTrustedSchoolIp: jest.fn().mockResolvedValue(false),
+    getSchoolDailyRankedPairLimit: jest.fn().mockResolvedValue(3),
   };
 
   beforeEach(async () => {
@@ -26,12 +33,16 @@ describe('LobbyService', () => {
         LobbyService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: GameService, useValue: mockGameService },
+        { provide: AdminService, useValue: mockAdminService },
       ],
     }).compile();
 
     service = module.get<LobbyService>(LobbyService);
 
     jest.clearAllMocks();
+    mockAdminService.isTrustedSchoolIp.mockResolvedValue(false);
+    mockAdminService.getSchoolDailyRankedPairLimit.mockResolvedValue(3);
+    mockPrisma.match.count.mockResolvedValue(0);
     jest.useFakeTimers();
   });
 
@@ -220,6 +231,54 @@ describe('LobbyService', () => {
         true,
       );
       expect(result).toBeNull();
+    });
+  });
+
+  describe('trusted_school_ip_ranked_rule', () => {
+    it('should_create_ranked_match_on_same_ip_when_ip_is_trusted_school_and_under_daily_limit', async () => {
+      mockAdminService.isTrustedSchoolIp.mockResolvedValue(true);
+      mockPrisma.match.count.mockResolvedValue(2);
+      await service.addUser('user-1', 'user1', 'socket-1', '88.255.10.20');
+      await service.addUser('user-2', 'user2', 'socket-2', '88.255.10.20');
+      mockPrisma.match.create.mockResolvedValue({
+        id: 'school-match-1',
+        isFriendly: false,
+      });
+
+      await service.sendInvite('user-1', 'user-2');
+      await service.handleInviteResponse('user-1', 'user-2', true);
+
+      expect(mockPrisma.match.create).toHaveBeenCalledWith({
+        data: {
+          player1Id: 'user-1',
+          player2Id: 'user-2',
+          status: 'ACTIVE',
+          isFriendly: false,
+        },
+      });
+    });
+
+    it('should_fallback_to_friendly_on_trusted_school_ip_after_daily_pair_limit_reached', async () => {
+      mockAdminService.isTrustedSchoolIp.mockResolvedValue(true);
+      mockPrisma.match.count.mockResolvedValue(3);
+      await service.addUser('user-1', 'user1', 'socket-1', '88.255.10.20');
+      await service.addUser('user-2', 'user2', 'socket-2', '88.255.10.20');
+      mockPrisma.match.create.mockResolvedValue({
+        id: 'school-match-4',
+        isFriendly: true,
+      });
+
+      await service.sendInvite('user-1', 'user-2');
+      await service.handleInviteResponse('user-1', 'user-2', true);
+
+      expect(mockPrisma.match.create).toHaveBeenCalledWith({
+        data: {
+          player1Id: 'user-1',
+          player2Id: 'user-2',
+          status: 'ACTIVE',
+          isFriendly: true,
+        },
+      });
     });
   });
 });
