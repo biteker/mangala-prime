@@ -5,7 +5,8 @@ export type RouteType =
   | '#/register'
   | '#/lobby'
   | '#/game'
-  | '#/admin';
+  | '#/admin'
+  | '#/tournaments';
 
 export function useRouter() {
   const getHash = (): RouteType => {
@@ -14,7 +15,8 @@ export function useRouter() {
       hash === '#/register' ||
       hash === '#/lobby' ||
       hash === '#/game' ||
-      hash === '#/admin'
+      hash === '#/admin' ||
+      hash === '#/tournaments'
     ) {
       return hash as RouteType;
     }

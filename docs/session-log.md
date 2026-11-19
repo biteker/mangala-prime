@@ -23,6 +23,25 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-20] — T-21…T-24: Turnuva Frontend Merkezi, Check-in, Hakem, Bot Kilidi & CSV/Yazdır (Faz E Tamamlandı)
+
+**Tamamlanan Görev:** `#/tournaments` Turnuva Merkezi (`TournamentPage.tsx`) geliştirildi ve Faz E (`T-17…T-24`) tamamen tamamlandı. Öğrenciler 6 haneli kodla (opsiyonel sınıf etiketiyle) turnuvaya katılabiliyor, Check-in (yoklama) verebiliyor ve `/tournament` WebSocket üzerinden tur başlatıldığında otomatik oyun tahtasına yönlendiriliyor. Öğretmen/Admin kullanıcılar turnuva oluşturma (tur sayısı, 1/2 set, genel ELO seçimi, hamle süresi), büyük punto katılım kodu ekranı, Projeksiyon Modu, canlı masalar + puan tablosu, ortak ağ uyarı rozeti (`⚠️ Ortak Ağ`), hakem hükmen kararları, diskalifiye, okul filtresi, CSV indirme ve yazdırma özelliklerine kavuştu. `LobbyPage.tsx` üzerinde aktif turnuva maçı varken PvE Bot modu otomatik kilitleniyor.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/src/components/TournamentPage.tsx` — Yeni: Tam özellikli Turnuva Merkezi, Projeksiyon Modu, Check-in, Hakem ve CSV/Yazdır arayüzü
+- `frontend/src/App.tsx` & `frontend/src/lib/router.ts` — `#/tournaments` rotası ve üst bar "🏆 Turnuvalar" butonu eklendi
+- `frontend/src/components/LobbyPage.tsx` — Aktif turnuva maçında PvE Bot kilidi eklendi
+- `frontend/src/index.css` — Turnuva Merkezi, Projeksiyon Modu ve `@media print` stilleri eklendi
+- `docs/architecture-roadmap.md`, `.antigravity/context/current-state.md`, `.antigravity/context/next-task.md` — Faz E (`T-17…T-24`) tamamlandı olarak güncellendi
+
+**Test Sonuçları:** 157/157 test geçti (Backend: 132/132, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Tüm Faz A–E görevleri (`T-01…T-24`) tamamlandı.
+**Bir Sonraki Görev:** `develop` → `main` (`v1.2.0`) release ve canlı sunucuda doğrulama.
+**Commit:** feat(tournament-ui): add Tournament Center, Projection Mode, Check-in, Referee controls, Bot lock and CSV export (T-21..T-24)
+**PR:** feature/tournament-frontend → develop → main
+
+---
+
 ### Oturum [2026-11-20] — T-20: Turnuva Backend Modülü (REST + WS `/tournament`)
 
 **Tamamlanan Görev:** `TournamentModule` (`TournamentController`, `TournamentService`, `TournamentGateway`) oluşturuldu ve `GameService` maç bitiş kancasına (`registerOnMatchFinished`) bağlandı. Turnuva oluşturma (benzersiz 6 haneli `joinCode`, `setsPerMatch: 1|2`, `affectsGlobalElo`), öğrenci katılımı, Check-in yoklama akışı, Swiss tur başlatma + otomatik maç açma, 2 setlik maçlarda Set 1 bitiminde P1↔P2 yer değiştirerek otomatik Set 2 açma, hakem hükmen karar (`P1_WIN`, `P2_WIN`, `DRAW`, `NO_SHOW_P1`, `NO_SHOW_P2`), diskalifiye, ortak ağ/IP uyarı tespiti (`sharedNetworkWarning`), aktif turnuva maçı kontrolü ve UTF-8 BOM'lu CSV dışa aktarma tamamlandı. 5 yeni birim testi eklendi.

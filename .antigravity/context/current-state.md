@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/tournament-backend
+Aktif Branch: develop
 
 ---
 
@@ -8,7 +8,7 @@ Aktif Branch: feature/tournament-backend
 
 ```
 Faz 1 MVP: ██████████ %100
-Yayın Hazırlığı: ██████████ %100 (Faz A, Faz B, Faz C ve Faz D dahil T-01…T-16 tamamlandı)
+Yayın Hazırlığı: ██████████ %100 (Faz A–E dahil T-01…T-24 tamamlandı — v1.2.0)
 ```
 
 ---
@@ -79,8 +79,8 @@ Yayın Hazırlığı: ██████████ %100 (Faz A, Faz B, Faz C v
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-20 — T-20: Turnuva Backend Modülü (REST + WS `/tournament`)
+Oturum 2026-11-20 — T-21…T-24: Turnuva Frontend Merkezi & Faz E Tamamlandı (v1.2.0)
 
 ### Yapılanlar
-- `TournamentModule` (REST + `/tournament` WebSocket + 2-set otomatik P1↔P2 değişimi + Check-in + Hakem hükmen karar + Diskalifiye + Ortak IP uyarısı + CSV export) ve 5 yeni birim testi eklendi.
-- 157/157 birim testi (132 backend + 25 frontend), lint ve build doğrulandı. Sıradaki görev: T-21..T-24 (Turnuva Frontend Arayüzü).
+- `#/tournaments` Turnuva Merkezi (`TournamentPage.tsx`), Projeksiyon Modu, Check-in, Hakem hükmen karar/diskalifiye, ortak ağ uyarısı, aktif turnuvada Bot kilidi ve CSV/Yazdır raporu tamamlandı.
+- 157/157 birim testi (132 backend + 25 frontend), lint ve build doğrulandı. Faz E (`T-17…T-24`) tamamen tamamlandı.

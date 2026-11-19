@@ -3,6 +3,7 @@ import { useLobbyStore } from '../stores/lobby.store';
 import { useAuthStore } from '../stores/auth.store';
 import { useGameStore } from '../stores/game.store';
 import { useRouter } from '../lib/router';
+import { apiClient } from '../lib/api-client';
 import type { BotLevel } from '../lib/bot-engine';
 
 export function LobbyPage(): React.JSX.Element {
@@ -31,6 +32,7 @@ export function LobbyPage(): React.JSX.Element {
   const [queueSeconds, setQueueSeconds] = useState(120);
   const [inviteSeconds, setInviteSeconds] = useState(30);
   const [selectedBotLevel, setSelectedBotLevel] = useState<BotLevel>('medium');
+  const [botLockedForTournament, setBotLockedForTournament] = useState(false);
 
   const queueIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const inviteIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -40,9 +42,21 @@ export function LobbyPage(): React.JSX.Element {
     if (!accessToken) {
       return;
     }
+    let cancelled = false;
     connectLobby();
     useAuthStore.getState().fetchMe().catch(() => {});
+    apiClient
+      .get<{ data: { hasActiveTournamentMatch: boolean } }>(
+        '/tournaments/my-active-status',
+      )
+      .then((res) => {
+        if (!cancelled) {
+          setBotLockedForTournament(Boolean(res.data.data?.hasActiveTournamentMatch));
+        }
+      })
+      .catch(() => {});
     return () => {
+      cancelled = true;
       disconnectLobby();
     };
   }, [accessToken, connectLobby, disconnectLobby]);
@@ -186,12 +200,20 @@ export function LobbyPage(): React.JSX.Element {
                 <button
                   type="button"
                   className="auth-button bot-pve-btn"
+                  disabled={botLockedForTournament}
+                  title={
+                    botLockedForTournament
+                      ? 'Aktif turnuva maçınız varken bot modu kilitlidir.'
+                      : undefined
+                  }
                   onClick={(): void => {
                     startBotGame(selectedBotLevel);
                     navigate('#/game');
                   }}
                 >
-                  🤖 Bota Karşı Oyna (PvE)
+                  {botLockedForTournament
+                    ? '🔒 Turnuva Maçı Aktif (Bot Kilitli)'
+                    : '🤖 Bota Karşı Oyna (PvE)'}
                 </button>
               </div>
             </div>
