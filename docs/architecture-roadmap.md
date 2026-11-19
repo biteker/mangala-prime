@@ -617,10 +617,10 @@ flowchart LR
 | T-18 | ✅ Güvenilir Okul IP Kuralı & Admin Dashboard (Tamamlandı) | E | P1 | Ajan | T-17 | K-8, K-10 |
 | T-19 | ✅ Saf İsviçre (Swiss) Eşleştirme & Puanlama Motoru (Tamamlandı) | E | P1 | Ajan | T-17 | K-9 |
 | T-20 | ✅ Turnuva Backend Modülü (REST + WS `/tournament`) (Tamamlandı) | E | P1 | Ajan | T-18, T-19 | K-9 |
-| T-21 | Turnuva Frontend (Öğretmen, Öğrenci, Projeksiyon) | E | P1 | Ajan | T-20 | K-9, K-11 |
-| T-22 | Evden Turnuva: Check-in & Otomatik `NO_SHOW` | E | P2 | Ajan | T-21 | — |
-| T-23 | Evden Turnuva: Hile Caydırıcılığı & Hakem Müdahalesi | E | P2 | Ajan | T-22 | — |
-| T-24 | Çoklu Okul Filtreleme & Turnuva Sonuç Raporu (CSV/Yazdır) | E | P3 | Ajan | T-23 | K-10 |
+| T-21 | ✅ Turnuva Frontend (Öğretmen, Öğrenci, Projeksiyon) (Tamamlandı) | E | P1 | Ajan | T-20 | K-9, K-11 |
+| T-22 | ✅ Evden Turnuva: Check-in & Otomatik `NO_SHOW` (Tamamlandı) | E | P2 | Ajan | T-21 | — |
+| T-23 | ✅ Evden Turnuva: Hile Caydırıcılığı & Hakem Müdahalesi (Tamamlandı) | E | P2 | Ajan | T-22 | — |
+| T-24 | ✅ Çoklu Okul Filtreleme & Turnuva Sonuç Raporu (CSV/Yazdır) (Tamamlandı) | E | P3 | Ajan | T-23 | K-10 |
 
 ---
 
