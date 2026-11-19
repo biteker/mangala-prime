@@ -202,7 +202,9 @@ export class MangalaBoard extends PIXI.Container {
     colors.forEach((c, idx) => grad.addColorStop(stops[idx], c));
 
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, w, h);
+    ctx.beginPath();
+    ctx.arc(w / 2, h / 2, Math.min(w, h) / 2, 0, Math.PI * 2);
+    ctx.fill();
 
     return PIXI.Texture.from(canvas);
   }
