@@ -5,6 +5,7 @@ import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
 import { LobbyPage } from './components/LobbyPage';
 import { GamePage } from './components/GamePage';
+import { AdminPage } from './components/AdminPage';
 import { LeaderboardModal } from './components/LeaderboardModal';
 import { ProfileModal } from './components/ProfileModal';
 import { useAuthStore } from './stores/auth.store';
@@ -67,6 +68,8 @@ function App(): React.JSX.Element {
         return <LobbyPage />;
       case '#/game':
         return <GamePage />;
+      case '#/admin':
+        return <AdminPage />;
       default:
         return <LoginForm />;
     }
@@ -97,6 +100,15 @@ function App(): React.JSX.Element {
                 >
                   👤 Profilim
                 </button>
+                {user.role === 'ADMIN' && (
+                  <button
+                    type="button"
+                    className="theme-toggle-btn"
+                    onClick={(): void => navigate('#/admin')}
+                  >
+                    🛡️ Admin Paneli
+                  </button>
+                )}
                 <button
                   type="button"
                   className="theme-toggle-btn"

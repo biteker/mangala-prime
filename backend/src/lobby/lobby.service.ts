@@ -1,10 +1,12 @@
 import {
   Injectable,
+  Optional,
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { GameService } from '../game/game.service';
+import { AdminService } from '../admin/admin.service';
 import { Server } from 'socket.io';
 
 export interface OnlineUser {
@@ -53,7 +55,47 @@ export class LobbyService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly gameService: GameService,
+    @Optional() private readonly adminService?: AdminService,
   ) {}
+
+  private async resolveIsFriendly(
+    p1UserId: string,
+    p1Ip: string,
+    p2UserId: string,
+    p2Ip: string,
+  ): Promise<boolean> {
+    if (p1Ip !== p2Ip) {
+      return false;
+    }
+
+    if (!this.adminService) {
+      return true;
+    }
+
+    const isTrustedSchool = await this.adminService.isTrustedSchoolIp(p1Ip);
+    if (!isTrustedSchool) {
+      return true;
+    }
+
+    try {
+      const dailyLimit =
+        await this.adminService.getSchoolDailyRankedPairLimit();
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const recentRankedCount = await this.prisma.match.count({
+        where: {
+          isFriendly: false,
+          createdAt: { gte: since },
+          OR: [
+            { player1Id: p1UserId, player2Id: p2UserId },
+            { player1Id: p2UserId, player2Id: p1UserId },
+          ],
+        },
+      });
+      return recentRankedCount >= dailyLimit;
+    } catch {
+      return false;
+    }
+  }
 
   setServer(server: Server): void {
     this.server = server;
@@ -297,7 +339,12 @@ export class LobbyService {
       });
     }
 
-    const isFriendly = p1.ip === p2.ip;
+    const isFriendly = await this.resolveIsFriendly(
+      inviterId,
+      p1.ip,
+      targetId,
+      p2.ip,
+    );
 
     try {
       const match = await this.prisma.match.create({
@@ -360,7 +407,12 @@ export class LobbyService {
     this.leaveQueue(p1.userId);
     this.leaveQueue(p2.userId);
 
-    const isFriendly = p1.ip === p2.ip;
+    const isFriendly = await this.resolveIsFriendly(
+      p1.userId,
+      p1.ip,
+      p2.userId,
+      p2.ip,
+    );
 
     try {
       const match = await this.prisma.match.create({

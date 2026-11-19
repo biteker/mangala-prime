@@ -76,3 +76,34 @@ export interface MatchDetailsResponse {
     timestamp: string;
   }[];
 }
+
+// Admin Dashboard Types
+export interface TrustedSchoolIpItem {
+  id: string;
+  schoolName: string;
+  ipAddress: string;
+  isActive: boolean;
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface AdminUserItem {
+  id: string;
+  username: string;
+  role: UserRole;
+  schoolName?: string | null;
+  elo: number;
+  wins: number;
+  losses: number;
+  createdAt: string;
+}
+
+export interface AdminSettingsResponse {
+  schoolDailyRankedPairLimit: number;
+  defaultTurnTimeLimitSecs: number;
+}
+
+export interface AdminMyIpResponse {
+  ipAddress: string;
+  isTrustedSchoolIp: boolean;
+}
