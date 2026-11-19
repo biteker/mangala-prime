@@ -48,12 +48,12 @@ export function AdminPage(): React.JSX.Element {
   const loadSchoolIps = useCallback(async (): Promise<void> => {
     setIsLoadingIps(true);
     try {
-      const [ipsRes, myIpRes] = await Promise.all([
-        apiClient.get<{ data: TrustedSchoolIpItem[] }>('/admin/school-ips'),
-        apiClient.get<{ data: AdminMyIpResponse }>('/admin/my-ip'),
+      const [ips, myIp] = await Promise.all([
+        apiClient.get<never, TrustedSchoolIpItem[]>('/admin/school-ips'),
+        apiClient.get<never, AdminMyIpResponse>('/admin/my-ip'),
       ]);
-      setSchoolIps(ipsRes.data.data);
-      setMyIpInfo(myIpRes.data.data);
+      setSchoolIps(ips);
+      setMyIpInfo(myIp);
     } catch {
       setErrorMessage('Okul IP listesi yüklenemedi.');
     } finally {
@@ -64,10 +64,10 @@ export function AdminPage(): React.JSX.Element {
   const loadUsers = useCallback(async (searchQuery?: string): Promise<void> => {
     setIsLoadingUsers(true);
     try {
-      const res = await apiClient.get<{ data: AdminUserItem[] }>('/admin/users', {
+      const list = await apiClient.get<never, AdminUserItem[]>('/admin/users', {
         params: searchQuery ? { search: searchQuery } : undefined,
       });
-      setUsers(res.data.data);
+      setUsers(list);
     } catch {
       setErrorMessage('Kullanıcı listesi yüklenemedi.');
     } finally {
@@ -83,19 +83,19 @@ export function AdminPage(): React.JSX.Element {
 
     const bootstrap = async (): Promise<void> => {
       try {
-        const [ipsRes, myIpRes, usersRes, settingsRes] = await Promise.all([
-          apiClient.get<{ data: TrustedSchoolIpItem[] }>('/admin/school-ips'),
-          apiClient.get<{ data: AdminMyIpResponse }>('/admin/my-ip'),
-          apiClient.get<{ data: AdminUserItem[] }>('/admin/users'),
-          apiClient.get<{ data: AdminSettingsResponse }>('/admin/settings'),
+        const [ips, myIp, userList, loadedSettings] = await Promise.all([
+          apiClient.get<never, TrustedSchoolIpItem[]>('/admin/school-ips'),
+          apiClient.get<never, AdminMyIpResponse>('/admin/my-ip'),
+          apiClient.get<never, AdminUserItem[]>('/admin/users'),
+          apiClient.get<never, AdminSettingsResponse>('/admin/settings'),
         ]);
         if (cancelled) return;
-        setSchoolIps(ipsRes.data.data);
-        setMyIpInfo(myIpRes.data.data);
-        setUsers(usersRes.data.data);
-        setSettings(settingsRes.data.data);
-        setDailyLimitInput(String(settingsRes.data.data.schoolDailyRankedPairLimit));
-        setTurnLimitInput(String(settingsRes.data.data.defaultTurnTimeLimitSecs));
+        setSchoolIps(ips);
+        setMyIpInfo(myIp);
+        setUsers(userList);
+        setSettings(loadedSettings);
+        setDailyLimitInput(String(loadedSettings.schoolDailyRankedPairLimit));
+        setTurnLimitInput(String(loadedSettings.defaultTurnTimeLimitSecs));
       } catch {
         if (!cancelled) {
           setErrorMessage('Yönetim paneli verileri yüklenemedi.');
@@ -207,11 +207,11 @@ export function AdminPage(): React.JSX.Element {
     e.preventDefault();
     clearAlerts();
     try {
-      const res = await apiClient.patch<{ data: AdminSettingsResponse }>('/admin/settings', {
+      const updated = await apiClient.patch<never, AdminSettingsResponse>('/admin/settings', {
         schoolDailyRankedPairLimit: Number(dailyLimitInput),
         defaultTurnTimeLimitSecs: Number(turnLimitInput),
       });
-      setSettings(res.data.data);
+      setSettings(updated);
       setStatusMessage('Sistem ayarları kaydedildi.');
     } catch {
       setErrorMessage('Ayarlar kaydedilemedi. Değer aralıklarını kontrol edin.');
