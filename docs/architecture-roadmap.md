@@ -613,6 +613,23 @@ flowchart LR
 | T-14 | ✅ Bot (PvE) (Tamamlandı) | D | P3 | Ajan | T-08 | — |
 | T-15 | ✅ Rövanş (Tamamlandı) | D | P3 | Ajan | T-11 | K-7 |
 | T-16 | ✅ SEO / PWA (Tamamlandı) | D | P3 | Ajan | T-10 | — |
+| T-17 | ✅ Rol, Okul IP & Turnuva Veritabanı Şeması (Tamamlandı) | E | P1 | Ajan | T-16 | K-8, K-10 |
+| T-18 | ✅ Güvenilir Okul IP Kuralı & Admin Dashboard (Tamamlandı) | E | P1 | Ajan | T-17 | K-8, K-10 |
+| T-19 | ✅ Saf İsviçre (Swiss) Eşleştirme & Puanlama Motoru (Tamamlandı) | E | P1 | Ajan | T-17 | K-9 |
+| T-20 | ✅ Turnuva Backend Modülü (REST + WS `/tournament`) (Tamamlandı) | E | P1 | Ajan | T-18, T-19 | K-9 |
+| T-21 | ✅ Turnuva Frontend (Öğretmen, Öğrenci, Projeksiyon) (Tamamlandı) | E | P1 | Ajan | T-20 | K-9, K-11 |
+| T-22 | ✅ Evden Turnuva: Check-in & Otomatik `NO_SHOW` (Tamamlandı) | E | P2 | Ajan | T-21 | — |
+| T-23 | ✅ Evden Turnuva: Hile Caydırıcılığı & Hakem Müdahalesi (Tamamlandı) | E | P2 | Ajan | T-22 | — |
+| T-24 | ✅ Çoklu Okul Filtreleme & Turnuva Sonuç Raporu (CSV/Yazdır) (Tamamlandı) | E | P3 | Ajan | T-23 | K-10 |
+
+---
+
+## 8.5. Faz E — Turnuva Sistemi & Admin Dashboard (Onaylanan Kararlar: K-8…K-11)
+
+- **K-8 (Güvenilir Okul IP Modeli):** Ev ağlarında `sameIp → isFriendly` anti-hile kuralı korunur. Yalnızca Admin'in `TrustedSchoolIp` tablosunda aktif olarak tanımladığı statik okul IP'lerinden eşleşen bilgisayarlar puanlı (ranked) maç oynayabilir (aynı iki rakip arasında günlük max puanlı maç limiti korunur).
+- **K-9 (Turnuva ELO & Set Seçimi):** Öğretmen turnuva oluştururken `affectsGlobalElo` (`true`/`false`) ve `setsPerMatch` (`1` tek maç / `2` rövanşlı taraf değişimli) seçeneklerini belirler. Turnuva maçları hiçbir IP/limit engeline takılmaz.
+- **K-10 (Çoklu Okul & Rol Mimarisi):** `User.role` (`STUDENT`, `TEACHER`, `ADMIN`) ve `schoolName` desteği. `INITIAL_ADMIN_USERNAME` ortam değişkeniyle ilk admin güvenli biçimde atanır; `ADMIN` diğer öğretmenleri ve okul IP'lerini `#/admin` dashboard'undan yönetir.
+- **K-11 (KVKK & Öğrenci Gizliliği):** Gerçek ad-soyad zorunlu değildir; kullanıcı adı ve opsiyonel sınıf/okul etiketi kullanılır.
 
 ---
 

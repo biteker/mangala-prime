@@ -1,11 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export type RouteType = '#/login' | '#/register' | '#/lobby' | '#/game';
+export type RouteType =
+  | '#/login'
+  | '#/register'
+  | '#/lobby'
+  | '#/game'
+  | '#/admin'
+  | '#/tournaments';
 
 export function useRouter() {
   const getHash = (): RouteType => {
     const hash = window.location.hash;
-    if (hash === '#/register' || hash === '#/lobby' || hash === '#/game') {
+    if (
+      hash === '#/register' ||
+      hash === '#/lobby' ||
+      hash === '#/game' ||
+      hash === '#/admin' ||
+      hash === '#/tournaments'
+    ) {
       return hash as RouteType;
     }
     return '#/login';

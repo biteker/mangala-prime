@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/seo-pwa
+Aktif Branch: develop
 
 ---
 
@@ -8,7 +8,7 @@ Aktif Branch: feature/seo-pwa
 
 ```
 Faz 1 MVP: ██████████ %100
-Yayın Hazırlığı: ██████████ %100 (Faz A, Faz B, Faz C ve Faz D dahil T-01…T-16 tamamlandı)
+Yayın Hazırlığı: ██████████ %100 (Faz A–E dahil T-01…T-24 tamamlandı — v1.2.0)
 ```
 
 ---
@@ -79,8 +79,8 @@ Yayın Hazırlığı: ██████████ %100 (Faz A, Faz B, Faz C v
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-11 — Okul Laboratuvarı (Tek IP / NAT) Hız Sınırları Güncellemesi
+Oturum 2026-11-20 — T-21…T-24: Turnuva Frontend Merkezi & Faz E Tamamlandı (v1.2.0)
 
 ### Yapılanlar
-- Okul ağında (tek ortak IP) 18–40 öğrencinin aynı anda giriş/kayıt yapabilmesi için `login` (60/dk), `register` (40/10dk), `refresh` (120/dk), global HTTP (600/dk) ve WebSocket bağlantı (120/dk) limitleri güncellendi.
-- 136/136 birim testi (111 backend + 25 frontend), lint ve build doğrulandı.
+- `#/tournaments` Turnuva Merkezi (`TournamentPage.tsx`), Projeksiyon Modu, Check-in, Hakem hükmen karar/diskalifiye, ortak ağ uyarısı, aktif turnuvada Bot kilidi ve CSV/Yazdır raporu tamamlandı.
+- 157/157 birim testi (132 backend + 25 frontend), lint ve build doğrulandı. Faz E (`T-17…T-24`) tamamen tamamlandı.

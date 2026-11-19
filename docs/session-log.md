@@ -23,6 +23,101 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-20] — T-21…T-24: Turnuva Frontend Merkezi, Check-in, Hakem, Bot Kilidi & CSV/Yazdır (Faz E Tamamlandı)
+
+**Tamamlanan Görev:** `#/tournaments` Turnuva Merkezi (`TournamentPage.tsx`) geliştirildi ve Faz E (`T-17…T-24`) tamamen tamamlandı. Öğrenciler 6 haneli kodla (opsiyonel sınıf etiketiyle) turnuvaya katılabiliyor, Check-in (yoklama) verebiliyor ve `/tournament` WebSocket üzerinden tur başlatıldığında otomatik oyun tahtasına yönlendiriliyor. Öğretmen/Admin kullanıcılar turnuva oluşturma (tur sayısı, 1/2 set, genel ELO seçimi, hamle süresi), büyük punto katılım kodu ekranı, Projeksiyon Modu, canlı masalar + puan tablosu, ortak ağ uyarı rozeti (`⚠️ Ortak Ağ`), hakem hükmen kararları, diskalifiye, okul filtresi, CSV indirme ve yazdırma özelliklerine kavuştu. `LobbyPage.tsx` üzerinde aktif turnuva maçı varken PvE Bot modu otomatik kilitleniyor.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `frontend/src/components/TournamentPage.tsx` — Yeni: Tam özellikli Turnuva Merkezi, Projeksiyon Modu, Check-in, Hakem ve CSV/Yazdır arayüzü
+- `frontend/src/App.tsx` & `frontend/src/lib/router.ts` — `#/tournaments` rotası ve üst bar "🏆 Turnuvalar" butonu eklendi
+- `frontend/src/components/LobbyPage.tsx` — Aktif turnuva maçında PvE Bot kilidi eklendi
+- `frontend/src/index.css` — Turnuva Merkezi, Projeksiyon Modu ve `@media print` stilleri eklendi
+- `docs/architecture-roadmap.md`, `.antigravity/context/current-state.md`, `.antigravity/context/next-task.md` — Faz E (`T-17…T-24`) tamamlandı olarak güncellendi
+
+**Test Sonuçları:** 157/157 test geçti (Backend: 132/132, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Tüm Faz A–E görevleri (`T-01…T-24`) tamamlandı.
+**Bir Sonraki Görev:** `develop` → `main` (`v1.2.0`) release ve canlı sunucuda doğrulama.
+**Commit:** feat(tournament-ui): add Tournament Center, Projection Mode, Check-in, Referee controls, Bot lock and CSV export (T-21..T-24)
+**PR:** feature/tournament-frontend → develop → main
+
+---
+
+### Oturum [2026-11-20] — T-20: Turnuva Backend Modülü (REST + WS `/tournament`)
+
+**Tamamlanan Görev:** `TournamentModule` (`TournamentController`, `TournamentService`, `TournamentGateway`) oluşturuldu ve `GameService` maç bitiş kancasına (`registerOnMatchFinished`) bağlandı. Turnuva oluşturma (benzersiz 6 haneli `joinCode`, `setsPerMatch: 1|2`, `affectsGlobalElo`), öğrenci katılımı, Check-in yoklama akışı, Swiss tur başlatma + otomatik maç açma, 2 setlik maçlarda Set 1 bitiminde P1↔P2 yer değiştirerek otomatik Set 2 açma, hakem hükmen karar (`P1_WIN`, `P2_WIN`, `DRAW`, `NO_SHOW_P1`, `NO_SHOW_P2`), diskalifiye, ortak ağ/IP uyarı tespiti (`sharedNetworkWarning`), aktif turnuva maçı kontrolü ve UTF-8 BOM'lu CSV dışa aktarma tamamlandı. 5 yeni birim testi eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `shared/types/api-response.types.ts` & `socket-events.types.ts` — Turnuva REST & WebSocket tipleri eklendi
+- `backend/src/game/game.service.ts` — `registerOnMatchFinished` callback kancası eklendi
+- `backend/src/tournament/dto/tournament.dto.ts`, `tournament.service.ts`, `tournament.controller.ts`, `tournament.gateway.ts`, `tournament.module.ts` — Yeni: Tam turnuva backend modülü
+- `backend/src/tournament/tournament.service.spec.ts` — Yeni: 5 birim testi
+- `backend/src/app.module.ts` — `TournamentModule` eklendi
+
+**Test Sonuçları:** 157/157 test geçti (Backend: 132/132, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki görev: T-21…T-24 (Turnuva Frontend Arayüzü, Check-in, Hakem Paneli, Bot Kilidi & CSV/Yazdır).
+**Bir Sonraki Görev:** T-21..T-24 — Turnuva Frontend Arayüzü & Faz E Tamamlama
+**Commit:** feat(tournament): add tournament backend module with Swiss rounds, 2-set swap, check-in, referee and CSV export (T-20)
+**PR:** feature/tournament-backend → develop
+
+---
+
+### Oturum [2026-11-20] — T-19: Saf İsviçre (Swiss) Eşleştirme & Puanlama Motoru
+
+**Tamamlanan Görev:** `@mangala/shared` altında dış bağımlılıksız, saf İsviçre (Swiss) eşleştirme ve puanlama motoru (`shared/engine/tournament-pairing.ts`) geliştirildi. `generateSwissRound` (puan sırası, backtracking ile tekrar eşleşme engeli, tek sayılı oyuncu BAY dağıtımı, P1/P2 renk dengelemesi, diskalifiye dışlaması) ve `calculateStandings` (puan + Buchholz eşitlik bozma + galibiyet + ELO sıralaması) fonksiyonları yazıldı. 18 oyunculu 5 turluk tam simülasyon dahil 4 yeni birim testi eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `shared/engine/tournament-pairing.ts` & `shared/engine/index.ts` — Yeni: Saf Swiss eşleştirme ve Buchholz puanlama motoru
+- `backend/src/game/tournament-pairing.spec.ts` — Yeni: 4 kapsamlı birim testi
+
+**Test Sonuçları:** 152/152 test geçti (Backend: 127/127, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki görev: T-20 (Turnuva Backend Modülü — REST + WS `/tournament`).
+**Bir Sonraki Görev:** T-20 — Turnuva Backend Modülü (REST + WS `/tournament`)
+**Commit:** feat(engine): add pure Swiss tournament pairing and Buchholz standings engine (T-19)
+**PR:** feature/swiss-pairing-engine → develop
+
+---
+
+### Oturum [2026-11-20] — T-18: Güvenilir Okul IP Kuralı & Admin Dashboard
+
+**Tamamlanan Görev:** Admin Dashboard backend (`AdminModule`, `AdminController`, `AdminService`) ve frontend (`AdminPage.tsx`, `#/admin` rotası) geliştirildi. `LobbyService` içindeki aynı-IP kuralı güncellenerek: ev ağlarında `sameIp → isFriendly` anti-hile kuralı korunurken, Admin'in `TrustedSchoolIp` listesinde aktif olarak tanımladığı statik okul IP'lerinde (günlük aynı iki oyuncu arası max puanlı maç limiti dahilinde) puanlı (ranked) maç oynanabilmesi sağlandı. Admin paneline mevcut IP'yi tek tıkla forma aktarma, okul IP CRUD, kullanıcı arama / rol atama (`STUDENT`/`TEACHER`/`ADMIN`), tek tıkla şifre sıfırlama ve sistem ayarları yönetimi eklendi. 8 yeni birim testi (`admin.service.spec.ts` + `lobby.service.spec.ts`) eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `shared/types/api-response.types.ts` — `TrustedSchoolIpItem`, `AdminUserItem`, `AdminSettingsResponse`, `AdminMyIpResponse` tipleri eklendi
+- `backend/src/admin/dto/admin.dto.ts`, `admin.service.ts`, `admin.controller.ts`, `admin.module.ts` — Yeni: `@Roles('ADMIN')` korumalı yönetim modülü
+- `backend/src/admin/admin.service.spec.ts` — Yeni: 6 birim testi
+- `backend/src/lobby/lobby.service.ts`, `lobby.module.ts`, `lobby.service.spec.ts` — Güvenilir okul IP + günlük çift maç limiti kuralı ve 2 yeni test
+- `backend/src/app.module.ts` — `AdminModule` eklendi
+- `frontend/src/components/AdminPage.tsx`, `frontend/src/App.tsx`, `frontend/src/lib/router.ts`, `frontend/src/index.css` — `#/admin` Admin Dashboard arayüzü ve tema uyumlu stiller
+
+**Test Sonuçları:** 148/148 test geçti (Backend: 123/123, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki görev: T-19 (Saf İsviçre Eşleştirme & Puanlama Motoru).
+**Bir Sonraki Görev:** T-19 — Saf İsviçre (Swiss) Eşleştirme & Puanlama Motoru
+**Commit:** feat(admin,lobby): add trusted school IP ranked rule and Admin Dashboard (T-18)
+**PR:** feature/admin-dashboard-school-ip → develop
+
+---
+
+### Oturum [2026-11-20] — T-17: Rol, Okul IP & Turnuva Veritabanı Şeması + RolesGuard
+
+**Tamamlanan Görev:** Faz E (Turnuva Sistemi & Admin Dashboard) yol haritası (K-8…K-11, T-17…T-24) `docs/architecture-roadmap.md` içine işlendi ve T-17 tamamlandı. `prisma/schema.prisma` üzerinde `UserRole` (`STUDENT`, `TEACHER`, `ADMIN`), `User.role`, `User.schoolName`, `TrustedSchoolIp`, `SystemSetting`, `Tournament`, `TournamentParticipant`, `TournamentPairing` modelleri ve `Match` ilişkileri eklendi; `20261119214122_add_roles_school_ips_and_tournaments` migration'ı üretilip uygulandı. `RolesGuard` ve `@Roles(...)` dekoratörü global guard olarak bağlandı; `INITIAL_ADMIN_USERNAME` ortam değişkeniyle ilk admin ataması ve `JwtStrategy` / `UserProfileResponse` rol desteği eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `docs/architecture-roadmap.md` — Faz E (K-8…K-11 ve T-17…T-24) eklendi, T-17 tamamlandı işaretlendi
+- `prisma/schema.prisma` & `prisma/migrations/20261119214122_add_roles_school_ips_and_tournaments/migration.sql` — Yeni modeller ve enum'lar
+- `shared/types/api-response.types.ts` — `UserRole` tipi ve `UserProfileResponse.role` / `schoolName` alanları eklendi
+- `backend/src/common/guards/roles.guard.ts` & `roles.guard.spec.ts` — Yeni: `RolesGuard`, `@Roles` dekoratörü ve 4 birim testi
+- `backend/src/common/config/app-config.ts` — Opsiyonel `initialAdminUsername` (`INITIAL_ADMIN_USERNAME`) desteği
+- `backend/src/auth/auth.guard.ts`, `strategies/jwt.strategy.ts`, `auth.controller.ts`, `auth.service.ts` — `/admin` ve `/tournaments` API koruması, JWT user role ve ilk admin ataması
+- `backend/src/user/user.service.ts` & `backend/src/app.module.ts` — Profil rol alanı ve global `RolesGuard` kaydı
+
+**Test Sonuçları:** 140/140 test geçti (Backend: 115/115, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki görev: T-18 (Güvenilir Okul IP Kuralı & Admin Dashboard).
+**Bir Sonraki Görev:** T-18 — Güvenilir Okul IP Kuralı & Admin Dashboard
+**Commit:** feat(schema,auth): add roles, trusted school IP, tournament models and RolesGuard (T-17)
+**PR:** feature/tournament-schema-roles → develop
+
+---
+
 ### Oturum [2026-11-11] — Okul Laboratuvarı (Tek IP / NAT) Hız Sınırları Güncellemesi
 
 **Tamamlanan Görev:** Okul laboratuvarındaki (18–40 bilgisayarın tek bir dış IP adresinden çıktığı NAT ortamı) turnuvalarda öğrencilerin aynı anda kayıt olurken, giriş yaparken ve lobi/oyun WebSocket bağlantısı kurarken `429 RATE_LIMITED` engeline takılmaması için IP bazlı hız sınırları sınıf kapasitesine uygun şekilde yükseltildi.

@@ -2,14 +2,10 @@
 
 ---
 
-## Durum: Tüm Görevler Tamamlandı (T-01…T-16 ✅)
+## Durum: Tüm Fazlar Tamamlandı (T-01…T-24 ✅ — v1.2.0)
 
-> `docs/architecture-roadmap.md` içerisindeki Faz A (Güvenlik Sertleştirmesi), Faz B (Mimari Borç), Faz C (Release & Dokümantasyon) ve Faz D (Ürün & UX: Liderlik/Profil UI, PvE Bot, Rövanş, SEO & PWA) kapsamındaki **16 görevin tamamı** eksiksiz tamamlanmış ve doğrulanmıştır.
-
-### Tamamlanan T-16 Kabul Kriterleri
-- [x] `frontend/index.html` Türkçe dil, SEO meta, Open Graph, Twitter Card ve manifest bağlantılarıyla güncellendi
-- [x] Favicon seti (`favicon.svg`, `favicon-32x32.png`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `og-image.png`) ve `manifest.webmanifest` `frontend/public/` altında eksiksiz oluşturuldu
-- [x] `npm run lint`, `npm run test` (136/136) ve `npm run build` yeşil
+- **Faz A–D (T-01…T-16):** Güvenlik sertleştirmesi, ortak oyun motoru, frontend testleri, Liderlik/Profil UI, PvE Bot, Rövanş, SEO/PWA.
+- **Faz E (T-17…T-24):** Rol sistemi (`STUDENT`/`TEACHER`/`ADMIN`), Admin Dashboard (`#/admin`), Güvenilir Okul IP puanlı maç kuralı, Saf İsviçre (Swiss) eşleştirme motoru, Turnuva Merkezi (`#/tournaments`), Check-in, Projeksiyon Modu, Hakem müdahalesi, aktif turnuvada Bot kilidi ve CSV/Yazdır raporu.
 
 ### Sonraki Adım
-- Yeni özellik talepleri veya kullanıcı geri bildirimlerine göre bakım/geliştirme.
+- Sunucu `.env` dosyasına `INITIAL_ADMIN_USERNAME=<kullanıcı_adınız>` eklenerek ilk ADMIN yetkisinin aktive edilmesi ve okul statik IP'sinin `#/admin` panelinden kaydedilmesi.

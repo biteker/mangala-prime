@@ -10,6 +10,9 @@ import { GameModule } from './game/game.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { LobbyModule } from './lobby/lobby.module';
+import { AdminModule } from './admin/admin.module';
+import { TournamentModule } from './tournament/tournament.module';
+import { RolesGuard } from './common/guards/roles.guard';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
@@ -28,6 +31,8 @@ import { join } from 'path';
     AuthModule,
     UserModule,
     LobbyModule,
+    AdminModule,
+    TournamentModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
       exclude: ['/api/(.*)', '/socket.io/(.*)'],
@@ -39,6 +44,10 @@ import { join } from 'path';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })
