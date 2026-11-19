@@ -120,3 +120,25 @@ export interface GameRematchStartPayload {
   oldMatchId: string;
   newMatchId: string;
 }
+
+// Tournament Events
+export interface TournamentWatchPayload {
+  tournamentId: string;
+}
+
+export interface TournamentMatchAssignedPayload {
+  tournamentId: string;
+  pairingId: string;
+  matchId: string;
+  round: number;
+  tableNumber: number;
+  setNumber: number;
+  setsPerMatch: number;
+  opponentUsername: string;
+}
+
+export interface TournamentUpdatedPayload {
+  tournamentId: string;
+  status: string;
+  currentRound: number;
+}

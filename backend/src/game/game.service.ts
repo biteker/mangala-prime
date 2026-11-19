@@ -71,6 +71,9 @@ export class GameService {
   private readonly completedRematches = new Set<string>();
   private readonly reconnectTimers = new Map<string, NodeJS.Timeout>();
   private server: Server | null = null;
+  private onMatchFinishedCallback:
+    | ((matchId: string, winnerId?: string) => Promise<void>)
+    | null = null;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -78,6 +81,18 @@ export class GameService {
     private readonly eloService: EloService,
     @Inject(APP_CONFIG) private readonly config: AppConfig,
   ) {}
+
+  registerOnMatchFinished(
+    callback: (matchId: string, winnerId?: string) => Promise<void>,
+  ): void {
+    this.onMatchFinishedCallback = callback;
+  }
+
+  private notifyMatchFinished(matchId: string, winnerId?: string): void {
+    if (this.onMatchFinishedCallback) {
+      void this.onMatchFinishedCallback(matchId, winnerId).catch(() => {});
+    }
+  }
 
   getTurnTimeLimit(): number {
     return this.config.turnTimeLimitSecs;
@@ -428,6 +443,7 @@ export class GameService {
       });
 
       this.cleanUpRoom(room.matchId);
+      this.notifyMatchFinished(room.matchId, winnerId);
     } else {
       // Oyun devam ediyorsa sonraki oyuncunun durumuna bak
       const nextSocketId =
@@ -498,6 +514,7 @@ export class GameService {
         isCreatingRematch: false,
       });
       this.cleanUpRoom(matchId);
+      this.notifyMatchFinished(room.matchId, opponentId);
     }
   }
 
@@ -545,6 +562,7 @@ export class GameService {
         isCreatingRematch: false,
       });
       this.cleanUpRoom(matchId);
+      this.notifyMatchFinished(room.matchId, opponentId);
     }
   }
 
