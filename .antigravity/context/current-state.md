@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/fix-endgame-sweep-and-board
+Aktif Branch: feature/fix-game-connect-and-turn-ui
 
 ---
 
@@ -8,7 +8,7 @@ Aktif Branch: feature/fix-endgame-sweep-and-board
 
 ```
 Faz 1 MVP: ██████████ %100
-Yayın Hazırlığı: ██████████ %100 (Faz A–E tamamlandı; Faz F devam ediyor: T-25 ✅)
+Yayın Hazırlığı: ██████████ %100 (Faz A–E tamamlandı; Faz F devam ediyor: T-25 ✅, T-26 ✅)
 ```
 
 ---
@@ -79,9 +79,9 @@ Yayın Hazırlığı: ██████████ %100 (Faz A–E tamamlandı
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-26 — T-25: Oyun Motoru Bölge Temizleme (Kural D) & PixiJS Son Hamle Taş Dağılımı Düzeltmesi
+Oturum 2026-11-26 — T-26: `/game` Soket Yarış Durumu, `connectGame` Stale-Socket ve Üst Bar Yeşil Sıra Işığı Düzeltmesi
 
 ### Yapılanlar
-- Faz F (`T-25…T-28`, `K-12…K-14`) `docs/architecture-roadmap.md` içine kaydedildi.
-- `shared/engine/mangala-engine.ts` Kural D ve `MangalaBoard.ts` `animateCaptureOrSettle` düzeltildi; 1 yeni birim testi eklendi.
-- 162/162 birim testi (137 backend + 25 frontend), lint ve build doğrulandı. Sıradaki görev: T-26.
+- `GameGateway` içine `ensureAuthenticatedUser` eklenerek bağlantı-mesaj yarış durumu giderildi; `handleReconnect` içinde rakibe `game:state_update` yayını eklendi (1 yeni birim testi).
+- `useGameStore.connectGame` ve `GamePage.tsx` (`isP1Active` / `isP2Active`, `'Bağlanıyor...'`) düzeltildi.
+- 163/163 birim testi (138 backend + 25 frontend), lint ve build doğrulandı. Sıradaki görev: T-27 & T-28.
