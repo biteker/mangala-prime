@@ -23,6 +23,24 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-26] — T-25: Oyun Motoru Bölge Temizleme (Kural D) & PixiJS Son Hamle Taş Dağılımı Düzeltmesi
+
+**Tamamlanan Görev:** Faz F (`T-25…T-28`, `K-12…K-14`) yol haritası `docs/architecture-roadmap.md` içine kaydedildi ve T-25 tamamlandı. `shared/engine/mangala-engine.ts` Kural D (Bölge Temizleme) içinde rakibin son taşını yakalayarak bitiren oyuncunun kendi kuyularında kalan taşlarının rakip hazineye yazılması hatası giderildi; kalan tüm taşların hamleyi yapıp bölgeyi boşaltan aktif oyuncunun kendi hazinesine (`ownTreasury`) aktarılması sağlandı. `MangalaBoard.ts` içindeki `animateCaptureOrSettle` metodu her iki hazinedeki taş artışını (`p1Deficit` / `p2Deficit`) ayrı ayrı hesaplayarak taşların doğru hazineye uçmasını sağlayacak şekilde düzeltildi. 1 yeni oyun motoru birim testi eklendi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `docs/architecture-roadmap.md` — Faz F (`T-25…T-28`, `K-12…K-14`) eklendi ve T-25 tamamlandı işaretlendi
+- `shared/engine/mangala-engine.ts` — Kural D (`p1PitsEmpty || p2PitsEmpty`) kalan taşların `ownTreasury`'ye aktarımı düzeltildi
+- `backend/src/game/game-engine.spec.ts` — Rakibin son taşını yakalama senaryosu için 1 yeni birim testi eklendi
+- `frontend/src/components/MangalaBoard/MangalaBoard.ts` — `animateCaptureOrSettle` hedef hazine hesabı düzeltildi
+
+**Test Sonuçları:** 162/162 test geçti (Backend: 137/137, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yok. Sıradaki görev: T-26 (`/game` Soket Yarış Durumu, `connectGame` Kilidi ve Yeşil Sıra Işığı Düzeltmesi).
+**Bir Sonraki Görev:** T-26 — `/game` Soket Yarış Durumu, `connectGame` Stale-Socket ve Üst Bar Yeşil Sıra Işığı Düzeltmesi
+**Commit:** fix(engine,board): award swept stones to active player and fix capture treasury animation (T-25)
+**PR:** feature/fix-endgame-sweep-and-board → develop
+
+---
+
 ### Oturum [2026-11-20] — Admin Toplu Yönetim Araçları (Silme, Düzenleme, Toplu Oluşturma, ELO Sıfırlama, Turnuva Silme)
 
 **Tamamlanan Görev:** Admin Dashboard üzerine 5 yeni toplu yönetim aracı eklendi: (1) Çoklu checkbox seçimiyle toplu kullanıcı silme (`POST /admin/users/bulk-delete` — ilişkili maç, hamle ve turnuva kayıtlarını tek transaction içinde temizler, admin'in kendini silmesini engeller), (2) kullanıcı adı ve okul adı düzenleme (`PATCH /admin/users/:id/profile`), (3) satır satır yapıştırmayla toplu öğrenci hesabı oluşturma (`POST /admin/users/bulk-create`), (4) seçili veya tüm kullanıcıların ELO/G/M istatistiklerini sıfırlama (`POST /admin/users/reset-elo`), (5) Admin Paneli `🏆 Turnuvalar` sekmesi ve turnuva silme (`DELETE /admin/tournaments/:id`). 4 yeni birim testi eklendi.

@@ -2,10 +2,17 @@
 
 ---
 
-## Durum: Tüm Fazlar Tamamlandı (T-01…T-24 ✅ — v1.2.0)
+## Görev: T-26 — `/game` Soket Yarış Durumu, `connectGame` Stale-Socket ve Üst Bar Yeşil Sıra Işığı Düzeltmesi
 
-- **Faz A–D (T-01…T-16):** Güvenlik sertleştirmesi, ortak oyun motoru, frontend testleri, Liderlik/Profil UI, PvE Bot, Rövanş, SEO/PWA.
-- **Faz E (T-17…T-24):** Rol sistemi (`STUDENT`/`TEACHER`/`ADMIN`), Admin Dashboard (`#/admin`), Güvenilir Okul IP puanlı maç kuralı, Saf İsviçre (Swiss) eşleştirme motoru, Turnuva Merkezi (`#/tournaments`), Check-in, Projeksiyon Modu, Hakem müdahalesi, aktif turnuvada Bot kilidi ve CSV/Yazdır raporu.
+> **Tam tasarım:** `docs/architecture-roadmap.md` → Bölüm 8.6 (K-13).
 
-### Sonraki Adım
-- Sunucu `.env` dosyasına `INITIAL_ADMIN_USERNAME=<kullanıcı_adınız>` eklenerek ilk ADMIN yetkisinin aktive edilmesi ve okul statik IP'sinin `#/admin` panelinden kaydedilmesi.
+### Ön Koşullar
+- [x] T-25 (`feature/fix-endgame-sweep-and-board`) tamamlandı.
+
+### Branch
+`feature/fix-game-connect-and-turn-ui` (base: `develop`)
+
+### Ne Yapılacak?
+1. `backend/src/game/game.gateway.ts`: `ensureAuthenticatedUser` yardımcı metoduyla `handleConnection` / `handleReconnect` yarış durumu engellenecek; `handleReconnect` sonrası odaya güncel `game:state_update` yayınlanacak.
+2. `frontend/src/stores/game.store.ts`: `connectGame(matchId)` eski soket bağlantısında da `yourColor`, `currentPlayerId`, `opponentUsername`, `gameOverDetails` sıfırlayıp yeni `matchId` için `game:reconnect` gönderecek.
+3. `frontend/src/components/GamePage.tsx`: Üst bar `isP1Active` / `isP2Active` bayrakları gerçekten sıranın 1. veya 2. oyuncuda olmasına göre hesaplanacak; `yourColor === null` iken `'Bağlanıyor...'` gösterilecek.

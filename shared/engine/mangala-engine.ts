@@ -172,22 +172,19 @@ export function applyMove(
     newBoard.slice(7, 13).reduce((sum, val) => sum + val, 0) === 0;
 
   if (p1PitsEmpty || p2PitsEmpty) {
-    if (p1PitsEmpty) {
-      const remainingP2Stones = newBoard
-        .slice(7, 13)
-        .reduce((sum, val) => sum + val, 0);
-      newBoard[6] += remainingP2Stones;
-      for (let i = 7; i <= 12; i++) {
-        newBoard[i] = 0;
-      }
-    } else {
-      const remainingP1Stones = newBoard
-        .slice(0, 6)
-        .reduce((sum, val) => sum + val, 0);
-      newBoard[13] += remainingP1Stones;
-      for (let i = 0; i <= 5; i++) {
-        newBoard[i] = 0;
-      }
+    const remainingP1Stones = newBoard
+      .slice(0, 6)
+      .reduce((sum, val) => sum + val, 0);
+    const remainingP2Stones = newBoard
+      .slice(7, 13)
+      .reduce((sum, val) => sum + val, 0);
+
+    newBoard[ownTreasury] += remainingP1Stones + remainingP2Stones;
+    for (let i = 0; i <= 5; i++) {
+      newBoard[i] = 0;
+    }
+    for (let i = 7; i <= 12; i++) {
+      newBoard[i] = 0;
     }
   }
 
