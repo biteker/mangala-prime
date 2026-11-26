@@ -288,6 +288,13 @@ export class GameGateway
       matchId: room.matchId,
       opponentUsername,
       yourColor,
+      ...(room.tournamentMeta
+        ? {
+            tournamentId: room.tournamentMeta.tournamentId,
+            setNumber: room.tournamentMeta.setNumber,
+            setsPerMatch: room.tournamentMeta.setsPerMatch,
+          }
+        : {}),
     });
 
     // Rakip istemcinin oda bağlantısını ve güncel hamle sırasını anlık görmesini sağla

@@ -18,6 +18,8 @@ import {
   type TournamentParticipantView,
   type TournamentPairingView,
   type TournamentMatchAssignedPayload,
+  type TournamentStatusChangedPayload,
+  type MyActiveTournamentStatusResponse,
   type PairingResult,
   type UserRole,
 } from '@mangala/shared';
@@ -50,6 +52,7 @@ function escapeCsvCell(value: string | number | null | undefined): string {
 export class TournamentService implements OnModuleInit {
   private server: Server | null = null;
   private readonly userSockets = new Map<string, Set<string>>();
+  private onPlayersLockedCallback: ((userIds: string[]) => void) | null = null;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -62,6 +65,41 @@ export class TournamentService implements OnModuleInit {
         await this.onMatchFinished(matchId, winnerId);
       },
     );
+  }
+
+  registerOnPlayersLocked(callback: (userIds: string[]) => void): void {
+    this.onPlayersLockedCallback = callback;
+  }
+
+  private notifyPlayersLocked(userIds: string[]): void {
+    if (this.onPlayersLockedCallback && userIds.length > 0) {
+      this.onPlayersLockedCallback(userIds);
+    }
+  }
+
+  private emitStatusChangedToUsers(
+    userIds: string[],
+    payload: TournamentStatusChangedPayload,
+  ): void {
+    for (const userId of userIds) {
+      this.emitToUser(userId, 'tournament:status_changed', payload);
+    }
+  }
+
+  private emptyActiveStatus(): MyActiveTournamentStatusResponse {
+    return {
+      hasActiveTournamentMatch: false,
+      isLockedInTournament: false,
+      activeTournamentId: null,
+      activeTournamentName: null,
+      activeTournamentStatus: null,
+      currentRound: null,
+      totalRounds: null,
+      activeMatchId: null,
+      activeSetNumber: null,
+      setsPerMatch: null,
+      opponentUsername: null,
+    };
   }
 
   setServer(server: Server): void {
@@ -426,6 +464,12 @@ export class TournamentService implements OnModuleInit {
     try {
       const t = await this.prisma.tournament.findUnique({
         where: { id: tournamentId },
+        include: {
+          participants: {
+            where: { disqualified: false },
+            select: { userId: true },
+          },
+        },
       });
       if (!t) {
         throw new NotFoundException({
@@ -445,6 +489,14 @@ export class TournamentService implements OnModuleInit {
       await this.prisma.tournament.update({
         where: { id: tournamentId },
         data: { status: 'CHECK_IN' },
+      });
+
+      const participantIds = (t.participants ?? []).map((p) => p.userId);
+      this.notifyPlayersLocked(participantIds);
+      this.emitStatusChangedToUsers(participantIds, {
+        tournamentId,
+        status: 'CHECK_IN',
+        currentRound: t.currentRound,
       });
 
       this.broadcastTournamentUpdate(tournamentId, 'CHECK_IN', t.currentRound);
@@ -561,6 +613,12 @@ export class TournamentService implements OnModuleInit {
           'FINISHED',
           t.currentRound,
         );
+        const allUserIds = (t.participants ?? []).map((p) => p.userId);
+        this.emitStatusChangedToUsers(allUserIds, {
+          tournamentId,
+          status: 'FINISHED',
+          currentRound: t.currentRound,
+        });
         return { round: t.currentRound, pairingsCreated: 0 };
       }
 
@@ -575,6 +633,9 @@ export class TournamentService implements OnModuleInit {
           message: 'Tur başlatmak için en az 2 hazır oyuncu gereklidir.',
         });
       }
+
+      const eligibleIds = eligibleParticipants.map((p) => p.userId);
+      this.notifyPlayersLocked(eligibleIds);
 
       const generated = generateSwissRound(
         eligibleParticipants.map((p) => ({
@@ -632,6 +693,11 @@ export class TournamentService implements OnModuleInit {
             match.id,
             pair.player1Id,
             pair.player2Id,
+            {
+              tournamentId,
+              setNumber: 1,
+              setsPerMatch: t.setsPerMatch,
+            },
           );
 
           const p1Payload: TournamentMatchAssignedPayload = {
@@ -664,6 +730,11 @@ export class TournamentService implements OnModuleInit {
 
       await this.recalculateAndPersistStandings(tournamentId);
       this.broadcastTournamentUpdate(tournamentId, 'IN_PROGRESS', nextRound);
+      this.emitStatusChangedToUsers(eligibleIds, {
+        tournamentId,
+        status: 'IN_PROGRESS',
+        currentRound: nextRound,
+      });
 
       return { round: nextRound, pairingsCreated: generated.length };
     } catch (error) {
@@ -742,7 +813,20 @@ export class TournamentService implements OnModuleInit {
           set2Match.id,
           pairing.player2Id,
           pairing.player1Id,
+          {
+            tournamentId: tournament.id,
+            setNumber: 2,
+            setsPerMatch: 2,
+          },
         );
+
+        this.gameService.emitTournamentNextSet?.({
+          oldMatchId: matchId,
+          newMatchId: set2Match.id,
+          tournamentId: tournament.id,
+          setNumber: 2,
+          setsPerMatch: 2,
+        });
 
         const users = await this.prisma.user.findMany({
           where: { id: { in: [pairing.player1Id, pairing.player2Id] } },
@@ -801,7 +885,16 @@ export class TournamentService implements OnModuleInit {
       });
 
       await this.recalculateAndPersistStandings(tournament.id);
-      await this.checkTournamentAutoFinish(tournament.id);
+      const finalStatus = await this.checkTournamentAutoFinish(tournament.id);
+      const matchUserIds = [
+        pairing.player1Id,
+        ...(pairing.player2Id ? [pairing.player2Id] : []),
+      ];
+      this.emitStatusChangedToUsers(matchUserIds, {
+        tournamentId: tournament.id,
+        status: finalStatus ?? tournament.status,
+        currentRound: tournament.currentRound,
+      });
     } catch {
       // Prevent tournament hook error from breaking match cleanup
     }
@@ -852,7 +945,16 @@ export class TournamentService implements OnModuleInit {
       });
 
       await this.recalculateAndPersistStandings(tournamentId);
-      await this.checkTournamentAutoFinish(tournamentId);
+      const finalStatus = await this.checkTournamentAutoFinish(tournamentId);
+      const pairingUserIds = [
+        ...(pairing.player1Id ? [pairing.player1Id] : []),
+        ...(pairing.player2Id ? [pairing.player2Id] : []),
+      ];
+      this.emitStatusChangedToUsers(pairingUserIds, {
+        tournamentId,
+        status: finalStatus ?? t.status,
+        currentRound: t.currentRound,
+      });
 
       return { result };
     } catch (error) {
@@ -906,6 +1008,11 @@ export class TournamentService implements OnModuleInit {
       });
 
       this.broadcastTournamentUpdate(tournamentId, t.status, t.currentRound);
+      this.emitStatusChangedToUsers([targetUserId], {
+        tournamentId,
+        status: t.status,
+        currentRound: t.currentRound,
+      });
       return { disqualified };
     } catch (error) {
       if (
@@ -922,6 +1029,7 @@ export class TournamentService implements OnModuleInit {
   }
 
   async hasActiveTournamentMatch(userId: string): Promise<boolean> {
+    if (!userId) return false;
     try {
       const count = await this.prisma.match.count({
         where: {
@@ -933,6 +1041,136 @@ export class TournamentService implements OnModuleInit {
       return count > 0;
     } catch {
       return false;
+    }
+  }
+
+  async isUserLockedInTournament(userId: string): Promise<boolean> {
+    if (!userId) return false;
+    try {
+      const activeMatchCount = await this.prisma.match.count({
+        where: {
+          status: 'ACTIVE',
+          tournamentId: { not: null },
+          OR: [{ player1Id: userId }, { player2Id: userId }],
+        },
+      });
+      if (activeMatchCount > 0) {
+        return true;
+      }
+
+      const activeParticipantCount =
+        await this.prisma.tournamentParticipant.count({
+          where: {
+            userId,
+            disqualified: false,
+            tournament: {
+              status: { in: ['CHECK_IN', 'IN_PROGRESS'] },
+            },
+          },
+        });
+      return activeParticipantCount > 0;
+    } catch {
+      return false;
+    }
+  }
+
+  async getMyActiveStatus(
+    userId: string,
+  ): Promise<MyActiveTournamentStatusResponse> {
+    if (!userId) {
+      return this.emptyActiveStatus();
+    }
+
+    try {
+      const activeMatch = await this.prisma.match.findFirst({
+        where: {
+          status: 'ACTIVE',
+          tournamentId: { not: null },
+          OR: [{ player1Id: userId }, { player2Id: userId }],
+        },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          tournament: {
+            select: {
+              id: true,
+              name: true,
+              status: true,
+              currentRound: true,
+              totalRounds: true,
+              setsPerMatch: true,
+            },
+          },
+          tournamentPairing: {
+            select: { setNumber: true },
+          },
+          player1: { select: { username: true } },
+          player2: { select: { username: true } },
+        },
+      });
+
+      if (activeMatch?.tournament) {
+        const opponentUsername =
+          activeMatch.player1Id === userId
+            ? activeMatch.player2.username
+            : activeMatch.player1.username;
+
+        return {
+          hasActiveTournamentMatch: true,
+          isLockedInTournament: true,
+          activeTournamentId: activeMatch.tournament.id,
+          activeTournamentName: activeMatch.tournament.name,
+          activeTournamentStatus: activeMatch.tournament.status,
+          currentRound: activeMatch.tournament.currentRound,
+          totalRounds: activeMatch.tournament.totalRounds,
+          activeMatchId: activeMatch.id,
+          activeSetNumber: activeMatch.tournamentPairing?.setNumber ?? 1,
+          setsPerMatch: activeMatch.tournament.setsPerMatch,
+          opponentUsername,
+        };
+      }
+
+      const activeEntry = await this.prisma.tournamentParticipant.findFirst({
+        where: {
+          userId,
+          disqualified: false,
+          tournament: {
+            status: { in: ['CHECK_IN', 'IN_PROGRESS'] },
+          },
+        },
+        orderBy: { tournament: { updatedAt: 'desc' } },
+        include: {
+          tournament: {
+            select: {
+              id: true,
+              name: true,
+              status: true,
+              currentRound: true,
+              totalRounds: true,
+              setsPerMatch: true,
+            },
+          },
+        },
+      });
+
+      if (activeEntry?.tournament) {
+        return {
+          hasActiveTournamentMatch: false,
+          isLockedInTournament: true,
+          activeTournamentId: activeEntry.tournament.id,
+          activeTournamentName: activeEntry.tournament.name,
+          activeTournamentStatus: activeEntry.tournament.status,
+          currentRound: activeEntry.tournament.currentRound,
+          totalRounds: activeEntry.tournament.totalRounds,
+          activeMatchId: null,
+          activeSetNumber: null,
+          setsPerMatch: activeEntry.tournament.setsPerMatch,
+          opponentUsername: null,
+        };
+      }
+
+      return this.emptyActiveStatus();
+    } catch {
+      return this.emptyActiveStatus();
     }
   }
 
@@ -1015,14 +1253,19 @@ export class TournamentService implements OnModuleInit {
     );
   }
 
-  private async checkTournamentAutoFinish(tournamentId: string): Promise<void> {
+  private async checkTournamentAutoFinish(
+    tournamentId: string,
+  ): Promise<string | undefined> {
     const t = await this.prisma.tournament.findUnique({
       where: { id: tournamentId },
-      include: { pairings: true },
+      include: {
+        pairings: true,
+        participants: { select: { userId: true } },
+      },
     });
-    if (!t) return;
+    if (!t) return undefined;
 
-    const pendingInCurrent = t.pairings.some(
+    const pendingInCurrent = (t.pairings ?? []).some(
       (p) => p.round === t.currentRound && p.result === 'PENDING',
     );
 
@@ -1032,8 +1275,16 @@ export class TournamentService implements OnModuleInit {
         data: { status: 'FINISHED', finishedAt: new Date() },
       });
       this.broadcastTournamentUpdate(tournamentId, 'FINISHED', t.currentRound);
+      const allUserIds = (t.participants ?? []).map((p) => p.userId);
+      this.emitStatusChangedToUsers(allUserIds, {
+        tournamentId,
+        status: 'FINISHED',
+        currentRound: t.currentRound,
+      });
+      return 'FINISHED';
     } else {
       this.broadcastTournamentUpdate(tournamentId, t.status, t.currentRound);
+      return t.status;
     }
   }
 }

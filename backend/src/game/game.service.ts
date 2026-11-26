@@ -9,9 +9,18 @@ import { PrismaService } from '../common/prisma/prisma.service';
 import { APP_CONFIG, type AppConfig } from '../common/config/app-config';
 import { GameEngineService } from './game-engine.service';
 import { EloService } from '../elo/elo.service';
-import { FinishedMatchSession, GameRoom } from './types/game-room.types';
-import { BoardState, Player, GameEndReason } from '@mangala/shared';
-import { GameMovePayload } from '@mangala/shared';
+import {
+  FinishedMatchSession,
+  GameRoom,
+  TournamentRoomMeta,
+} from './types/game-room.types';
+import {
+  BoardState,
+  Player,
+  GameEndReason,
+  GameMovePayload,
+  GameTournamentNextSetPayload,
+} from '@mangala/shared';
 import { Server } from 'socket.io';
 
 export interface MoveValidationResult {
@@ -98,6 +107,14 @@ export class GameService {
     return this.config.turnTimeLimitSecs;
   }
 
+  emitTournamentNextSet(payload: GameTournamentNextSetPayload): void {
+    if (this.server) {
+      this.server
+        .to(payload.oldMatchId)
+        .emit('game:tournament_next_set', payload);
+    }
+  }
+
   setServer(server: Server): void {
     this.server = server;
   }
@@ -123,6 +140,7 @@ export class GameService {
     matchId: string,
     player1Id: string,
     player2Id: string,
+    tournamentMeta?: TournamentRoomMeta,
   ): Promise<GameRoom> {
     try {
       const p1 = await this.prisma.user.findUnique({
@@ -156,6 +174,7 @@ export class GameService {
         turnTimeLeft: this.getTurnTimeLimit(),
         p1ChatEnabled: true,
         p2ChatEnabled: true,
+        ...(tournamentMeta ? { tournamentMeta } : {}),
       };
 
       this.rooms.set(matchId, room);
@@ -637,6 +656,12 @@ export class GameService {
           code: 'MATCH_NOT_FINISHED',
           message:
             'Yalnızca tamamlanmış (FINISHED) maçlar için rövanş teklif edilebilir.',
+        });
+      }
+      if (dbMatch.tournamentId) {
+        throw new BadRequestException({
+          code: 'TOURNAMENT_MATCH_NO_REMATCH',
+          message: 'Turnuva maçlarında manuel rövanş teklif edilemez.',
         });
       }
     } catch (error) {

@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/fix-game-connect-and-turn-ui
+Aktif Branch: feature/tournament-flow-and-theme-lock
 
 ---
 
@@ -8,7 +8,7 @@ Aktif Branch: feature/fix-game-connect-and-turn-ui
 
 ```
 Faz 1 MVP: ██████████ %100
-Yayın Hazırlığı: ██████████ %100 (Faz A–E tamamlandı; Faz F devam ediyor: T-25 ✅, T-26 ✅)
+Yayın Hazırlığı: ██████████ %100 (Faz A–F tamamlandı: T-01…T-28 ✅)
 ```
 
 ---
@@ -79,9 +79,10 @@ Yayın Hazırlığı: ██████████ %100 (Faz A–E tamamlandı
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-26 — T-26: `/game` Soket Yarış Durumu, `connectGame` Stale-Socket ve Üst Bar Yeşil Sıra Işığı Düzeltmesi
+Oturum 2026-11-26 — Turnuva Tur Sonu Yönlendirme Düzeltmesi, Global Turnuva Soketi ve Katı Kilit (Hard Lock)
 
 ### Yapılanlar
-- `GameGateway` içine `ensureAuthenticatedUser` eklenerek bağlantı-mesaj yarış durumu giderildi; `handleReconnect` içinde rakibe `game:state_update` yayını eklendi (1 yeni birim testi).
-- `useGameStore.connectGame` ve `GamePage.tsx` (`isP1Active` / `isP2Active`, `'Bağlanıyor...'`) düzeltildi.
-- 163/163 birim testi (138 backend + 25 frontend), lint ve build doğrulandı. Sıradaki görev: T-27 & T-28.
+- `GamePage.tsx` (`exitGameTo`, `isExitingGameRef`, `!matchId` rota koruması) ve `game.store.ts` (`game:tournament_next_set` set 1 durumu korunumu & stale koruması) ile tur/maç sonu `#/lobby` yönlendirme hatası ve 2. set erken geçiş hatası düzeltildi.
+- `frontend/src/stores/tournament.store.ts` ile `/tournament` soketi `App.tsx` köküne taşındı; tüm sayfalarda sabit `.tournament-sticky-banner` ve yeni tur başladığında otomatik `#/game` yönlendirmesi sağlandı.
+- Backend (`TournamentService`, `LobbyService`, `GameService`) ve frontend (`LobbyPage.tsx`) üzerinde aktif turnuva katı kilidi (`TOURNAMENT_LOCKED` / `TARGET_IN_TOURNAMENT`, kuyruk/davet tahliyesi ve tüm lobi oyun modlarının kilitlenmesi) uygulandı.
+- 177/177 birim testi (145 backend + 32 frontend), lint (0 error) ve tam monorepo build doğrulandı. Sıradaki adım: `gh auth login` sonrası Faz F branch'lerinin PR/merge süreci.

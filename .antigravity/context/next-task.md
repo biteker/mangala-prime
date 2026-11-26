@@ -1,12 +1,16 @@
-# Sıradaki Görev: T-27 & T-28 — Turnuva Maç Sonu Otomatik 2. Set / Turnuva Salonu Akışı & `theme-pixijs` Sabitlemesi
+# Sıradaki Görev: Faz F Branch'lerinin Push, PR ve `develop` / `main` Merge Süreci
 
-## Branch
-`feature/tournament-flow-and-theme-lock` (taban: `feature/fix-game-connect-and-turn-ui`)
+## Durum
+Faz F (`T-25`, `T-26`, `T-27`, `T-28`) ve ardından gelen Turnuva Katı Kilit / Global Soket / Tur Sonu Yönlendirme düzeltmesi tamamlandı; tüm doğrulamalar (`npm run build -w shared`, `npm run lint`, `npm run test` — 177/177 test, `npm run build`) geçti.
 
-## Kapsam
-1. **T-27:** Turnuva maçlarında oyun sonu ekranında "Rövanş Teklif Et" / "Lobiye Dön" kaldırılması; 2 setlik maçta `game:tournament_next_set` ile otomatik 2. sete geçiş (5 sn geri sayım + buton); tur maçı bittiğinde Turnuva Salonuna dönüş (8 sn geri sayım + buton); `TournamentPage` aktif turnuva ID kalıcılığı + bekleme afişi; `LobbyPage` aktif turnuva bağlantısı.
-2. **T-28:** `theme.store.ts` ve `App.tsx` üzerinde `theme-pixijs` sabitlemesi ve tema değiştirici butonunun kaldırılması.
+## Yerel Stacked Branch'ler
+1. `feature/fix-endgame-sweep-and-board` (T-25)
+2. `feature/fix-game-connect-and-turn-ui` (T-26)
+3. `feature/tournament-flow-and-theme-lock` (T-27, T-28)
 
-## Kabul Kriterleri
-- `npm run build -w shared && npm run lint && npm run test && npm run build` hatasız geçer.
-- Mevcut tüm backend ve frontend birim testleri ile yeni eklenen tournament metadata testleri geçer.
+## Kullanıcı Aksiyonu Gerekli
+GitHub CLI keyring token'ı geçersiz durumda. Terminalde aşağıdaki adımı çalıştırdıktan sonra branch'ler push edilip PR açılabilir:
+```bash
+gh auth login -h github.com
+```
+Ardından sırasıyla PR açılıp `develop` ve `main` dallarına birleştirilebilir.

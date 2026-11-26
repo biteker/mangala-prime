@@ -623,8 +623,8 @@ flowchart LR
 | T-24 | ✅ Çoklu Okul Filtreleme & Turnuva Sonuç Raporu (CSV/Yazdır) (Tamamlandı) | E | P3 | Ajan | T-23 | K-10 |
 | T-25 | ✅ Oyun Motoru Bölge Temizleme (Kural D) & PixiJS Son Hamle Taş Dağılımı Düzeltmesi (Tamamlandı) | F | P1 | Ajan | T-24 | K-12 |
 | T-26 | ✅ `/game` Soket Yarış Durumu, `connectGame` Stale-Socket ve Üst Bar Yeşil Sıra Işığı Düzeltmesi (Tamamlandı) | F | P1 | Ajan | T-25 | K-13 |
-| T-27 | Turnuva Maç Sonu Otomatik 2. Set / Turnuva Salonu Akışı & Kopma Koruması | F | P1 | Ajan | T-26 | K-13 |
-| T-28 | `theme-pixijs` Temasının Sabitlenmesi ve Tema Değiştiricinin Kaldırılması | F | P2 | Ajan | T-27 | K-14 |
+| T-27 | ✅ Turnuva Maç Sonu Otomatik 2. Set / Turnuva Salonu Akışı & Kopma Koruması (Tamamlandı) | F | P1 | Ajan | T-26 | K-13 |
+| T-28 | ✅ `theme-pixijs` Temasının Sabitlenmesi ve Tema Değiştiricinin Kaldırılması (Tamamlandı) | F | P2 | Ajan | T-27 | K-14 |
 
 ---
 

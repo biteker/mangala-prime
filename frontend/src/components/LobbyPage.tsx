@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLobbyStore } from '../stores/lobby.store';
 import { useAuthStore } from '../stores/auth.store';
 import { useGameStore } from '../stores/game.store';
+import { useTournamentStore } from '../stores/tournament.store';
 import { useRouter } from '../lib/router';
-import { apiClient } from '../lib/api-client';
 import type { BotLevel } from '../lib/bot-engine';
 
 export function LobbyPage(): React.JSX.Element {
@@ -32,7 +32,12 @@ export function LobbyPage(): React.JSX.Element {
   const [queueSeconds, setQueueSeconds] = useState(120);
   const [inviteSeconds, setInviteSeconds] = useState(30);
   const [selectedBotLevel, setSelectedBotLevel] = useState<BotLevel>('medium');
-  const [botLockedForTournament, setBotLockedForTournament] = useState(false);
+  const isLockedInTournament = useTournamentStore(
+    (state) => state.isLockedInTournament,
+  );
+  const refreshMyActiveStatus = useTournamentStore(
+    (state) => state.refreshMyActiveStatus,
+  );
 
   const queueIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const inviteIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -42,24 +47,13 @@ export function LobbyPage(): React.JSX.Element {
     if (!accessToken) {
       return;
     }
-    let cancelled = false;
     connectLobby();
     useAuthStore.getState().fetchMe().catch(() => {});
-    apiClient
-      .get<never, { hasActiveTournamentMatch: boolean }>(
-        '/tournaments/my-active-status',
-      )
-      .then((res) => {
-        if (!cancelled) {
-          setBotLockedForTournament(Boolean(res?.hasActiveTournamentMatch));
-        }
-      })
-      .catch(() => {});
+    void refreshMyActiveStatus();
     return () => {
-      cancelled = true;
       disconnectLobby();
     };
-  }, [accessToken, connectLobby, disconnectLobby]);
+  }, [accessToken, connectLobby, disconnectLobby, refreshMyActiveStatus]);
 
   // Eşleşme sırası sayacı
   useEffect(() => {
@@ -160,22 +154,38 @@ export function LobbyPage(): React.JSX.Element {
               <button
                 type="button"
                 className="auth-button start-queue-btn"
+                disabled={isLockedInTournament}
+                title={
+                  isLockedInTournament
+                    ? 'Aktif bir turnuvada yer aldığınız için hızlı maç kilitlidir.'
+                    : undefined
+                }
                 onClick={(): void => {
                   setQueueSeconds(120);
                   joinQueue();
                 }}
               >
-                Hızlı Maç Bul (Online)
+                {isLockedInTournament
+                  ? '🔒 Turnuva Aktif (Hızlı Maç Kilitli)'
+                  : 'Hızlı Maç Bul (Online)'}
               </button>
               <button
                 type="button"
                 className="auth-button local-pvp-btn"
+                disabled={isLockedInTournament}
+                title={
+                  isLockedInTournament
+                    ? 'Aktif bir turnuvada yer aldığınız için yerel oyun kilitlidir.'
+                    : undefined
+                }
                 onClick={(): void => {
                   startLocalGame();
                   navigate('#/game');
                 }}
               >
-                🎮 Tek Cihazda 2 Kişi Oyna (Yerel PvP)
+                {isLockedInTournament
+                  ? '🔒 Turnuva Aktif (Yerel PvP Kilitli)'
+                  : '🎮 Tek Cihazda 2 Kişi Oyna (Yerel PvP)'}
               </button>
 
               <div className="bot-mode-panel">
@@ -191,6 +201,7 @@ export function LobbyPage(): React.JSX.Element {
                       key={item.key}
                       type="button"
                       className={`bot-level-pill ${selectedBotLevel === item.key ? 'active' : ''}`}
+                      disabled={isLockedInTournament}
                       onClick={(): void => setSelectedBotLevel(item.key)}
                     >
                       {item.label}
@@ -200,10 +211,10 @@ export function LobbyPage(): React.JSX.Element {
                 <button
                   type="button"
                   className="auth-button bot-pve-btn"
-                  disabled={botLockedForTournament}
+                  disabled={isLockedInTournament}
                   title={
-                    botLockedForTournament
-                      ? 'Aktif turnuva maçınız varken bot modu kilitlidir.'
+                    isLockedInTournament
+                      ? 'Aktif bir turnuvada yer aldığınız için bot modu kilitlidir.'
                       : undefined
                   }
                   onClick={(): void => {
@@ -211,8 +222,8 @@ export function LobbyPage(): React.JSX.Element {
                     navigate('#/game');
                   }}
                 >
-                  {botLockedForTournament
-                    ? '🔒 Turnuva Maçı Aktif (Bot Kilitli)'
+                  {isLockedInTournament
+                    ? '🔒 Turnuva Aktif (Bot Kilitli)'
                     : '🤖 Bota Karşı Oyna (PvE)'}
                 </button>
               </div>
@@ -292,7 +303,12 @@ export function LobbyPage(): React.JSX.Element {
                     <button
                       type="button"
                       className="challenge-btn"
-                      disabled={u.status === 'playing' || isInQueue || !!outgoingInviteTargetId}
+                      disabled={
+                        isLockedInTournament ||
+                        u.status === 'playing' ||
+                        isInQueue ||
+                        !!outgoingInviteTargetId
+                      }
                       onClick={(): void => {
                         setInviteSeconds(30);
                         sendInvite(u.userId);
@@ -342,6 +358,12 @@ export function LobbyPage(): React.JSX.Element {
               <button
                 type="button"
                 className="auth-button accept-invite-btn"
+                disabled={isLockedInTournament}
+                title={
+                  isLockedInTournament
+                    ? 'Aktif turnuva nedeniyle davet kabul edilemez.'
+                    : undefined
+                }
                 onClick={(): void => respondToInvite(incomingInvite.inviterUserId, true)}
               >
                 Kabul Et

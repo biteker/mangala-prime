@@ -1,5 +1,6 @@
 import {
   Injectable,
+  OnModuleInit,
   Optional,
   BadRequestException,
   InternalServerErrorException,
@@ -7,6 +8,7 @@ import {
 import { PrismaService } from '../common/prisma/prisma.service';
 import { GameService } from '../game/game.service';
 import { AdminService } from '../admin/admin.service';
+import { TournamentService } from '../tournament/tournament.service';
 import { Server } from 'socket.io';
 
 export interface OnlineUser {
@@ -46,7 +48,7 @@ export interface QueueJoinResult {
 }
 
 @Injectable()
-export class LobbyService {
+export class LobbyService implements OnModuleInit {
   private readonly onlineUsers = new Map<string, OnlineUser>();
   private readonly queue = new Map<string, QueuePlayer>();
   private readonly invites = new Map<string, ActiveInvite>();
@@ -56,7 +58,67 @@ export class LobbyService {
     private readonly prisma: PrismaService,
     private readonly gameService: GameService,
     @Optional() private readonly adminService?: AdminService,
+    @Optional() private readonly tournamentService?: TournamentService,
   ) {}
+
+  onModuleInit(): void {
+    this.tournamentService?.registerOnPlayersLocked((userIds: string[]) => {
+      this.evictPlayersForTournament(userIds);
+    });
+  }
+
+  evictPlayersForTournament(userIds: string[]): void {
+    const lockedSet = new Set(userIds);
+
+    for (const userId of lockedSet) {
+      if (this.queue.has(userId)) {
+        this.leaveQueue(userId);
+        if (this.server) {
+          const onlineUser = this.onlineUsers.get(userId);
+          if (onlineUser) {
+            this.server.to(onlineUser.socketId).emit('lobby:error', {
+              error: {
+                code: 'TOURNAMENT_LOCKED',
+                message:
+                  'Turnuva başladığı için eşleşme sırasından çıkarıldınız.',
+              },
+            });
+          }
+        }
+      }
+    }
+
+    for (const [key, invite] of this.invites.entries()) {
+      const inviterLocked = lockedSet.has(invite.inviterId);
+      const targetLocked = lockedSet.has(invite.targetId);
+      if (!inviterLocked && !targetLocked) {
+        continue;
+      }
+
+      clearTimeout(invite.timer);
+      this.invites.delete(key);
+
+      if (this.server) {
+        if (inviterLocked) {
+          const target = this.onlineUsers.get(invite.targetId);
+          if (target) {
+            this.server.to(target.socketId).emit('lobby:invite_timeout', {
+              inviterUserId: invite.inviterId,
+            });
+          }
+        }
+        if (targetLocked) {
+          const inviter = this.onlineUsers.get(invite.inviterId);
+          if (inviter) {
+            this.server.to(inviter.socketId).emit('lobby:invite_response', {
+              targetUserId: invite.targetId,
+              accepted: false,
+            });
+          }
+        }
+      }
+    }
+  }
 
   private async resolveIsFriendly(
     p1UserId: string,
@@ -187,6 +249,20 @@ export class LobbyService {
       };
     }
 
+    if (
+      this.tournamentService &&
+      (await this.tournamentService.isUserLockedInTournament(userId))
+    ) {
+      return {
+        success: false,
+        error: {
+          code: 'TOURNAMENT_LOCKED',
+          message:
+            'Aktif bir turnuvada yer aldığınız için eşleşme sırasına giremezsiniz.',
+        },
+      };
+    }
+
     // 1. Fingerprint kontrolü
     try {
       const dbUser = await this.prisma.user.findUnique({
@@ -267,31 +343,44 @@ export class LobbyService {
     }
   }
 
-  sendInvite(inviterId: string, targetId: string): Promise<boolean> {
+  async sendInvite(inviterId: string, targetId: string): Promise<boolean> {
     const inviter = this.onlineUsers.get(inviterId);
     const target = this.onlineUsers.get(targetId);
 
     if (!inviter || !target) {
-      return Promise.resolve(false);
+      return false;
+    }
+
+    if (this.tournamentService) {
+      if (await this.tournamentService.isUserLockedInTournament(inviterId)) {
+        throw new BadRequestException({
+          code: 'TOURNAMENT_LOCKED',
+          message:
+            'Aktif bir turnuvada yer aldığınız için meydan okuma gönderemezsiniz.',
+        });
+      }
+      if (await this.tournamentService.isUserLockedInTournament(targetId)) {
+        throw new BadRequestException({
+          code: 'TARGET_IN_TOURNAMENT',
+          message:
+            'Davet edilen oyuncu şu anda aktif bir turnuvada yer alıyor.',
+        });
+      }
     }
 
     if (target.status === 'playing') {
-      return Promise.reject(
-        new BadRequestException({
-          code: 'TARGET_PLAYING',
-          message: 'Davet edilen oyuncu şu anda başka bir maçta.',
-        }),
-      );
+      throw new BadRequestException({
+        code: 'TARGET_PLAYING',
+        message: 'Davet edilen oyuncu şu anda başka bir maçta.',
+      });
     }
 
     const key = `${inviterId}:${targetId}`;
     if (this.invites.has(key)) {
-      return Promise.reject(
-        new BadRequestException({
-          code: 'ALREADY_INVITED',
-          message: 'Bu oyuncuya zaten bekleyen bir davetiniz var.',
-        }),
-      );
+      throw new BadRequestException({
+        code: 'ALREADY_INVITED',
+        message: 'Bu oyuncuya zaten bekleyen bir davetiniz var.',
+      });
     }
 
     const timer = setTimeout(() => {
@@ -304,7 +393,7 @@ export class LobbyService {
       timer,
     });
 
-    return Promise.resolve(true);
+    return true;
   }
 
   async handleInviteResponse(
@@ -337,6 +426,20 @@ export class LobbyService {
         code: 'INVITE_EXPIRED',
         message: 'Davet geçerliliğini yitirdi veya oyuncular oyuna girdi.',
       });
+    }
+
+    if (this.tournamentService) {
+      const [inviterLocked, targetLocked] = await Promise.all([
+        this.tournamentService.isUserLockedInTournament(inviterId),
+        this.tournamentService.isUserLockedInTournament(targetId),
+      ]);
+      if (inviterLocked || targetLocked) {
+        throw new BadRequestException({
+          code: 'TOURNAMENT_LOCKED',
+          message:
+            'Aktif bir turnuva nedeniyle bu oyun daveti artık kabul edilemez.',
+        });
+      }
     }
 
     const isFriendly = await this.resolveIsFriendly(

@@ -11,20 +11,34 @@ import { LeaderboardModal } from './components/LeaderboardModal';
 import { ProfileModal } from './components/ProfileModal';
 import { useAuthStore } from './stores/auth.store';
 import { useThemeStore } from './stores/theme.store';
+import { useTournamentStore } from './stores/tournament.store';
+import { useGameStore } from './stores/game.store';
 
 function App(): React.JSX.Element {
   const { route, navigate } = useRouter();
-  const { user, logout } = useAuthStore();
-  const { theme, setTheme } = useThemeStore();
+  const { user, accessToken, logout } = useAuthStore();
+  const { theme } = useThemeStore();
+  const {
+    hasActiveTournamentMatch,
+    isLockedInTournament,
+    activeTournamentName,
+    activeTournamentStatus,
+    currentRound,
+    totalRounds,
+    activeMatchId,
+    connectTournament,
+    disconnectTournament,
+    enterActiveMatch,
+  } = useTournamentStore();
 
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState<boolean>(false);
   const [profileUsername, setProfileUsername] = useState<string | null>(null);
 
-  // Tema sınıfının root elementine uygulanması
+  // Tema sınıfının root elementine uygulanması (yalnızca theme-pixijs sabit)
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('theme-wood', 'theme-neon', 'theme-rustic', 'theme-pixijs');
-    root.classList.add(theme);
+    root.classList.add(theme === 'theme-pixijs' ? theme : 'theme-pixijs');
   }, [theme]);
 
   // Sayfa yüklendiğinde oturumu ve kullanıcı bilgilerini tazelemek için
@@ -37,24 +51,18 @@ function App(): React.JSX.Element {
     }
   }, []);
 
-  const handleThemeToggle = (): void => {
-    const order: Array<typeof theme> = ['theme-wood', 'theme-neon', 'theme-rustic', 'theme-pixijs'];
-    const currentIndex = order.indexOf(theme);
-    const nextIndex = (currentIndex + 1) % order.length;
-    setTheme(order[nextIndex]);
-  };
-
-  const getThemeLabel = (): string => {
-    switch (theme) {
-      case 'theme-wood': return 'Ahşap';
-      case 'theme-neon': return 'Neon';
-      case 'theme-rustic': return 'Rustik';
-      case 'theme-pixijs': return 'PixiJS';
-      default: return 'Ahşap';
+  // Oturum aktifken global turnuva soketini bağlı tut
+  useEffect(() => {
+    if (accessToken) {
+      connectTournament();
+    } else {
+      disconnectTournament();
     }
-  };
+  }, [accessToken, connectTournament, disconnectTournament]);
 
   const handleLogout = async (): Promise<void> => {
+    disconnectTournament();
+    useGameStore.getState().disconnectGame();
     await logout();
     navigate('#/login');
   };
@@ -128,15 +136,43 @@ function App(): React.JSX.Element {
                 </button>
               </>
             )}
-            <button
-              type="button"
-              className="theme-toggle-btn"
-              onClick={handleThemeToggle}
-            >
-              Tema: {getThemeLabel()}
-            </button>
           </div>
         </header>
+      )}
+
+      {user && route !== '#/game' && isLockedInTournament && (
+        <div
+          className={`tournament-sticky-banner ${hasActiveTournamentMatch ? 'urgent' : ''}`}
+        >
+          <span>
+            {hasActiveTournamentMatch && activeMatchId
+              ? `⚔️ ${activeTournamentName ?? 'Turnuva'} — Aktif turnuva maçınız sizi bekliyor!`
+              : activeTournamentStatus === 'CHECK_IN'
+                ? `📣 ${activeTournamentName ?? 'Turnuva'} yoklama (Check-in) aşamasında! Turnuva bitene kadar diğer oyun modları kilitlidir.`
+                : `🏆 ${activeTournamentName ?? 'Turnuva'} devam ediyor (Tur ${currentRound ?? 0}/${totalRounds ?? 0}) — Yeni tur eşleşmesi bekleniyor. Diğer oyun modları kilitlidir.`}
+          </span>
+          <div className="tournament-sticky-actions">
+            {hasActiveTournamentMatch && activeMatchId ? (
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={enterActiveMatch}
+              >
+                ⚔️ Hemen Maça Gir →
+              </button>
+            ) : (
+              route !== '#/tournaments' && (
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={(): void => navigate('#/tournaments')}
+                >
+                  🏆 Turnuva Salonuna Git →
+                </button>
+              )
+            )}
+          </div>
+        </div>
       )}
 
       <main className={route === '#/game' ? 'game-page-main' : 'auth-container'}>

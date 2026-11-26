@@ -3432,8 +3432,44 @@ html.theme-pixijs .game-layout {
   color: var(--alert-error-text);
 }
 
+.tournament-sticky-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 10px 24px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.tournament-sticky-banner.urgent {
+  background: var(--alert-error-bg);
+  border-bottom-color: var(--accent-color);
+  color: var(--alert-error-text);
+  font-weight: 600;
+}
+
+.tournament-sticky-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .tournament-sticky-banner {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}
+
 @media print {
   .app-header,
+  .tournament-sticky-banner,
   .admin-actions-cell,
   .tournament-top-grid {
     display: none !important;

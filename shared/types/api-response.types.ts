@@ -193,3 +193,17 @@ export interface TournamentDetailResponse extends TournamentSummary {
   pairings: TournamentPairingView[];
   myActiveMatchId: string | null;
 }
+
+export interface MyActiveTournamentStatusResponse {
+  hasActiveTournamentMatch: boolean;
+  isLockedInTournament: boolean;
+  activeTournamentId: string | null;
+  activeTournamentName: string | null;
+  activeTournamentStatus: TournamentStatus | null;
+  currentRound: number | null;
+  totalRounds: number | null;
+  activeMatchId: string | null;
+  activeSetNumber: number | null;
+  setsPerMatch: number | null;
+  opponentUsername: string | null;
+}

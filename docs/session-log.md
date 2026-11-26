@@ -23,6 +23,60 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-26] — Turnuva Tur Sonu Yönlendirme Düzeltmesi, Global Turnuva Soketi ve Katı Kilit (Hard Lock)
+
+**Tamamlanan Görev:** Turnuva maçı/turu bittiğinde `#/tournaments` yerine `#/lobby` sayfasına atma ve oyuncu başka ekranda/oyundayken yeni tur maçının başlamaması sorunları katı kilit (Hard Lock) + global turnuva soketi mimarisiyle çözüldü.
+- **Tur Sonu & 2. Set Yönlendirme Düzeltmesi:** `GamePage.tsx` içindeki `disconnectGame()` → `navigate('#/tournaments')` yarış durumu `exitGameTo` ve `isExitingGameRef` + `#/game` rota kontrolüyle giderildi. `game.store.ts` içinde `game:tournament_next_set` olayı geldiğinde `tournamentSetNumber` (1) korunup yalnızca `connectGame(newMatchId)` ile 2. sete geçerken `2` olacak şekilde düzeltildi ve stale event koruması eklendi.
+- **Global Turnuva Soketi & Sabit Üst Şerit:** `frontend/src/stores/tournament.store.ts` (`useTournamentStore`) oluşturularak `/tournament` WebSocket bağlantısı uygulama köküne (`App.tsx`) taşındı; `tournament:match_assigned` alındığında oyuncu lobide/başka ekranda/bot oyunundayken bile kuyruktan çıkarılıp doğrudan `#/game` maç odasına yönlendiriliyor (1. set bitiş modalındaysa 2. set akışını besliyor). `App.tsx` üst barı altına her sayfada görünen sabit `.tournament-sticky-banner` eklendi. `TournamentPage.tsx` yerel soket yerine global store'u kullanacak şekilde refaktör edildi.
+- **Katı Turnuva Kilidi (Backend + Frontend):** `MyActiveTournamentStatusResponse` ve `TournamentStatusChangedPayload` tipleri `shared` paketine eklendi. `TournamentService` üzerine `isUserLockedInTournament`, `getMyActiveStatus`, `registerOnPlayersLocked` ve `tournament:status_changed` bildirimleri eklendi; `LobbyService` (`joinQueue`, `sendInvite`, `handleInviteResponse`, `evictPlayersForTournament`) turnuvada kilitli oyuncuları hem engelliyor hem tur/yoklama açılışında kuyruk ve davetlerden temizliyor; `GameService.offerRematch` turnuva maçlarında manuel rövanşı engelliyor. `LobbyPage.tsx` üzerinde aktif turnuva süresince Hızlı Maç, Yerel PvP, Bot (PvE), Meydan Oku ve Davet Kabul bütünüyle kilitlendi.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `shared/types/api-response.types.ts` & `shared/types/socket-events.types.ts` — `MyActiveTournamentStatusResponse` ve `TournamentStatusChangedPayload`
+- `backend/src/tournament/tournament.service.ts` & `tournament.controller.ts` — `isUserLockedInTournament`, `getMyActiveStatus`, `registerOnPlayersLocked` ve durum geçiş bildirimleri
+- `backend/src/lobby/lobby.module.ts` & `lobby.service.ts` — `TournamentModule` bağlantısı, kuyruk/davet katı kilit korumaları ve `evictPlayersForTournament`
+- `backend/src/game/game.service.ts` — `offerRematch` içinde turnuva maçı rövanş engeli
+- `frontend/src/stores/tournament.store.ts` — Yeni: Global `/tournament` soket & aktif turnuva durumu store'u
+- `frontend/src/stores/game.store.ts` & `lobby.store.ts` — `game:tournament_next_set` düzeltmesi ve `TOURNAMENT_LOCKED` senkronizasyonu
+- `frontend/src/App.tsx`, `GamePage.tsx`, `LobbyPage.tsx`, `TournamentPage.tsx`, `index.css` — Global soket yaşam döngüsü, `.tournament-sticky-banner`, katı kilit UI ve tur sonu güvenli çıkış
+- `backend/src/tournament/tournament.service.spec.ts`, `lobby.service.spec.ts`, `game.service.spec.ts`, `frontend/src/stores/game.store.spec.ts`, `tournament.store.spec.ts` (yeni), `frontend/src/components/GamePage.spec.tsx` (yeni) — 14 yeni birim testi eklendi
+
+**Test Sonuçları:** 177/177 test geçti (Backend: 145/145, Frontend: 32/32)
+**Derleme:** ✅ Hatasız (`npm run build -w shared`, `npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yerel `gh` CLI oturumu geçersiz olduğundan (`gh auth login -h github.com` gerekli) Faz F branch'leri yerelde commitli; PR açma ve `develop` birleştirmesi kimlik doğrulaması sonrası yapılacak.
+**Bir Sonraki Görev:** GitHub CLI girişi sonrası Faz F branch'lerinin PR ve merge işlemlerinin tamamlanması + VPS deploy
+**Commit:** fix(tournament,game,lobby): enforce strict tournament lock, global tournament routing, and fix round-end redirect
+**PR:** feature/tournament-flow-and-theme-lock → feature/fix-game-connect-and-turn-ui (yerel stacked branch)
+
+---
+
+### Oturum [2026-11-26] — T-27 & T-28: Turnuva Maç Sonu Akışı (2. Set / Turnuva Salonu) ve `theme-pixijs` Sabitlemesi
+
+**Tamamlanan Görev:** Faz F'nin son iki görevi olan T-27 ve T-28 tamamlandı.
+- **T-27 (Turnuva Akışı & Kopma Koruması):** `GameReconnectAckPayload` ve yeni `GameTournamentNextSetPayload` sözleşmeleri `shared/types/socket-events.types.ts` içine eklendi. `GameRoom.tournamentMeta`, `GameService.initializeGame` ve `GameService.emitTournamentNextSet` üzerinden `/game` soket odası turnuva set bilgisini taşıyacak şekilde güncellendi. 2 setlik maçlarda 1. set bittiğinde `game:tournament_next_set` yayınlanarak `GamePage` içinde "Rövanş Teklif Et" / "Lobiye Dön" gizlendi; yerine 5 saniyelik otomatik 2. set geçişi (+ `"⚔️ Hemen 2. Sete Geç"`) ve tur maçı sonunda 8 saniyelik Turnuva Salonu (`#/tournaments`) dönüşü (+ `"🏆 Turnuva Salonuna Dön"`) eklendi. `TournamentPage` üzerinde `activeTournamentId` kalıcılığı, doğrudan `connectGame` ile maç açma ve tur sonu bekleme afişi; `LobbyPage` üzerinde ise aktif turnuva dönüş banner'ı eklendi.
+- **T-28 (Tema Sabitlemesi):** `useThemeStore` her zaman `'theme-pixijs'` değerini koruyacak şekilde sabitlendi (`persist` `merge` dahil) ve `App.tsx` üst barındaki tema değiştirme butonu kaldırıldı.
+
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `shared/types/socket-events.types.ts` — `GameReconnectAckPayload` turnuva alanları ve `GameTournamentNextSetPayload`
+- `backend/src/game/types/game-room.types.ts` — `TournamentRoomMeta` ve `GameRoom.tournamentMeta`
+- `backend/src/game/game.service.ts` — `initializeGame` turnuva meta desteği ve `emitTournamentNextSet`
+- `backend/src/game/game.gateway.ts` — `game:reconnect_ack` içinde turnuva meta gönderimi
+- `backend/src/tournament/tournament.service.ts` — `startNextRound` ve `onMatchFinished` içinde `tournamentMeta` & `emitTournamentNextSet`
+- `backend/src/tournament/tournament.service.spec.ts` — 2. set `initializeGame` & `emitTournamentNextSet` test beklentileri güncellendi
+- `frontend/src/stores/game.store.ts` — `tournamentId` / `tournamentSetNumber` / `tournamentSetsPerMatch` / `nextTournamentMatchId` state ve `game:tournament_next_set` dinleyicisi
+- `frontend/src/components/GamePage.tsx` — Turnuva oyun sonu modalı, otomatik 2. set / Turnuva Salonuna dönüş akışı
+- `frontend/src/components/TournamentPage.tsx` — `activeTournamentId` kalıcılığı, `connectGame` başlatma ve bekleme afişi
+- `frontend/src/components/LobbyPage.tsx` — Aktif turnuva dönüş banner'ı
+- `frontend/src/stores/theme.store.ts` & `frontend/src/App.tsx` — `theme-pixijs` sabitlemesi ve tema değiştirici butonunun kaldırılması
+
+**Test Sonuçları:** 163/163 test geçti (Backend: 138/138, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yerel `gh` CLI oturumu geçersiz olduğundan (`gh auth login -h github.com` gerekli) Faz F branch'leri yerelde commitli; PR açma ve `develop` birleştirmesi kimlik doğrulaması sonrası yapılacak.
+**Bir Sonraki Görev:** GitHub CLI girişi sonrası Faz F branch'lerinin PR ve merge işlemlerinin tamamlanması + VPS deploy
+**Commit:** feat(tournament,theme): add seamless tournament match-end flow and lock theme-pixijs (T-27, T-28)
+**PR:** feature/tournament-flow-and-theme-lock → feature/fix-game-connect-and-turn-ui (yerel stacked branch)
+
+---
+
 ### Oturum [2026-11-26] — T-26: `/game` Soket Yarış Durumu, `connectGame` Stale-Socket ve Üst Bar Yeşil Sıra Işığı Düzeltmesi
 
 **Tamamlanan Görev:** T-26 tamamlandı. `GameGateway` içinde bağlantı anındaki asenkron JWT doğrulaması ile `game:reconnect` / `game:move` event'leri arasındaki yarış durumu `ensureAuthenticatedUser(client)` kurtarma yardımcısıyla giderildi ve `handleReconnect` sonrasında odadaki rakibe `game:state_update` yayını eklenerek ikinci oyuncunun katılımının anlık görülmesi sağlandı. `useGameStore.connectGame` aynı `matchId` için aktif soket varsa yeniden `game:reconnect` gönderecek ve farklı maça geçerken eski `yourColor` / `currentPlayerId` / `opponentUsername` alanlarını sıfırlayacak şekilde düzeltildi. `GamePage` üst barındaki yeşil sıra ışığı (`isP1Active`, `isP2Active`) ve `yourColor === null` durumundaki etiket (`'Bağlanıyor...'`) renk atamasına göre (`yourColor === 0` sol, `yourColor === 1` sağ) düzeltildi.

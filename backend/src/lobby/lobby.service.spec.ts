@@ -3,7 +3,9 @@ import { LobbyService } from './lobby.service';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { GameService } from '../game/game.service';
 import { AdminService } from '../admin/admin.service';
+import { TournamentService } from '../tournament/tournament.service';
 import { BadRequestException } from '@nestjs/common';
+import type { Server } from 'socket.io';
 
 describe('LobbyService', () => {
   let service: LobbyService;
@@ -27,6 +29,11 @@ describe('LobbyService', () => {
     getSchoolDailyRankedPairLimit: jest.fn().mockResolvedValue(3),
   };
 
+  const mockTournamentService = {
+    isUserLockedInTournament: jest.fn().mockResolvedValue(false),
+    registerOnPlayersLocked: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -34,6 +41,7 @@ describe('LobbyService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: GameService, useValue: mockGameService },
         { provide: AdminService, useValue: mockAdminService },
+        { provide: TournamentService, useValue: mockTournamentService },
       ],
     }).compile();
 
@@ -42,6 +50,7 @@ describe('LobbyService', () => {
     jest.clearAllMocks();
     mockAdminService.isTrustedSchoolIp.mockResolvedValue(false);
     mockAdminService.getSchoolDailyRankedPairLimit.mockResolvedValue(3);
+    mockTournamentService.isUserLockedInTournament.mockResolvedValue(false);
     mockPrisma.match.count.mockResolvedValue(0);
     jest.useFakeTimers();
   });
@@ -279,6 +288,109 @@ describe('LobbyService', () => {
           isFriendly: true,
         },
       });
+    });
+  });
+
+  describe('tournament_hard_lock', () => {
+    it('should_block_queue_join_when_user_is_locked_in_tournament', async () => {
+      await service.addUser('user-1', 'user1', 'socket-1', '192.168.1.10');
+      mockTournamentService.isUserLockedInTournament.mockResolvedValueOnce(
+        true,
+      );
+
+      const result = await service.joinQueue(
+        'user-1',
+        'socket-1',
+        '192.168.1.10',
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('TOURNAMENT_LOCKED');
+    });
+
+    it('should_reject_invite_send_when_inviter_or_target_is_locked_in_tournament', async () => {
+      await service.addUser('user-1', 'user1', 'socket-1', '192.168.1.10');
+      await service.addUser('user-2', 'user2', 'socket-2', '192.168.1.11');
+
+      // Davet eden turnuvada kilitli
+      mockTournamentService.isUserLockedInTournament.mockResolvedValueOnce(
+        true,
+      );
+      await expect(
+        service.sendInvite('user-1', 'user-2'),
+      ).rejects.toMatchObject({
+        response: { code: 'TOURNAMENT_LOCKED' },
+      });
+
+      // Hedef oyuncu turnuvada kilitli
+      mockTournamentService.isUserLockedInTournament
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true);
+      await expect(
+        service.sendInvite('user-1', 'user-2'),
+      ).rejects.toMatchObject({
+        response: { code: 'TARGET_IN_TOURNAMENT' },
+      });
+    });
+
+    it('should_reject_invite_acceptance_when_either_player_is_locked_in_tournament', async () => {
+      await service.addUser('user-1', 'user1', 'socket-1', '192.168.1.10');
+      await service.addUser('user-2', 'user2', 'socket-2', '192.168.1.11');
+
+      await service.sendInvite('user-1', 'user-2');
+
+      mockTournamentService.isUserLockedInTournament
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true);
+
+      await expect(
+        service.handleInviteResponse('user-1', 'user-2', true),
+      ).rejects.toMatchObject({
+        response: { code: 'TOURNAMENT_LOCKED' },
+      });
+    });
+
+    it('should_evict_queued_players_and_clear_invites_when_tournament_locks_players', async () => {
+      const mockEmit = jest.fn();
+      const mockServer = {
+        to: jest.fn().mockReturnValue({ emit: mockEmit }),
+      };
+      service.setServer(mockServer as unknown as Server);
+
+      await service.addUser('user-1', 'user1', 'socket-1', '192.168.1.10');
+      await service.addUser('user-2', 'user2', 'socket-2', '192.168.1.11');
+      await service.addUser('user-3', 'user3', 'socket-3', '192.168.1.12');
+
+      mockPrisma.user.findUnique.mockResolvedValueOnce({
+        id: 'user-1',
+        deviceFingerprint: 'fp-1',
+      });
+      await service.joinQueue('user-1', 'socket-1', '192.168.1.10');
+      await service.sendInvite('user-2', 'user-3');
+
+      service.evictPlayersForTournament(['user-1', 'user-2']);
+
+      expect(mockServer.to).toHaveBeenCalledWith('socket-1');
+      expect(mockEmit).toHaveBeenCalledWith(
+        'lobby:error',
+        expect.objectContaining({
+          error: expect.objectContaining({
+            code: 'TOURNAMENT_LOCKED',
+          }) as Record<string, unknown>,
+        }),
+      );
+      expect(mockServer.to).toHaveBeenCalledWith('socket-3');
+      expect(mockEmit).toHaveBeenCalledWith('lobby:invite_timeout', {
+        inviterUserId: 'user-2',
+      });
+
+      // Temizlenen davet kabul edilmeye çalışılsa da null dönmeli
+      const inviteRes = await service.handleInviteResponse(
+        'user-2',
+        'user-3',
+        true,
+      );
+      expect(inviteRes).toBeNull();
     });
   });
 });
