@@ -1,5 +1,11 @@
 import { BoardState, Player } from '@mangala/shared';
 
+export interface TournamentRoomMeta {
+  tournamentId: string;
+  setNumber: number;
+  setsPerMatch: number;
+}
+
 export interface GameRoom {
   matchId: string;
   player1Id: string;
@@ -15,6 +21,7 @@ export interface GameRoom {
   p1ChatEnabled: boolean;
   p2ChatEnabled: boolean;
   turnExpiresAt?: number;
+  tournamentMeta?: TournamentRoomMeta;
 }
 
 export interface RematchOfferState {

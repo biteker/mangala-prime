@@ -538,5 +538,21 @@ describe('GameService', () => {
       });
       expect(service.getFinishedMatch(matchId)).toBeUndefined();
     });
+
+    it('should_reject_manual_rematch_offer_for_tournament_match', async () => {
+      // Arrange
+      await setupFinishedMatch();
+      mockPrisma.match.findUnique.mockResolvedValueOnce({
+        id: matchId,
+        status: 'FINISHED',
+        isFriendly: true,
+        tournamentId: 't-1',
+      });
+
+      // Act & Assert
+      await expect(service.offerRematch(matchId, p1Id)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
   });
 });

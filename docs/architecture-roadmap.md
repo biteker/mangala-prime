@@ -621,6 +621,10 @@ flowchart LR
 | T-22 | ✅ Evden Turnuva: Check-in & Otomatik `NO_SHOW` (Tamamlandı) | E | P2 | Ajan | T-21 | — |
 | T-23 | ✅ Evden Turnuva: Hile Caydırıcılığı & Hakem Müdahalesi (Tamamlandı) | E | P2 | Ajan | T-22 | — |
 | T-24 | ✅ Çoklu Okul Filtreleme & Turnuva Sonuç Raporu (CSV/Yazdır) (Tamamlandı) | E | P3 | Ajan | T-23 | K-10 |
+| T-25 | ✅ Oyun Motoru Bölge Temizleme (Kural D) & PixiJS Son Hamle Taş Dağılımı Düzeltmesi (Tamamlandı) | F | P1 | Ajan | T-24 | K-12 |
+| T-26 | ✅ `/game` Soket Yarış Durumu, `connectGame` Stale-Socket ve Üst Bar Yeşil Sıra Işığı Düzeltmesi (Tamamlandı) | F | P1 | Ajan | T-25 | K-13 |
+| T-27 | ✅ Turnuva Maç Sonu Otomatik 2. Set / Turnuva Salonu Akışı & Kopma Koruması (Tamamlandı) | F | P1 | Ajan | T-26 | K-13 |
+| T-28 | ✅ `theme-pixijs` Temasının Sabitlenmesi ve Tema Değiştiricinin Kaldırılması (Tamamlandı) | F | P2 | Ajan | T-27 | K-14 |
 
 ---
 
@@ -630,6 +634,14 @@ flowchart LR
 - **K-9 (Turnuva ELO & Set Seçimi):** Öğretmen turnuva oluştururken `affectsGlobalElo` (`true`/`false`) ve `setsPerMatch` (`1` tek maç / `2` rövanşlı taraf değişimli) seçeneklerini belirler. Turnuva maçları hiçbir IP/limit engeline takılmaz.
 - **K-10 (Çoklu Okul & Rol Mimarisi):** `User.role` (`STUDENT`, `TEACHER`, `ADMIN`) ve `schoolName` desteği. `INITIAL_ADMIN_USERNAME` ortam değişkeniyle ilk admin güvenli biçimde atanır; `ADMIN` diğer öğretmenleri ve okul IP'lerini `#/admin` dashboard'undan yönetir.
 - **K-11 (KVKK & Öğrenci Gizliliği):** Gerçek ad-soyad zorunlu değildir; kullanıcı adı ve opsiyonel sınıf/okul etiketi kullanılır.
+
+---
+
+## 8.6. Faz F — Turnuva UX Akışı, Bağlantı/Sıra Senkronizasyonu ve Görsel Sabitleme (Onaylanan Kararlar: K-12…K-14)
+
+- **K-12 (25 Taş Eşiği & Bölge Temizleme Kuralı):** Spec 19.1 zorunlu testi (`should_end_game_when_treasury_reaches_25`) ile uyum için 25 taş kazanma eşiği korunur. Ancak bir tarafın bölgesi boşaldığında (`p1PitsEmpty || p2PitsEmpty`), tahtada kalan tüm kuyu taşları bölgeyi boşaltan hamleyi yapan **aktif oyuncunun kendi hazinesine (`ownTreasury`)** aktarılır; böylece rakibin son taşını yakalayarak bitiren oyuncunun kendi kuyularındaki taşların rakip hazineye yazılması önlenir.
+- **K-13 (Turnuva Maç Akışı & Soket Senkronizasyonu):** `/game` soketinde kimlik doğrulama yarış durumu engellenir, ikinci oyuncu katıldığında oda durum güncellemesi yayınlanır ve `connectGame` eski soket bağlantısında dahi yeni `matchId` için `game:reconnect` gönderir. Turnuva maçlarında oyun sonu ekranında "Rövanş Teklif Et" / "Lobiye Dön" gizlenir; 2 setlik maçta otomatik 2. sete geçilir, tur bittiyse öğrenci doğrudan Turnuva Salonuna (`#/tournaments`) döndürülür ve lobide aktif turnuva koruması gösterilir.
+- **K-14 (Sabit PixiJS Teması):** Oyun üst barı ve tahta arayüzü yalnızca `theme-pixijs` temasıyla uyumlu olduğundan tema değiştirme düğmesi kaldırılır ve uygulama her zaman `theme-pixijs` temasında sabitlenir.
 
 ---
 

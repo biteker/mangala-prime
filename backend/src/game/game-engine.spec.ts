@@ -146,6 +146,25 @@ describe('GameEngineService & Shared MangalaEngine', () => {
     ]);
   });
 
+  it('should_award_remaining_own_stones_to_active_player_when_capturing_opponents_last_stone', () => {
+    // Arrange: P1 plays pit 5 (2 stones) -> 1 in pit 5, 1 in pit 6 (treasury),
+    // Wait: let's use pit 5 with 3 stones -> 1 in pit 5, 1 in pit 6, 1 in pit 7 (was 1 -> becomes 2, even capture!).
+    // P2 had only 1 stone at pit 7, so capturing pit 7 makes P2's side empty while P1 still has stones at pits 0 and 5.
+    const board: BoardState = [3, 0, 0, 0, 0, 3, 20, 1, 0, 0, 0, 0, 0, 21];
+    const pitIndex = 5;
+    const currentPlayer: Player = 0;
+
+    // Act
+    const result = service.processMove(board, pitIndex, currentPlayer);
+
+    // Assert: P1 gets treasury (+1), captured pit 7 (+2), and P1's remaining stones (pit 0=3, pit 5=1 => +4) => 20 + 1 + 2 + 4 = 27. P2 stays at 21.
+    expect(result.gameOver).toBe(true);
+    expect(result.winner).toBe(0);
+    expect(result.newBoard).toEqual([
+      0, 0, 0, 0, 0, 0, 27, 0, 0, 0, 0, 0, 0, 21,
+    ]);
+  });
+
   describe('Shared Engine Utilities & Immutability', () => {
     it('should_create_fresh_initial_board_and_never_mutate_input_board', () => {
       // Arrange

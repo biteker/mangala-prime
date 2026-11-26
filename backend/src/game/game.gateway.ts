@@ -62,6 +62,45 @@ export class GameGateway
     this.gameService.setServer(server);
   }
 
+  /**
+   * Soket bağlantısındaki kullanıcı kimliğini döndürür.
+   * handleConnection'daki asenkron JWT doğrulaması henüz tamamlanmadan
+   * gelen ilk mesajlarda (yarış koşulu) handshake token'ını doğrulayarak kurtarır.
+   */
+  private async ensureAuthenticatedUser(
+    client: AuthenticatedGameSocket,
+  ): Promise<string | null> {
+    if (client.data?.userId) {
+      return client.data.userId;
+    }
+
+    const token = this.extractHandshakeToken(client);
+    if (!token) {
+      client.disconnect(true);
+      return null;
+    }
+
+    try {
+      const payload = await this.jwtService.verifyAsync<{
+        sub: string;
+        username: string;
+      }>(token);
+      if (!payload?.sub) {
+        client.disconnect(true);
+        return null;
+      }
+
+      client.data = {
+        userId: payload.sub,
+        username: payload.username,
+      };
+      return payload.sub;
+    } catch {
+      client.disconnect(true);
+      return null;
+    }
+  }
+
   private extractClientIp(client: Socket): string {
     const forwardedFor = client.handshake.headers?.['x-forwarded-for'];
     const realIp = client.handshake.headers?.['x-real-ip'];
@@ -81,10 +120,11 @@ export class GameGateway
   }
 
   private extractHandshakeToken(client: Socket): string | null {
-    const authToken = (client.handshake.auth as { token?: unknown } | undefined)
-      ?.token;
+    const authToken = (
+      client.handshake?.auth as { token?: unknown } | undefined
+    )?.token;
     const queryToken = (
-      client.handshake.query as { token?: unknown } | undefined
+      client.handshake?.query as { token?: unknown } | undefined
     )?.token;
     const rawToken =
       typeof authToken === 'string'
@@ -108,21 +148,10 @@ export class GameGateway
         return;
       }
 
-      const token = this.extractHandshakeToken(client);
-      if (!token) {
-        client.disconnect(true);
+      const userId = await this.ensureAuthenticatedUser(client);
+      if (!userId) {
         return;
       }
-
-      const payload = await this.jwtService.verifyAsync<{
-        sub: string;
-        username: string;
-      }>(token);
-
-      const userId = payload.sub;
-      const username = payload.username;
-
-      client.data = { userId, username };
 
       // Oyuncuyu varsa aktif odasına bağla
       await this.gameService.handlePlayerConnect(userId, client.id);
@@ -157,9 +186,8 @@ export class GameGateway
     @ConnectedSocket() client: AuthenticatedGameSocket,
     @MessageBody() payload: GameMovePayload,
   ): Promise<void> {
-    const userId = client.data.userId;
+    const userId = await this.ensureAuthenticatedUser(client);
     if (!userId) {
-      client.disconnect(true);
       return;
     }
 
@@ -227,9 +255,8 @@ export class GameGateway
     @ConnectedSocket() client: AuthenticatedGameSocket,
     @MessageBody() payload: GameReconnectPayload,
   ): Promise<void> {
-    const userId = client.data.userId;
+    const userId = await this.ensureAuthenticatedUser(client);
     if (!userId) {
-      client.disconnect(true);
       return;
     }
 
@@ -261,7 +288,23 @@ export class GameGateway
       matchId: room.matchId,
       opponentUsername,
       yourColor,
+      ...(room.tournamentMeta
+        ? {
+            tournamentId: room.tournamentMeta.tournamentId,
+            setNumber: room.tournamentMeta.setNumber,
+            setsPerMatch: room.tournamentMeta.setsPerMatch,
+          }
+        : {}),
     });
+
+    // Rakip istemcinin oda bağlantısını ve güncel hamle sırasını anlık görmesini sağla
+    if (typeof client.to === 'function') {
+      client.to(payload.matchId)?.emit('game:state_update', {
+        board: room.board,
+        nextPlayerId,
+        turnTimeLeft: room.turnTimeLeft,
+      });
+    }
   }
 
   @SubscribeMessage('game:abandon')
@@ -269,9 +312,8 @@ export class GameGateway
     @ConnectedSocket() client: AuthenticatedGameSocket,
     @MessageBody() payload: { matchId: string },
   ): Promise<void> {
-    const userId = client.data.userId;
+    const userId = await this.ensureAuthenticatedUser(client);
     if (!userId) {
-      client.disconnect(true);
       return;
     }
 
@@ -340,9 +382,8 @@ export class GameGateway
     @ConnectedSocket() client: AuthenticatedGameSocket,
     @MessageBody() payload: GameRematchOfferPayload,
   ): Promise<void> {
-    const userId = client.data.userId;
+    const userId = await this.ensureAuthenticatedUser(client);
     if (!userId) {
-      client.disconnect(true);
       return;
     }
 
@@ -386,9 +427,8 @@ export class GameGateway
     @ConnectedSocket() client: AuthenticatedGameSocket,
     @MessageBody() payload: GameRematchResponsePayload,
   ): Promise<void> {
-    const userId = client.data.userId;
+    const userId = await this.ensureAuthenticatedUser(client);
     if (!userId) {
-      client.disconnect(true);
       return;
     }
 

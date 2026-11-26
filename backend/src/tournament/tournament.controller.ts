@@ -23,6 +23,7 @@ import {
 import type {
   TournamentSummary,
   TournamentDetailResponse,
+  MyActiveTournamentStatusResponse,
   PairingResult,
 } from '@mangala/shared';
 
@@ -49,10 +50,8 @@ export class TournamentController {
   @Get('my-active-status')
   async getMyActiveStatus(
     @Req() req: AuthenticatedRequest,
-  ): Promise<{ hasActiveTournamentMatch: boolean }> {
-    const hasActiveTournamentMatch =
-      await this.tournamentService.hasActiveTournamentMatch(req.user?.id ?? '');
-    return { hasActiveTournamentMatch };
+  ): Promise<MyActiveTournamentStatusResponse> {
+    return this.tournamentService.getMyActiveStatus(req.user?.id ?? '');
   }
 
   @Get(':id')

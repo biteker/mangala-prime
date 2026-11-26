@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: develop
+Aktif Branch: feature/tournament-flow-and-theme-lock
 
 ---
 
@@ -8,7 +8,7 @@ Aktif Branch: develop
 
 ```
 Faz 1 MVP: ██████████ %100
-Yayın Hazırlığı: ██████████ %100 (Faz A–E dahil T-01…T-24 tamamlandı — v1.2.0)
+Yayın Hazırlığı: ██████████ %100 (Faz A–F tamamlandı: T-01…T-28 ✅)
 ```
 
 ---
@@ -79,8 +79,10 @@ Yayın Hazırlığı: ██████████ %100 (Faz A–E dahil T-01�
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-20 — T-21…T-24: Turnuva Frontend Merkezi & Faz E Tamamlandı (v1.2.0)
+Oturum 2026-11-26 — Turnuva Tur Sonu Yönlendirme Düzeltmesi, Global Turnuva Soketi ve Katı Kilit (Hard Lock)
 
 ### Yapılanlar
-- `#/tournaments` Turnuva Merkezi (`TournamentPage.tsx`), Projeksiyon Modu, Check-in, Hakem hükmen karar/diskalifiye, ortak ağ uyarısı, aktif turnuvada Bot kilidi ve CSV/Yazdır raporu tamamlandı.
-- 157/157 birim testi (132 backend + 25 frontend), lint ve build doğrulandı. Faz E (`T-17…T-24`) tamamen tamamlandı.
+- `GamePage.tsx` (`exitGameTo`, `isExitingGameRef`, `!matchId` rota koruması) ve `game.store.ts` (`game:tournament_next_set` set 1 durumu korunumu & stale koruması) ile tur/maç sonu `#/lobby` yönlendirme hatası ve 2. set erken geçiş hatası düzeltildi.
+- `frontend/src/stores/tournament.store.ts` ile `/tournament` soketi `App.tsx` köküne taşındı; tüm sayfalarda sabit `.tournament-sticky-banner` ve yeni tur başladığında otomatik `#/game` yönlendirmesi sağlandı.
+- Backend (`TournamentService`, `LobbyService`, `GameService`) ve frontend (`LobbyPage.tsx`) üzerinde aktif turnuva katı kilidi (`TOURNAMENT_LOCKED` / `TARGET_IN_TOURNAMENT`, kuyruk/davet tahliyesi ve tüm lobi oyun modlarının kilitlenmesi) uygulandı.
+- 177/177 birim testi (145 backend + 32 frontend), lint (0 error) ve tam monorepo build doğrulandı. Sıradaki adım: `gh auth login` sonrası Faz F branch'lerinin PR/merge süreci.

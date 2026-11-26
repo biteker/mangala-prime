@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useGameStore } from '../stores/game.store';
 import { useAuthStore } from '../stores/auth.store';
+import { useTournamentStore } from '../stores/tournament.store';
 import { useRouter } from '../lib/router';
 import { MangalaReactBoard } from './MangalaBoard/MangalaReactBoard';
 import type { LastMoveDetails } from './MangalaBoard/MangalaReactBoard';
@@ -88,6 +89,10 @@ export function GamePage(): React.JSX.Element {
     lastMoveInfo,
     rematchState,
     rematchExpiresAt,
+    tournamentId,
+    tournamentSetNumber,
+    tournamentSetsPerMatch,
+    nextTournamentMatchId,
     connectGame,
     disconnectGame,
     makeMove,
@@ -99,9 +104,17 @@ export function GamePage(): React.JSX.Element {
   } = useGameStore();
 
   const isBotMode = mode === 'bot';
+  const isTournamentMatch = Boolean(tournamentId);
+  const isWaitingForSet2 = Boolean(
+    nextTournamentMatchId ||
+      (isTournamentMatch &&
+        tournamentSetsPerMatch === 2 &&
+        tournamentSetNumber === 1),
+  );
 
   const [chatInput, setChatInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const isExitingGameRef = useRef<boolean>(false);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -119,6 +132,48 @@ export function GamePage(): React.JSX.Element {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [rematchTick, setRematchTick] = useState<number>(() => Date.now());
   const showGameOverModal = Boolean(gameOverDetails && !isAnimating);
+
+  const exitGameTo = useCallback(
+    (targetRoute: '#/lobby' | '#/tournaments'): void => {
+      isExitingGameRef.current = true;
+      navigate(targetRoute);
+      disconnectGame();
+      if (targetRoute === '#/tournaments') {
+        void useTournamentStore.getState().refreshMyActiveStatus();
+      }
+    },
+    [navigate, disconnectGame],
+  );
+
+  // Turnuva 2. set otomatik geçişi (5 sn)
+  useEffect(() => {
+    if (!showGameOverModal || !nextTournamentMatchId) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      connectGame(nextTournamentMatchId);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [showGameOverModal, nextTournamentMatchId, connectGame]);
+
+  // Turnuva tur maçı bitiminde Turnuva Salonuna otomatik dönüş (8 sn)
+  useEffect(() => {
+    if (!showGameOverModal || !isTournamentMatch || isWaitingForSet2) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      exitGameTo('#/tournaments');
+    }, 8000);
+    return () => clearTimeout(timer);
+  }, [showGameOverModal, isTournamentMatch, isWaitingForSet2, exitGameTo]);
+
+  // Tur maçı bittiğinde global turnuva durumunu (ör. son tur bittiyse kilit kalkmasını) tazele
+  useEffect(() => {
+    if (!showGameOverModal || !isTournamentMatch || isWaitingForSet2) {
+      return;
+    }
+    void useTournamentStore.getState().refreshMyActiveStatus();
+  }, [showGameOverModal, isTournamentMatch, isWaitingForSet2]);
 
   useEffect(() => {
     if (!rematchExpiresAt) {
@@ -141,8 +196,7 @@ export function GamePage(): React.JSX.Element {
   const handleForfeitConfirm = (): void => {
     setShowForfeitConfirm(false);
     if (isLocalPvP) {
-      disconnectGame();
-      navigate('#/lobby');
+      exitGameTo('#/lobby');
     } else {
       abandonGame();
     }
@@ -320,9 +374,19 @@ export function GamePage(): React.JSX.Element {
   // Otomatik sayfa yönlendirme ve bağlantı yönetimi
   useEffect(() => {
     if (!matchId) {
-      navigate('#/lobby');
+      if (
+        isExitingGameRef.current ||
+        (typeof window !== 'undefined' && window.location.hash !== '#/game')
+      ) {
+        return;
+      }
+      const fallbackRoute = useTournamentStore.getState().isLockedInTournament
+        ? '#/tournaments'
+        : '#/lobby';
+      navigate(fallbackRoute);
       return;
     }
+    isExitingGameRef.current = false;
     if (!isLocalPvP) {
       connectGame(matchId);
     }
@@ -361,13 +425,34 @@ export function GamePage(): React.JSX.Element {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const isMyTurn = isBotMode
+  const hasActiveTurn = isBotMode
     ? currentPlayerId === 'p1'
     : isLocalPvP
-      ? true
-      : Boolean(currentUser && currentPlayerId === currentUser.id);
-  const isP1Active = isLocalPvP ? (currentPlayerId === 'p1') : isMyTurn;
-  const isP2Active = isLocalPvP ? (currentPlayerId === 'p2') : !isMyTurn;
+      ? currentPlayerId === 'p1' || currentPlayerId === 'p2'
+      : Boolean(
+          currentUser &&
+            currentPlayerId &&
+            currentPlayerId === currentUser.id,
+        );
+  const isMyTurn = isLocalPvP ? true : hasActiveTurn;
+  const isP1Active = isLocalPvP
+    ? currentPlayerId === 'p1'
+    : isBotMode
+      ? currentPlayerId === 'p1'
+      : yourColor === 0
+        ? hasActiveTurn
+        : yourColor === 1
+          ? Boolean(currentPlayerId) && !hasActiveTurn
+          : false;
+  const isP2Active = isLocalPvP
+    ? currentPlayerId === 'p2'
+    : isBotMode
+      ? currentPlayerId === 'p2'
+      : yourColor === 1
+        ? hasActiveTurn
+        : yourColor === 0
+          ? Boolean(currentPlayerId) && !hasActiveTurn
+          : false;
 
   // Tıklanabilir kuyular dizisi
   const clickablePits = useMemo(() => {
@@ -420,6 +505,9 @@ export function GamePage(): React.JSX.Element {
     if (isLocalPvP) {
       return { name: `${myUsername} (P1)`, elo: myElo };
     }
+    if (!isLocalPvP && !isBotMode && yourColor === null) {
+      return { name: 'Bağlanıyor...', elo: 1000 };
+    }
     if (yourColor === 0) {
       return { name: myUsername, elo: myElo };
     } else {
@@ -435,6 +523,9 @@ export function GamePage(): React.JSX.Element {
     }
     if (isLocalPvP) {
       return { name: '2. Oyuncu (P2)', elo: 1000 };
+    }
+    if (!isLocalPvP && !isBotMode && yourColor === null) {
+      return { name: 'Bağlanıyor...', elo: 1000 };
     }
     if (yourColor === 1) {
       return { name: myUsername, elo: myElo };
@@ -794,7 +885,9 @@ export function GamePage(): React.JSX.Element {
               </button>
             )}
 
-            {!isLocalPvP && gameOverDetails.reason !== 'DISCONNECT' && (
+            {!isLocalPvP &&
+              !isTournamentMatch &&
+              gameOverDetails.reason !== 'DISCONNECT' && (
               <div className="rematch-panel" style={{ marginBottom: '12px' }}>
                 {rematchState === 'idle' && (
                   <button
@@ -847,16 +940,56 @@ export function GamePage(): React.JSX.Element {
               </div>
             )}
 
-            <button
-              type="button"
-              className="auth-button return-lobby-btn"
-              onClick={(): void => {
-                disconnectGame();
-                navigate('#/lobby');
-              }}
-            >
-              Lobiye Dön
-            </button>
+            {isTournamentMatch ? (
+              isWaitingForSet2 ? (
+                <div className="rematch-panel" style={{ marginBottom: '12px' }}>
+                  <div className="rematch-status-box">
+                    {nextTournamentMatchId
+                      ? '⚔️ 2. Set (Taraf Değişimi) 5 saniye içinde otomatik başlıyor...'
+                      : '⏳ 2. Set masası hazırlanıyor, lütfen bekleyin...'}
+                  </div>
+                  <button
+                    type="button"
+                    className="auth-button rematch-offer-btn"
+                    disabled={!nextTournamentMatchId}
+                    style={{ marginTop: '10px' }}
+                    onClick={(): void => {
+                      if (nextTournamentMatchId) {
+                        connectGame(nextTournamentMatchId);
+                      }
+                    }}
+                  >
+                    ⚔️ Hemen 2. Sete Geç
+                  </button>
+                </div>
+              ) : (
+                <div className="rematch-panel" style={{ marginBottom: '12px' }}>
+                  <div className="rematch-status-box">
+                    🏆 Turnuva maçınız tamamlandı! Yeni tur eşleşmesi için 8 saniye içinde Turnuva Salonuna yönlendiriliyorsunuz...
+                  </div>
+                  <button
+                    type="button"
+                    className="auth-button accept-invite-btn"
+                    style={{ marginTop: '10px' }}
+                    onClick={(): void => {
+                      exitGameTo('#/tournaments');
+                    }}
+                  >
+                    🏆 Turnuva Salonuna Dön
+                  </button>
+                </div>
+              )
+            ) : (
+              <button
+                type="button"
+                className="auth-button return-lobby-btn"
+                onClick={(): void => {
+                  exitGameTo('#/lobby');
+                }}
+              >
+                Lobiye Dön
+              </button>
+            )}
           </div>
         </div>
       )}

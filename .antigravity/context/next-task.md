@@ -1,11 +1,16 @@
-# Sıradaki Görev
+# Sıradaki Görev: Faz F Branch'lerinin Push, PR ve `develop` / `main` Merge Süreci
 
----
+## Durum
+Faz F (`T-25`, `T-26`, `T-27`, `T-28`) ve ardından gelen Turnuva Katı Kilit / Global Soket / Tur Sonu Yönlendirme düzeltmesi tamamlandı; tüm doğrulamalar (`npm run build -w shared`, `npm run lint`, `npm run test` — 177/177 test, `npm run build`) geçti.
 
-## Durum: Tüm Fazlar Tamamlandı (T-01…T-24 ✅ — v1.2.0)
+## Yerel Stacked Branch'ler
+1. `feature/fix-endgame-sweep-and-board` (T-25)
+2. `feature/fix-game-connect-and-turn-ui` (T-26)
+3. `feature/tournament-flow-and-theme-lock` (T-27, T-28)
 
-- **Faz A–D (T-01…T-16):** Güvenlik sertleştirmesi, ortak oyun motoru, frontend testleri, Liderlik/Profil UI, PvE Bot, Rövanş, SEO/PWA.
-- **Faz E (T-17…T-24):** Rol sistemi (`STUDENT`/`TEACHER`/`ADMIN`), Admin Dashboard (`#/admin`), Güvenilir Okul IP puanlı maç kuralı, Saf İsviçre (Swiss) eşleştirme motoru, Turnuva Merkezi (`#/tournaments`), Check-in, Projeksiyon Modu, Hakem müdahalesi, aktif turnuvada Bot kilidi ve CSV/Yazdır raporu.
-
-### Sonraki Adım
-- Sunucu `.env` dosyasına `INITIAL_ADMIN_USERNAME=<kullanıcı_adınız>` eklenerek ilk ADMIN yetkisinin aktive edilmesi ve okul statik IP'sinin `#/admin` panelinden kaydedilmesi.
+## Kullanıcı Aksiyonu Gerekli
+GitHub CLI keyring token'ı geçersiz durumda. Terminalde aşağıdaki adımı çalıştırdıktan sonra branch'ler push edilip PR açılabilir:
+```bash
+gh auth login -h github.com
+```
+Ardından sırasıyla PR açılıp `develop` ve `main` dallarına birleştirilebilir.

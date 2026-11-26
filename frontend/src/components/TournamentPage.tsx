@@ -1,20 +1,14 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
 import type {
   TournamentSummary,
   TournamentDetailResponse,
-  TournamentMatchAssignedPayload,
-  TournamentUpdatedPayload,
   PairingResult,
 } from '@mangala/shared';
 import { apiClient } from '../lib/api-client';
 import { useAuthStore } from '../stores/auth.store';
 import { useGameStore } from '../stores/game.store';
+import { useTournamentStore } from '../stores/tournament.store';
 import { useRouter } from '../lib/router';
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ||
-  (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '');
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Taslak',
@@ -38,7 +32,13 @@ const RESULT_LABELS: Record<PairingResult, string> = {
 export function TournamentPage(): React.JSX.Element {
   const { navigate } = useRouter();
   const user = useAuthStore((s) => s.user);
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const watchTournament = useTournamentStore((s) => s.watchTournament);
+  const unwatchTournament = useTournamentStore((s) => s.unwatchTournament);
+  const updateCounter = useTournamentStore((s) => s.updateCounter);
+  const lastUpdateEvent = useTournamentStore((s) => s.lastUpdateEvent);
+  const refreshMyActiveStatus = useTournamentStore(
+    (s) => s.refreshMyActiveStatus,
+  );
 
   const [tournaments, setTournaments] = useState<TournamentSummary[]>([]);
   const [schoolFilter, setSchoolFilter] = useState<string>('');
@@ -62,7 +62,7 @@ export function TournamentPage(): React.JSX.Element {
   const [createTurnSecs, setCreateTurnSecs] = useState<number>(59);
   const [createAffectsElo, setCreateAffectsElo] = useState<boolean>(false);
 
-  const socketRef = useRef<Socket | null>(null);
+  const schoolFilterRef = useRef<string>(schoolFilter);
   const canCreate = user?.role === 'TEACHER' || user?.role === 'ADMIN';
   const canManageSelected = Boolean(
     detail &&
@@ -98,7 +98,7 @@ export function TournamentPage(): React.JSX.Element {
     }
   }, []);
 
-  // Initial list load
+  // Initial list load & restore last active tournament
   useEffect(() => {
     let cancelled = false;
     const init = async (): Promise<void> => {
@@ -106,6 +106,21 @@ export function TournamentPage(): React.JSX.Element {
         const list = await apiClient.get<never, TournamentSummary[]>('/tournaments');
         if (!cancelled) {
           setTournaments(list);
+          const storedId = window.localStorage.getItem('activeTournamentId');
+          const matchedStored = storedId
+            ? list.find((item) => item.id === storedId)
+            : undefined;
+          const fallbackActive = list.find(
+            (item) =>
+              item.status === 'IN_PROGRESS' ||
+              item.status === 'CHECK_IN' ||
+              item.status === 'REGISTRATION',
+          );
+          const autoTarget = matchedStored ?? fallbackActive;
+          if (autoTarget) {
+            setSelectedId(autoTarget.id);
+            await loadDetail(autoTarget.id);
+          }
         }
       } catch {
         if (!cancelled) {
@@ -117,54 +132,67 @@ export function TournamentPage(): React.JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadDetail]);
 
-  // Tournament WebSocket connection for live updates & auto match routing
   useEffect(() => {
-    if (!accessToken) return;
+    schoolFilterRef.current = schoolFilter;
+  }, [schoolFilter]);
 
-    const socket = io(`${API_BASE}/tournament`, {
-      auth: { token: accessToken },
-      withCredentials: true,
-    });
-    socketRef.current = socket;
-
-    socket.on('tournament:updated', (payload: TournamentUpdatedPayload) => {
-      if (selectedId && payload.tournamentId === selectedId) {
-        void loadDetail(selectedId);
+  // Global turnuva güncelleme olayları geldiğinde seçili turnuvayı ve listeyi tazele
+  useEffect(() => {
+    if (updateCounter === 0) return;
+    let cancelled = false;
+    const syncUpdates = async (): Promise<void> => {
+      if (
+        selectedId &&
+        (!lastUpdateEvent || lastUpdateEvent.tournamentId === selectedId)
+      ) {
+        try {
+          const loaded = await apiClient.get<never, TournamentDetailResponse>(
+            `/tournaments/${selectedId}`,
+          );
+          if (!cancelled) {
+            setDetail(loaded);
+          }
+        } catch {
+          if (!cancelled) {
+            setErrorMessage('Turnuva detayları yüklenemedi.');
+          }
+        }
       }
-      void loadList(schoolFilter);
-    });
-
-    socket.on('tournament:match_assigned', (payload: TournamentMatchAssignedPayload) => {
-      useGameStore.setState({
-        matchId: payload.matchId,
-        isLocalPvP: false,
-        mode: 'online',
-        gameOverDetails: null,
-        rematchState: 'idle',
-        rematchExpiresAt: null,
-      });
-      navigate('#/game');
-    });
-
-    return () => {
-      socket.disconnect();
-      socketRef.current = null;
+      try {
+        const query = schoolFilterRef.current.trim();
+        const list = await apiClient.get<never, TournamentSummary[]>(
+          '/tournaments',
+          { params: query ? { schoolName: query } : undefined },
+        );
+        if (!cancelled) {
+          setTournaments(list);
+        }
+      } catch {
+        if (!cancelled) {
+          setErrorMessage('Turnuva listesi yüklenemedi.');
+        }
+      }
     };
-  }, [accessToken, selectedId, schoolFilter, loadDetail, loadList, navigate]);
+    void syncUpdates();
+    return () => {
+      cancelled = true;
+    };
+  }, [updateCounter, lastUpdateEvent, selectedId]);
 
-  // Watch selected tournament room
+  // Seçili turnuva odasını global soket üzerinden izle
   useEffect(() => {
     if (!selectedId) return;
-    socketRef.current?.emit('tournament:watch', { tournamentId: selectedId });
+    watchTournament(selectedId);
     return () => {
-      socketRef.current?.emit('tournament:unwatch', { tournamentId: selectedId });
+      unwatchTournament(selectedId);
     };
-  }, [selectedId]);
+  }, [selectedId, watchTournament, unwatchTournament]);
 
   const handleSelectTournament = async (id: string): Promise<void> => {
     clearAlerts();
+    window.localStorage.setItem('activeTournamentId', id);
     setSelectedId(id);
     await loadDetail(id);
   };
@@ -185,6 +213,7 @@ export function TournamentPage(): React.JSX.Element {
       setStatusMessage('Turnuvaya başarıyla katıldınız!');
       await loadList(schoolFilter);
       await handleSelectTournament(joined.tournamentId);
+      void refreshMyActiveStatus();
     } catch {
       setErrorMessage('Katılım başarısız. Kodu kontrol edin veya turnuva kayıtları kapanmış olabilir.');
     }
@@ -220,6 +249,7 @@ export function TournamentPage(): React.JSX.Element {
       await apiClient.post(`/tournaments/${detail.id}/open-check-in`);
       setStatusMessage('Yoklama (Check-in) açıldı! Öğrenciler şimdi "Hazırım" butonuna basabilir.');
       await loadDetail(detail.id);
+      void refreshMyActiveStatus();
     } catch {
       setErrorMessage('Yoklama açılamadı.');
     }
@@ -232,6 +262,7 @@ export function TournamentPage(): React.JSX.Element {
       await apiClient.post(`/tournaments/${detail.id}/check-in`);
       setStatusMessage('Yoklamanız alındı! Tur başlatıldığında otomatik olarak maça yönlendirileceksiniz.');
       await loadDetail(detail.id);
+      void refreshMyActiveStatus();
     } catch {
       setErrorMessage('Yoklama verilemedi.');
     }
@@ -249,6 +280,7 @@ export function TournamentPage(): React.JSX.Element {
         `${started.round}. Tur başlatıldı (${started.pairingsCreated} masa oluşturuldu).`,
       );
       await loadDetail(detail.id);
+      void refreshMyActiveStatus();
     } catch {
       setErrorMessage(
         'Yeni tur başlatılamadı. Mevcut turdaki tüm masaların bitmiş ve en az 2 hazır oyuncunun olması gerekir.',
@@ -269,6 +301,7 @@ export function TournamentPage(): React.JSX.Element {
       );
       setStatusMessage('Hakem kararı kaydedildi.');
       await loadDetail(detail.id);
+      void refreshMyActiveStatus();
     } catch {
       setErrorMessage('Hakem kararı kaydedilemedi.');
     }
@@ -289,6 +322,7 @@ export function TournamentPage(): React.JSX.Element {
         disqualified ? 'Oyuncu diskalifiye edildi.' : 'Diskalifiye kaldırıldı.',
       );
       await loadDetail(detail.id);
+      void refreshMyActiveStatus();
     } catch {
       setErrorMessage('İşlem başarısız oldu.');
     }
@@ -318,6 +352,18 @@ export function TournamentPage(): React.JSX.Element {
   const currentRoundPairings = detail
     ? detail.pairings.filter((p) => p.round === detail.currentRound)
     : [];
+  const myCurrentRoundPairing = currentRoundPairings.find(
+    (p) => user && (p.player1Id === user.id || p.player2Id === user.id),
+  );
+  const isWaitingForNextRound = Boolean(
+    detail &&
+      myParticipant &&
+      !myParticipant.disqualified &&
+      detail.status === 'IN_PROGRESS' &&
+      !detail.myActiveMatchId &&
+      myCurrentRoundPairing &&
+      myCurrentRoundPairing.result !== 'PENDING',
+  );
 
   return (
     <div className={`tournament-container ${projectionMode ? 'projection-mode' : ''}`}>
@@ -541,17 +587,35 @@ export function TournamentPage(): React.JSX.Element {
                 type="button"
                 className="btn-primary"
                 onClick={(): void => {
+                  const targetMatchId = detail.myActiveMatchId;
+                  if (!targetMatchId) return;
+                  const myActivePairing = detail.pairings.find(
+                    (p) => p.activeMatchId === targetMatchId,
+                  );
+                  window.localStorage.setItem('activeTournamentId', detail.id);
+                  useGameStore.getState().connectGame(targetMatchId);
                   useGameStore.setState({
-                    matchId: detail.myActiveMatchId,
-                    isLocalPvP: false,
-                    mode: 'online',
-                    gameOverDetails: null,
+                    yourColor: null,
+                    tournamentId: detail.id,
+                    tournamentSetNumber: myActivePairing?.setNumber ?? 1,
+                    tournamentSetsPerMatch: detail.setsPerMatch,
+                    nextTournamentMatchId: null,
                   });
                   navigate('#/game');
                 }}
               >
                 Maça Git →
               </button>
+            </div>
+          )}
+
+          {isWaitingForNextRound && (
+            <div className="admin-my-ip-banner">
+              <strong>
+                {myCurrentRoundPairing?.result === 'BYE'
+                  ? '🎁 Bu turda BAY geçtiniz (+1 puan). Öğretmeniniz yeni turu başlattığında otomatik olarak maça yönlendirileceksiniz.'
+                  : '⏳ Bu turdaki maçınızı tamamladınız! Öğretmeniniz yeni turu başlattığında otomatik olarak maça yönlendirileceksiniz.'}
+              </strong>
             </div>
           )}
 

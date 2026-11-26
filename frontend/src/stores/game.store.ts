@@ -15,6 +15,7 @@ import type {
   GameRematchOfferedPayload,
   GameRematchDeclinedPayload,
   GameRematchStartPayload,
+  GameTournamentNextSetPayload,
 } from '@mangala/shared';
 import { chooseBotMove, type BotLevel } from '../lib/bot-engine';
 
@@ -72,6 +73,10 @@ interface GameState {
   lastMoveInfo: LastOfflineMoveInfo | null;
   rematchState: RematchStatus;
   rematchExpiresAt: number | null;
+  tournamentId: string | null;
+  tournamentSetNumber: number | null;
+  tournamentSetsPerMatch: number | null;
+  nextTournamentMatchId: string | null;
 
   connectGame: (matchId: string) => void;
   disconnectGame: () => void;
@@ -152,14 +157,21 @@ export const useGameStore = create<GameState>((set, get) => ({
   isLocalPvP: false,
   mode: 'online',
   botLevel: 'medium',
+  tournamentId: null,
+  tournamentSetNumber: null,
+  tournamentSetsPerMatch: null,
+  nextTournamentMatchId: null,
   lastMoveInfo: null,
   rematchState: 'idle',
   rematchExpiresAt: null,
 
   connectGame: (matchId: string) => {
     const state = get();
-    // Socket varsa ve aynı maç için kurulduysa (bağlanıyor olsa bile) tekrar oluşturma
+    // Socket varsa ve aynı maç için kurulduysa yeniden bağlanma sinyali gönder ve dön
     if (state.socket && state.matchId === matchId) {
+      if (state.socket.connected) {
+        state.socket.emit('game:reconnect', { matchId });
+      }
       return;
     }
 
@@ -185,12 +197,36 @@ export const useGameStore = create<GameState>((set, get) => ({
       transports: ['websocket'],
     });
 
+    const isSwitchingMatch = state.matchId !== null && state.matchId !== matchId;
+    const isAdvancingToNextSet = state.nextTournamentMatchId === matchId;
+
     set({
       socket: newSocket,
       matchId,
       mode: 'online',
       isLocalPvP: false,
       board: [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0],
+      currentPlayerId: null,
+      nextTournamentMatchId: null,
+      ...(isSwitchingMatch
+        ? {
+            yourColor: null,
+            opponentUsername: null,
+            opponentElo: null,
+            ...(isAdvancingToNextSet
+              ? {
+                  tournamentSetNumber:
+                    state.tournamentSetNumber !== null
+                      ? state.tournamentSetNumber + 1
+                      : 2,
+                }
+              : {
+                  tournamentId: null,
+                  tournamentSetNumber: null,
+                  tournamentSetsPerMatch: null,
+                }),
+          }
+        : {}),
       gameError: null,
       gameOverDetails: null,
       disconnectedPlayerId: null,
@@ -235,17 +271,41 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     newSocket.on('game:reconnect_ack', (payload: GameReconnectAckPayload) => {
       const currentState = get();
+      if (payload.tournamentId && typeof window !== 'undefined') {
+        window.localStorage.setItem('activeTournamentId', payload.tournamentId);
+      }
       set({
         board: payload.board,
         currentPlayerId: payload.nextPlayerId,
         opponentUsername: payload.opponentUsername,
         // yourColor sunucudan geliyorsa güncelle, yoksa mevcut değeri koru
         yourColor: payload.yourColor !== undefined ? payload.yourColor : currentState.yourColor,
+        tournamentId: payload.tournamentId ?? currentState.tournamentId,
+        tournamentSetNumber:
+          payload.setNumber ?? currentState.tournamentSetNumber,
+        tournamentSetsPerMatch:
+          payload.setsPerMatch ?? currentState.tournamentSetsPerMatch,
         disconnectedPlayerId: null,
         reconnectWindowSecs: null,
       });
       startClientTimer(payload.turnTimeLeft);
     });
+
+    newSocket.on(
+      'game:tournament_next_set',
+      (payload: GameTournamentNextSetPayload) => {
+        const currentState = get();
+        if (currentState.matchId && payload.oldMatchId !== currentState.matchId) {
+          return;
+        }
+        set({
+          tournamentId: payload.tournamentId,
+          tournamentSetNumber: currentState.tournamentSetNumber ?? 1,
+          tournamentSetsPerMatch: payload.setsPerMatch,
+          nextTournamentMatchId: payload.newMatchId,
+        });
+      },
+    );
 
     newSocket.on('game:game_over', (payload: GameGameOverPayload) => {
       set({
@@ -338,6 +398,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       reconnectWindowSecs: null,
       isLocalPvP: false,
       mode: 'online',
+      tournamentId: null,
+      tournamentSetNumber: null,
+      tournamentSetsPerMatch: null,
+      nextTournamentMatchId: null,
       lastMoveInfo: null,
       rematchState: 'idle',
       rematchExpiresAt: null,
@@ -354,6 +418,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       socket: null,
       mode: 'local',
       isLocalPvP: true,
+      tournamentId: null,
+      tournamentSetNumber: null,
+      tournamentSetsPerMatch: null,
+      nextTournamentMatchId: null,
       matchId: 'local-match',
       board: createInitialBoard(),
       currentPlayerId: 'p1',
@@ -386,6 +454,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       mode: 'bot',
       botLevel: level,
       isLocalPvP: true,
+      tournamentId: null,
+      tournamentSetNumber: null,
+      tournamentSetsPerMatch: null,
+      nextTournamentMatchId: null,
       matchId: `bot-match-${level}`,
       board: createInitialBoard(),
       currentPlayerId: 'p1',

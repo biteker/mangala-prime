@@ -18,6 +18,8 @@ describe('TournamentService', () => {
     tournamentParticipant: {
       upsert: jest.fn(),
       findUnique: jest.fn(),
+      findFirst: jest.fn(),
+      count: jest.fn(),
       update: jest.fn(),
     },
     tournamentPairing: {
@@ -28,6 +30,7 @@ describe('TournamentService', () => {
     match: {
       create: jest.fn(),
       findUnique: jest.fn(),
+      findFirst: jest.fn(),
       update: jest.fn(),
       count: jest.fn(),
     },
@@ -40,6 +43,7 @@ describe('TournamentService', () => {
   const mockGameService = {
     registerOnMatchFinished: jest.fn(),
     initializeGame: jest.fn(),
+    emitTournamentNextSet: jest.fn(),
     cleanUpRoom: jest.fn(),
   };
 
@@ -185,7 +189,19 @@ describe('TournamentService', () => {
       'match-set-2',
       'u2',
       'u1',
+      {
+        tournamentId: 't-1',
+        setNumber: 2,
+        setsPerMatch: 2,
+      },
     );
+    expect(mockGameService.emitTournamentNextSet).toHaveBeenCalledWith({
+      oldMatchId: 'match-set-1',
+      newMatchId: 'match-set-2',
+      tournamentId: 't-1',
+      setNumber: 2,
+      setsPerMatch: 2,
+    });
   });
 
   it('should_allow_referee_override_and_clean_up_active_match', async () => {
@@ -228,5 +244,146 @@ describe('TournamentService', () => {
 
     expect(res.result).toBe('NO_SHOW_P2');
     expect(mockGameService.cleanUpRoom).toHaveBeenCalledWith('active-m-1');
+  });
+
+  it('should_report_locked_in_tournament_for_active_match_or_in_progress_participant', async () => {
+    // 1) Aktif turnuva maçı varken
+    mockPrisma.match.count.mockResolvedValueOnce(1);
+    expect(await service.isUserLockedInTournament('u1')).toBe(true);
+
+    mockPrisma.match.findFirst.mockResolvedValueOnce({
+      id: 'm-active-1',
+      player1Id: 'u1',
+      player2Id: 'u2',
+      player1: { username: 'ali' },
+      player2: { username: 'veli' },
+      tournamentPairing: { setNumber: 1 },
+      tournament: {
+        id: 't-1',
+        name: 'Bahar Kupası',
+        status: 'IN_PROGRESS',
+        currentRound: 2,
+        totalRounds: 5,
+        setsPerMatch: 2,
+      },
+    });
+    const activeMatchStatus = await service.getMyActiveStatus('u1');
+    expect(activeMatchStatus).toEqual({
+      hasActiveTournamentMatch: true,
+      isLockedInTournament: true,
+      activeTournamentId: 't-1',
+      activeTournamentName: 'Bahar Kupası',
+      activeTournamentStatus: 'IN_PROGRESS',
+      currentRound: 2,
+      totalRounds: 5,
+      activeMatchId: 'm-active-1',
+      activeSetNumber: 1,
+      setsPerMatch: 2,
+      opponentUsername: 'veli',
+    });
+
+    // 2) Tur arasında beklerken (CHECK_IN veya IN_PROGRESS katılımcı)
+    mockPrisma.match.count.mockResolvedValueOnce(0);
+    mockPrisma.tournamentParticipant.count.mockResolvedValueOnce(1);
+    expect(await service.isUserLockedInTournament('u1')).toBe(true);
+
+    mockPrisma.match.findFirst.mockResolvedValueOnce(null);
+    mockPrisma.tournamentParticipant.findFirst.mockResolvedValueOnce({
+      tournament: {
+        id: 't-1',
+        name: 'Bahar Kupası',
+        status: 'IN_PROGRESS',
+        currentRound: 2,
+        totalRounds: 5,
+        setsPerMatch: 2,
+      },
+    });
+    const waitingStatus = await service.getMyActiveStatus('u1');
+    expect(waitingStatus).toEqual({
+      hasActiveTournamentMatch: false,
+      isLockedInTournament: true,
+      activeTournamentId: 't-1',
+      activeTournamentName: 'Bahar Kupası',
+      activeTournamentStatus: 'IN_PROGRESS',
+      currentRound: 2,
+      totalRounds: 5,
+      activeMatchId: null,
+      activeSetNumber: null,
+      setsPerMatch: 2,
+      opponentUsername: null,
+    });
+
+    // 3) Kilit yokken
+    mockPrisma.match.count.mockResolvedValueOnce(0);
+    mockPrisma.tournamentParticipant.count.mockResolvedValueOnce(0);
+    expect(await service.isUserLockedInTournament('u1')).toBe(false);
+
+    mockPrisma.match.findFirst.mockResolvedValueOnce(null);
+    mockPrisma.tournamentParticipant.findFirst.mockResolvedValueOnce(null);
+    const unlockedStatus = await service.getMyActiveStatus('u1');
+    expect(unlockedStatus.isLockedInTournament).toBe(false);
+    expect(unlockedStatus.hasActiveTournamentMatch).toBe(false);
+    expect(unlockedStatus.activeTournamentId).toBeNull();
+  });
+
+  it('should_notify_players_locked_callback_when_starting_round', async () => {
+    const lockedCallback = jest.fn();
+    service.registerOnPlayersLocked(lockedCallback);
+
+    mockPrisma.tournament.findUnique
+      .mockResolvedValueOnce({
+        id: 't-1',
+        createdById: 'teacher-1',
+        status: 'CHECK_IN',
+        currentRound: 0,
+        totalRounds: 3,
+        setsPerMatch: 1,
+        affectsGlobalElo: false,
+        participants: [
+          {
+            userId: 'u1',
+            points: 0,
+            checkedIn: true,
+            disqualified: false,
+            user: { id: 'u1', username: 'ali', eloScore: 1000 },
+          },
+          {
+            userId: 'u2',
+            points: 0,
+            checkedIn: true,
+            disqualified: false,
+            user: { id: 'u2', username: 'veli', eloScore: 1050 },
+          },
+        ],
+        pairings: [],
+      })
+      .mockResolvedValueOnce({
+        id: 't-1',
+        participants: [
+          {
+            userId: 'u1',
+            points: 0,
+            disqualified: false,
+            user: { eloScore: 1000 },
+          },
+          {
+            userId: 'u2',
+            points: 0,
+            disqualified: false,
+            user: { eloScore: 1050 },
+          },
+        ],
+        pairings: [],
+      });
+
+    mockPrisma.tournament.update.mockResolvedValue({});
+    mockPrisma.tournamentPairing.create.mockResolvedValue({ id: 'pair-1' });
+    mockPrisma.match.create.mockResolvedValue({ id: 'match-1' });
+    mockGameService.initializeGame.mockResolvedValue({});
+
+    const res = await service.startNextRound('t-1', 'teacher-1', 'TEACHER');
+
+    expect(res).toEqual({ round: 1, pairingsCreated: 1 });
+    expect(lockedCallback).toHaveBeenCalledWith(['u1', 'u2']);
   });
 });
