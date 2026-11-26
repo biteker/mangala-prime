@@ -40,6 +40,7 @@ describe('TournamentService', () => {
   const mockGameService = {
     registerOnMatchFinished: jest.fn(),
     initializeGame: jest.fn(),
+    emitTournamentNextSet: jest.fn(),
     cleanUpRoom: jest.fn(),
   };
 
@@ -185,7 +186,19 @@ describe('TournamentService', () => {
       'match-set-2',
       'u2',
       'u1',
+      {
+        tournamentId: 't-1',
+        setNumber: 2,
+        setsPerMatch: 2,
+      },
     );
+    expect(mockGameService.emitTournamentNextSet).toHaveBeenCalledWith({
+      oldMatchId: 'match-set-1',
+      newMatchId: 'match-set-2',
+      tournamentId: 't-1',
+      setNumber: 2,
+      setsPerMatch: 2,
+    });
   });
 
   it('should_allow_referee_override_and_clean_up_active_match', async () => {

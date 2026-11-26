@@ -84,6 +84,17 @@ export interface GameReconnectAckPayload {
   matchId: string;
   opponentUsername: string;
   yourColor: Player;
+  tournamentId?: string;
+  setNumber?: number;
+  setsPerMatch?: number;
+}
+
+export interface GameTournamentNextSetPayload {
+  oldMatchId: string;
+  newMatchId: string;
+  tournamentId: string;
+  setNumber: number;
+  setsPerMatch: number;
 }
 
 export interface GameChatTogglePayload {

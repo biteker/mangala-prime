@@ -632,6 +632,11 @@ export class TournamentService implements OnModuleInit {
             match.id,
             pair.player1Id,
             pair.player2Id,
+            {
+              tournamentId,
+              setNumber: 1,
+              setsPerMatch: t.setsPerMatch,
+            },
           );
 
           const p1Payload: TournamentMatchAssignedPayload = {
@@ -742,7 +747,20 @@ export class TournamentService implements OnModuleInit {
           set2Match.id,
           pairing.player2Id,
           pairing.player1Id,
+          {
+            tournamentId: tournament.id,
+            setNumber: 2,
+            setsPerMatch: 2,
+          },
         );
+
+        this.gameService.emitTournamentNextSet?.({
+          oldMatchId: matchId,
+          newMatchId: set2Match.id,
+          tournamentId: tournament.id,
+          setNumber: 2,
+          setsPerMatch: 2,
+        });
 
         const users = await this.prisma.user.findMany({
           where: { id: { in: [pairing.player1Id, pairing.player2Id] } },

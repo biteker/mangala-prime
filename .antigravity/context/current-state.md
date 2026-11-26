@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: feature/fix-game-connect-and-turn-ui
+Aktif Branch: feature/tournament-flow-and-theme-lock
 
 ---
 
@@ -8,7 +8,7 @@ Aktif Branch: feature/fix-game-connect-and-turn-ui
 
 ```
 Faz 1 MVP: ██████████ %100
-Yayın Hazırlığı: ██████████ %100 (Faz A–E tamamlandı; Faz F devam ediyor: T-25 ✅, T-26 ✅)
+Yayın Hazırlığı: ██████████ %100 (Faz A–F tamamlandı: T-01…T-28 ✅)
 ```
 
 ---
@@ -79,9 +79,10 @@ Yayın Hazırlığı: ██████████ %100 (Faz A–E tamamlandı
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-26 — T-26: `/game` Soket Yarış Durumu, `connectGame` Stale-Socket ve Üst Bar Yeşil Sıra Işığı Düzeltmesi
+Oturum 2026-11-26 — T-27 & T-28: Turnuva Maç Sonu Akışı (2. Set / Turnuva Salonu) ve `theme-pixijs` Sabitlemesi
 
 ### Yapılanlar
-- `GameGateway` içine `ensureAuthenticatedUser` eklenerek bağlantı-mesaj yarış durumu giderildi; `handleReconnect` içinde rakibe `game:state_update` yayını eklendi (1 yeni birim testi).
-- `useGameStore.connectGame` ve `GamePage.tsx` (`isP1Active` / `isP2Active`, `'Bağlanıyor...'`) düzeltildi.
-- 163/163 birim testi (138 backend + 25 frontend), lint ve build doğrulandı. Sıradaki görev: T-27 & T-28.
+- `shared/types/socket-events.types.ts`, `GameRoom.tournamentMeta`, `GameService` (`initializeGame`, `emitTournamentNextSet`), `GameGateway` (`game:reconnect_ack`) ve `TournamentService` (`startNextRound`, `onMatchFinished`) turnuva set geçişi ve kopma koruması için güncellendi.
+- `useGameStore`, `GamePage.tsx`, `TournamentPage.tsx` ve `LobbyPage.tsx` turnuva maç sonu otomatik 2. set / Turnuva Salonuna dönüş, bekleme afişi ve lobi koruması ile güncellendi.
+- `useThemeStore` ve `App.tsx` üzerinde `theme-pixijs` sabitlendi ve tema değiştirici kaldırıldı.
+- 163/163 birim testi (138 backend + 25 frontend), lint ve build doğrulandı. Sıradaki adım: `gh auth login` sonrası Faz F branch'lerinin PR/merge süreci.

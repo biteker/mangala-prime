@@ -98,7 +98,7 @@ export function TournamentPage(): React.JSX.Element {
     }
   }, []);
 
-  // Initial list load
+  // Initial list load & restore last active tournament
   useEffect(() => {
     let cancelled = false;
     const init = async (): Promise<void> => {
@@ -106,6 +106,21 @@ export function TournamentPage(): React.JSX.Element {
         const list = await apiClient.get<never, TournamentSummary[]>('/tournaments');
         if (!cancelled) {
           setTournaments(list);
+          const storedId = window.localStorage.getItem('activeTournamentId');
+          const matchedStored = storedId
+            ? list.find((item) => item.id === storedId)
+            : undefined;
+          const fallbackActive = list.find(
+            (item) =>
+              item.status === 'IN_PROGRESS' ||
+              item.status === 'CHECK_IN' ||
+              item.status === 'REGISTRATION',
+          );
+          const autoTarget = matchedStored ?? fallbackActive;
+          if (autoTarget) {
+            setSelectedId(autoTarget.id);
+            await loadDetail(autoTarget.id);
+          }
         }
       } catch {
         if (!cancelled) {
@@ -117,7 +132,7 @@ export function TournamentPage(): React.JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadDetail]);
 
   // Tournament WebSocket connection for live updates & auto match routing
   useEffect(() => {
@@ -137,13 +152,16 @@ export function TournamentPage(): React.JSX.Element {
     });
 
     socket.on('tournament:match_assigned', (payload: TournamentMatchAssignedPayload) => {
+      window.localStorage.setItem('activeTournamentId', payload.tournamentId);
+      useGameStore.getState().connectGame(payload.matchId);
       useGameStore.setState({
-        matchId: payload.matchId,
-        isLocalPvP: false,
-        mode: 'online',
-        gameOverDetails: null,
-        rematchState: 'idle',
-        rematchExpiresAt: null,
+        opponentUsername: payload.opponentUsername,
+        opponentElo: null,
+        yourColor: null,
+        tournamentId: payload.tournamentId,
+        tournamentSetNumber: payload.setNumber,
+        tournamentSetsPerMatch: payload.setsPerMatch,
+        nextTournamentMatchId: null,
       });
       navigate('#/game');
     });
@@ -165,6 +183,7 @@ export function TournamentPage(): React.JSX.Element {
 
   const handleSelectTournament = async (id: string): Promise<void> => {
     clearAlerts();
+    window.localStorage.setItem('activeTournamentId', id);
     setSelectedId(id);
     await loadDetail(id);
   };
@@ -318,6 +337,18 @@ export function TournamentPage(): React.JSX.Element {
   const currentRoundPairings = detail
     ? detail.pairings.filter((p) => p.round === detail.currentRound)
     : [];
+  const myCurrentRoundPairing = currentRoundPairings.find(
+    (p) => user && (p.player1Id === user.id || p.player2Id === user.id),
+  );
+  const isWaitingForNextRound = Boolean(
+    detail &&
+      myParticipant &&
+      !myParticipant.disqualified &&
+      detail.status === 'IN_PROGRESS' &&
+      !detail.myActiveMatchId &&
+      myCurrentRoundPairing &&
+      myCurrentRoundPairing.result !== 'PENDING',
+  );
 
   return (
     <div className={`tournament-container ${projectionMode ? 'projection-mode' : ''}`}>
@@ -541,17 +572,35 @@ export function TournamentPage(): React.JSX.Element {
                 type="button"
                 className="btn-primary"
                 onClick={(): void => {
+                  const targetMatchId = detail.myActiveMatchId;
+                  if (!targetMatchId) return;
+                  const myActivePairing = detail.pairings.find(
+                    (p) => p.activeMatchId === targetMatchId,
+                  );
+                  window.localStorage.setItem('activeTournamentId', detail.id);
+                  useGameStore.getState().connectGame(targetMatchId);
                   useGameStore.setState({
-                    matchId: detail.myActiveMatchId,
-                    isLocalPvP: false,
-                    mode: 'online',
-                    gameOverDetails: null,
+                    yourColor: null,
+                    tournamentId: detail.id,
+                    tournamentSetNumber: myActivePairing?.setNumber ?? 1,
+                    tournamentSetsPerMatch: detail.setsPerMatch,
+                    nextTournamentMatchId: null,
                   });
                   navigate('#/game');
                 }}
               >
                 Maça Git →
               </button>
+            </div>
+          )}
+
+          {isWaitingForNextRound && (
+            <div className="admin-my-ip-banner">
+              <strong>
+                {myCurrentRoundPairing?.result === 'BYE'
+                  ? '🎁 Bu turda BAY geçtiniz (+1 puan). Diğer masaların bitmesini ve öğretmeninizin yeni turu başlatmasını bekleyin. Bu sayfadan ayrılmayın.'
+                  : '⏳ Bu turdaki maçınızı tamamladınız! Diğer masaların bitmesini ve öğretmeninizin yeni turu başlatmasını bekleyin. Bu sayfadan ayrılmayın.'}
+              </strong>
             </div>
           )}
 

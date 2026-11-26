@@ -149,6 +149,19 @@ export function LobbyPage(): React.JSX.Element {
     <div className="lobby-layout">
       {/* MATCHMAKING & DASHBOARD ALANI */}
       <div className="lobby-main">
+        {botLockedForTournament && (
+          <div className="admin-my-ip-banner">
+            <strong>🏆 Devam eden aktif bir turnuva maçınız var! Turnuvadan kopmamak için maçınıza dönün.</strong>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={(): void => navigate('#/tournaments')}
+            >
+              🏆 Turnuva Salonuna Dön →
+            </button>
+          </div>
+        )}
+
         <div className="dashboard-card">
           <h2 className="dashboard-title">Hızlı Eşleşme</h2>
           <p className="dashboard-desc">

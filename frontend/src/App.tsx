@@ -15,16 +15,16 @@ import { useThemeStore } from './stores/theme.store';
 function App(): React.JSX.Element {
   const { route, navigate } = useRouter();
   const { user, logout } = useAuthStore();
-  const { theme, setTheme } = useThemeStore();
+  const { theme } = useThemeStore();
 
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState<boolean>(false);
   const [profileUsername, setProfileUsername] = useState<string | null>(null);
 
-  // Tema sınıfının root elementine uygulanması
+  // Tema sınıfının root elementine uygulanması (yalnızca theme-pixijs sabit)
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('theme-wood', 'theme-neon', 'theme-rustic', 'theme-pixijs');
-    root.classList.add(theme);
+    root.classList.add(theme === 'theme-pixijs' ? theme : 'theme-pixijs');
   }, [theme]);
 
   // Sayfa yüklendiğinde oturumu ve kullanıcı bilgilerini tazelemek için
@@ -36,23 +36,6 @@ function App(): React.JSX.Element {
       restoreSession().catch(() => {});
     }
   }, []);
-
-  const handleThemeToggle = (): void => {
-    const order: Array<typeof theme> = ['theme-wood', 'theme-neon', 'theme-rustic', 'theme-pixijs'];
-    const currentIndex = order.indexOf(theme);
-    const nextIndex = (currentIndex + 1) % order.length;
-    setTheme(order[nextIndex]);
-  };
-
-  const getThemeLabel = (): string => {
-    switch (theme) {
-      case 'theme-wood': return 'Ahşap';
-      case 'theme-neon': return 'Neon';
-      case 'theme-rustic': return 'Rustik';
-      case 'theme-pixijs': return 'PixiJS';
-      default: return 'Ahşap';
-    }
-  };
 
   const handleLogout = async (): Promise<void> => {
     await logout();
@@ -128,13 +111,6 @@ function App(): React.JSX.Element {
                 </button>
               </>
             )}
-            <button
-              type="button"
-              className="theme-toggle-btn"
-              onClick={handleThemeToggle}
-            >
-              Tema: {getThemeLabel()}
-            </button>
           </div>
         </header>
       )}
