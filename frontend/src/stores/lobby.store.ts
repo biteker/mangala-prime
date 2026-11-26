@@ -127,6 +127,18 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
     });
 
     newSocket.on('lobby:error', (payload: LobbyErrorPayload) => {
+      if (payload.error.code === 'TOURNAMENT_LOCKED') {
+        set({
+          inviteError: payload.error,
+          isInQueue: false,
+          incomingInvite: null,
+          outgoingInviteTargetId: null,
+        });
+        void import('./tournament.store').then(({ useTournamentStore }) => {
+          void useTournamentStore.getState().refreshMyActiveStatus();
+        });
+        return;
+      }
       set({ inviteError: payload.error, outgoingInviteTargetId: null });
     });
 

@@ -658,6 +658,12 @@ export class GameService {
             'Yalnızca tamamlanmış (FINISHED) maçlar için rövanş teklif edilebilir.',
         });
       }
+      if (dbMatch.tournamentId) {
+        throw new BadRequestException({
+          code: 'TOURNAMENT_MATCH_NO_REMATCH',
+          message: 'Turnuva maçlarında manuel rövanş teklif edilemez.',
+        });
+      }
     } catch (error) {
       if (error instanceof BadRequestException) throw error;
       throw new InternalServerErrorException({

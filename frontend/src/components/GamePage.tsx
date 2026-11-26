@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useGameStore } from '../stores/game.store';
 import { useAuthStore } from '../stores/auth.store';
+import { useTournamentStore } from '../stores/tournament.store';
 import { useRouter } from '../lib/router';
 import { MangalaReactBoard } from './MangalaBoard/MangalaReactBoard';
 import type { LastMoveDetails } from './MangalaBoard/MangalaReactBoard';
@@ -105,13 +106,15 @@ export function GamePage(): React.JSX.Element {
   const isBotMode = mode === 'bot';
   const isTournamentMatch = Boolean(tournamentId);
   const isWaitingForSet2 = Boolean(
-    isTournamentMatch &&
-      tournamentSetsPerMatch === 2 &&
-      tournamentSetNumber === 1,
+    nextTournamentMatchId ||
+      (isTournamentMatch &&
+        tournamentSetsPerMatch === 2 &&
+        tournamentSetNumber === 1),
   );
 
   const [chatInput, setChatInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const isExitingGameRef = useRef<boolean>(false);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -130,6 +133,18 @@ export function GamePage(): React.JSX.Element {
   const [rematchTick, setRematchTick] = useState<number>(() => Date.now());
   const showGameOverModal = Boolean(gameOverDetails && !isAnimating);
 
+  const exitGameTo = useCallback(
+    (targetRoute: '#/lobby' | '#/tournaments'): void => {
+      isExitingGameRef.current = true;
+      navigate(targetRoute);
+      disconnectGame();
+      if (targetRoute === '#/tournaments') {
+        void useTournamentStore.getState().refreshMyActiveStatus();
+      }
+    },
+    [navigate, disconnectGame],
+  );
+
   // Turnuva 2. set otomatik geçişi (5 sn)
   useEffect(() => {
     if (!showGameOverModal || !nextTournamentMatchId) {
@@ -147,17 +162,18 @@ export function GamePage(): React.JSX.Element {
       return;
     }
     const timer = setTimeout(() => {
-      disconnectGame();
-      navigate('#/tournaments');
+      exitGameTo('#/tournaments');
     }, 8000);
     return () => clearTimeout(timer);
-  }, [
-    showGameOverModal,
-    isTournamentMatch,
-    isWaitingForSet2,
-    disconnectGame,
-    navigate,
-  ]);
+  }, [showGameOverModal, isTournamentMatch, isWaitingForSet2, exitGameTo]);
+
+  // Tur maçı bittiğinde global turnuva durumunu (ör. son tur bittiyse kilit kalkmasını) tazele
+  useEffect(() => {
+    if (!showGameOverModal || !isTournamentMatch || isWaitingForSet2) {
+      return;
+    }
+    void useTournamentStore.getState().refreshMyActiveStatus();
+  }, [showGameOverModal, isTournamentMatch, isWaitingForSet2]);
 
   useEffect(() => {
     if (!rematchExpiresAt) {
@@ -180,8 +196,7 @@ export function GamePage(): React.JSX.Element {
   const handleForfeitConfirm = (): void => {
     setShowForfeitConfirm(false);
     if (isLocalPvP) {
-      disconnectGame();
-      navigate('#/lobby');
+      exitGameTo('#/lobby');
     } else {
       abandonGame();
     }
@@ -359,9 +374,19 @@ export function GamePage(): React.JSX.Element {
   // Otomatik sayfa yönlendirme ve bağlantı yönetimi
   useEffect(() => {
     if (!matchId) {
-      navigate('#/lobby');
+      if (
+        isExitingGameRef.current ||
+        (typeof window !== 'undefined' && window.location.hash !== '#/game')
+      ) {
+        return;
+      }
+      const fallbackRoute = useTournamentStore.getState().isLockedInTournament
+        ? '#/tournaments'
+        : '#/lobby';
+      navigate(fallbackRoute);
       return;
     }
+    isExitingGameRef.current = false;
     if (!isLocalPvP) {
       connectGame(matchId);
     }
@@ -947,8 +972,7 @@ export function GamePage(): React.JSX.Element {
                     className="auth-button accept-invite-btn"
                     style={{ marginTop: '10px' }}
                     onClick={(): void => {
-                      disconnectGame();
-                      navigate('#/tournaments');
+                      exitGameTo('#/tournaments');
                     }}
                   >
                     🏆 Turnuva Salonuna Dön
@@ -960,8 +984,7 @@ export function GamePage(): React.JSX.Element {
                 type="button"
                 className="auth-button return-lobby-btn"
                 onClick={(): void => {
-                  disconnectGame();
-                  navigate('#/lobby');
+                  exitGameTo('#/lobby');
                 }}
               >
                 Lobiye Dön

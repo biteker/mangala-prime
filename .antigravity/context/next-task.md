@@ -1,7 +1,7 @@
 # Sıradaki Görev: Faz F Branch'lerinin Push, PR ve `develop` / `main` Merge Süreci
 
 ## Durum
-Faz F (`T-25`, `T-26`, `T-27`, `T-28`) tamamlandı ve tüm doğrulamalar (`npm run build -w shared`, `npm run lint`, `npm run test` — 163/163 test, `npm run build`) geçti.
+Faz F (`T-25`, `T-26`, `T-27`, `T-28`) ve ardından gelen Turnuva Katı Kilit / Global Soket / Tur Sonu Yönlendirme düzeltmesi tamamlandı; tüm doğrulamalar (`npm run build -w shared`, `npm run lint`, `npm run test` — 177/177 test, `npm run build`) geçti.
 
 ## Yerel Stacked Branch'ler
 1. `feature/fix-endgame-sweep-and-board` (T-25)

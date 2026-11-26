@@ -1,10 +1,30 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { GameEndReason } from '@mangala/shared';
+
+const socketHandlers = new Map<string, (...args: unknown[]) => void>();
+const mockSocket = {
+  connected: true,
+  active: true,
+  on: vi.fn((event: string, handler: (...args: unknown[]) => void) => {
+    socketHandlers.set(event, handler);
+    return mockSocket;
+  }),
+  emit: vi.fn(),
+  disconnect: vi.fn(),
+};
+
+vi.mock('socket.io-client', () => ({
+  io: vi.fn(() => mockSocket),
+}));
+
 import { getBotMoveDelayMs, useGameStore } from './game.store';
+import { useAuthStore } from './auth.store';
 
 describe('useGameStore (Local PvP)', () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    socketHandlers.clear();
+    vi.clearAllMocks();
     useGameStore.getState().disconnectGame();
   });
 
@@ -96,5 +116,50 @@ describe('useGameStore (Local PvP)', () => {
 
     // Assert — Sıra tekrar insan oyuncuya ('p1') dönmüş olmalı
     expect(useGameStore.getState().currentPlayerId).toBe('p1');
+  });
+
+  it('should_preserve_set_1_status_on_tournament_next_set_and_advance_to_set_2_on_connect', () => {
+    // Arrange
+    useAuthStore.setState({ accessToken: 'test-token' });
+    useGameStore.getState().connectGame('match-set-1');
+    useGameStore.setState({
+      tournamentId: 't-1',
+      tournamentSetNumber: 1,
+      tournamentSetsPerMatch: 2,
+    });
+
+    const nextSetHandler = socketHandlers.get('game:tournament_next_set');
+    expect(nextSetHandler).toBeDefined();
+
+    // Eski/başka maça ait stale olay yoksayılmalı
+    nextSetHandler?.({
+      oldMatchId: 'other-match',
+      newMatchId: 'wrong-next',
+      tournamentId: 't-1',
+      setNumber: 2,
+      setsPerMatch: 2,
+    });
+    expect(useGameStore.getState().nextTournamentMatchId).toBeNull();
+
+    // Act — 1. set bittiğinde 2. set bilgisi gelir; ancak aktif ekran hâlâ 1. set olarak kalmalı
+    nextSetHandler?.({
+      oldMatchId: 'match-set-1',
+      newMatchId: 'match-set-2',
+      tournamentId: 't-1',
+      setNumber: 2,
+      setsPerMatch: 2,
+    });
+
+    expect(useGameStore.getState().tournamentSetNumber).toBe(1);
+    expect(useGameStore.getState().nextTournamentMatchId).toBe('match-set-2');
+
+    // Act — 2. sete gerçekten geçildiğinde set numarası 2 olmalı
+    useGameStore.getState().connectGame('match-set-2');
+    const state = useGameStore.getState();
+    expect(state.matchId).toBe('match-set-2');
+    expect(state.tournamentId).toBe('t-1');
+    expect(state.tournamentSetNumber).toBe(2);
+    expect(state.tournamentSetsPerMatch).toBe(2);
+    expect(state.nextTournamentMatchId).toBeNull();
   });
 });

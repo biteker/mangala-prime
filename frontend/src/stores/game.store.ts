@@ -214,7 +214,12 @@ export const useGameStore = create<GameState>((set, get) => ({
             opponentUsername: null,
             opponentElo: null,
             ...(isAdvancingToNextSet
-              ? {}
+              ? {
+                  tournamentSetNumber:
+                    state.tournamentSetNumber !== null
+                      ? state.tournamentSetNumber + 1
+                      : 2,
+                }
               : {
                   tournamentId: null,
                   tournamentSetNumber: null,
@@ -289,9 +294,13 @@ export const useGameStore = create<GameState>((set, get) => ({
     newSocket.on(
       'game:tournament_next_set',
       (payload: GameTournamentNextSetPayload) => {
+        const currentState = get();
+        if (currentState.matchId && payload.oldMatchId !== currentState.matchId) {
+          return;
+        }
         set({
           tournamentId: payload.tournamentId,
-          tournamentSetNumber: payload.setNumber,
+          tournamentSetNumber: currentState.tournamentSetNumber ?? 1,
           tournamentSetsPerMatch: payload.setsPerMatch,
           nextTournamentMatchId: payload.newMatchId,
         });

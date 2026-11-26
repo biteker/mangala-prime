@@ -153,3 +153,9 @@ export interface TournamentUpdatedPayload {
   status: string;
   currentRound: number;
 }
+
+export interface TournamentStatusChangedPayload {
+  tournamentId: string;
+  status: string;
+  currentRound: number;
+}
