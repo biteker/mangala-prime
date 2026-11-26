@@ -1,6 +1,6 @@
 # Projenin Anlık Durumu
 
-Aktif Branch: develop
+Aktif Branch: feature/fix-endgame-sweep-and-board
 
 ---
 
@@ -8,7 +8,7 @@ Aktif Branch: develop
 
 ```
 Faz 1 MVP: ██████████ %100
-Yayın Hazırlığı: ██████████ %100 (Faz A–E dahil T-01…T-24 tamamlandı — v1.2.0)
+Yayın Hazırlığı: ██████████ %100 (Faz A–E tamamlandı; Faz F devam ediyor: T-25 ✅)
 ```
 
 ---
@@ -79,8 +79,9 @@ Yayın Hazırlığı: ██████████ %100 (Faz A–E dahil T-01�
 ---
 
 ## Tamamlanan Son Oturum
-Oturum 2026-11-20 — T-21…T-24: Turnuva Frontend Merkezi & Faz E Tamamlandı (v1.2.0)
+Oturum 2026-11-26 — T-25: Oyun Motoru Bölge Temizleme (Kural D) & PixiJS Son Hamle Taş Dağılımı Düzeltmesi
 
 ### Yapılanlar
-- `#/tournaments` Turnuva Merkezi (`TournamentPage.tsx`), Projeksiyon Modu, Check-in, Hakem hükmen karar/diskalifiye, ortak ağ uyarısı, aktif turnuvada Bot kilidi ve CSV/Yazdır raporu tamamlandı.
-- 157/157 birim testi (132 backend + 25 frontend), lint ve build doğrulandı. Faz E (`T-17…T-24`) tamamen tamamlandı.
+- Faz F (`T-25…T-28`, `K-12…K-14`) `docs/architecture-roadmap.md` içine kaydedildi.
+- `shared/engine/mangala-engine.ts` Kural D ve `MangalaBoard.ts` `animateCaptureOrSettle` düzeltildi; 1 yeni birim testi eklendi.
+- 162/162 birim testi (137 backend + 25 frontend), lint ve build doğrulandı. Sıradaki görev: T-26.

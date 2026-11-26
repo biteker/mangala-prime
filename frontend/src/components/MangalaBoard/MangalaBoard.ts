@@ -1045,10 +1045,17 @@ export class MangalaBoard extends PIXI.Container {
       return;
     }
 
-    const p1Deficit = (finalBoardState[6] || 0) - this.stonesInPits[6].length;
-    const targetTreasuryIdx = p1Deficit > 0 ? 6 : 13;
-    const targetCenter = this.pitCenters[targetTreasuryIdx];
-    const targetBoundary = this.pitBoundaries[targetTreasuryIdx];
+    const p1Deficit = Math.max(0, (finalBoardState[6] || 0) - this.stonesInPits[6].length);
+    const p2Deficit = Math.max(0, (finalBoardState[13] || 0) - this.stonesInPits[13].length);
+
+    if (p1Deficit === 0 && p2Deficit === 0) {
+      this.checkAnimationSettle(finalBoardState);
+      return;
+    }
+
+    const treasuryTargets: number[] = [];
+    for (let i = 0; i < p1Deficit; i++) treasuryTargets.push(6);
+    for (let i = 0; i < p2Deficit; i++) treasuryTargets.push(13);
 
     soundManager.playTreasuryCapture();
 
@@ -1056,6 +1063,11 @@ export class MangalaBoard extends PIXI.Container {
     const flightDuration = 0.42;
 
     capturedStones.forEach((stone, idx) => {
+      const targetTreasuryIdx =
+        treasuryTargets[idx] ?? (p1Deficit >= p2Deficit ? 6 : 13);
+      const targetCenter = this.pitCenters[targetTreasuryIdx];
+      const targetBoundary = this.pitBoundaries[targetTreasuryIdx];
+
       stone.isSleeping = false;
       const angle = Math.random() * Math.PI * 2;
       const radius = targetBoundary.radius * 0.6 * Math.random();
