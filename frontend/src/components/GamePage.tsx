@@ -361,13 +361,34 @@ export function GamePage(): React.JSX.Element {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const isMyTurn = isBotMode
+  const hasActiveTurn = isBotMode
     ? currentPlayerId === 'p1'
     : isLocalPvP
-      ? true
-      : Boolean(currentUser && currentPlayerId === currentUser.id);
-  const isP1Active = isLocalPvP ? (currentPlayerId === 'p1') : isMyTurn;
-  const isP2Active = isLocalPvP ? (currentPlayerId === 'p2') : !isMyTurn;
+      ? currentPlayerId === 'p1' || currentPlayerId === 'p2'
+      : Boolean(
+          currentUser &&
+            currentPlayerId &&
+            currentPlayerId === currentUser.id,
+        );
+  const isMyTurn = isLocalPvP ? true : hasActiveTurn;
+  const isP1Active = isLocalPvP
+    ? currentPlayerId === 'p1'
+    : isBotMode
+      ? currentPlayerId === 'p1'
+      : yourColor === 0
+        ? hasActiveTurn
+        : yourColor === 1
+          ? Boolean(currentPlayerId) && !hasActiveTurn
+          : false;
+  const isP2Active = isLocalPvP
+    ? currentPlayerId === 'p2'
+    : isBotMode
+      ? currentPlayerId === 'p2'
+      : yourColor === 1
+        ? hasActiveTurn
+        : yourColor === 0
+          ? Boolean(currentPlayerId) && !hasActiveTurn
+          : false;
 
   // Tıklanabilir kuyular dizisi
   const clickablePits = useMemo(() => {
@@ -420,6 +441,9 @@ export function GamePage(): React.JSX.Element {
     if (isLocalPvP) {
       return { name: `${myUsername} (P1)`, elo: myElo };
     }
+    if (!isLocalPvP && !isBotMode && yourColor === null) {
+      return { name: 'Bağlanıyor...', elo: 1000 };
+    }
     if (yourColor === 0) {
       return { name: myUsername, elo: myElo };
     } else {
@@ -435,6 +459,9 @@ export function GamePage(): React.JSX.Element {
     }
     if (isLocalPvP) {
       return { name: '2. Oyuncu (P2)', elo: 1000 };
+    }
+    if (!isLocalPvP && !isBotMode && yourColor === null) {
+      return { name: 'Bağlanıyor...', elo: 1000 };
     }
     if (yourColor === 1) {
       return { name: myUsername, elo: myElo };

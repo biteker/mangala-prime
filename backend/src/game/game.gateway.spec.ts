@@ -486,4 +486,76 @@ describe('GameGateway', () => {
       });
     });
   });
+
+  describe('handleReconnect race condition & room sync (T-26)', () => {
+    it('should_authenticate_via_handshake_token_on_reconnect_and_notify_room', async () => {
+      // Arrange
+      const roomEmitMock = jest.fn();
+      const socketEmitMock = jest.fn();
+      const socketDisconnectMock = jest.fn();
+      const socketToMock = jest.fn().mockReturnValue({ emit: roomEmitMock });
+      const raceSocket = {
+        id: 'socket-p2-race',
+        data: {},
+        handshake: {
+          headers: {},
+          auth: { token: 'valid-race-token' },
+          query: {},
+        },
+        join: jest.fn(),
+        emit: socketEmitMock,
+        disconnect: socketDisconnectMock,
+        to: socketToMock,
+      } as unknown as AuthenticatedGameSocket;
+
+      const gatewayWithJwt = gateway as unknown as {
+        jwtService: { verifyAsync: jest.Mock };
+      };
+      gatewayWithJwt.jwtService.verifyAsync.mockResolvedValueOnce({
+        sub: 'user-2',
+        username: 'PlayerTwo',
+      });
+
+      mockGameService.handleReconnect.mockResolvedValueOnce({
+        matchId: 'match-race',
+        player1Id: 'user-1',
+        player2Id: 'user-2',
+        player1Username: 'PlayerOne',
+        player2Username: 'PlayerTwo',
+        player1SocketId: 'socket-p1',
+        player2SocketId: 'socket-p2-race',
+        board: [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0],
+        currentPlayer: 0,
+        timer: null,
+        turnTimeLeft: 45,
+        p1ChatEnabled: true,
+        p2ChatEnabled: true,
+      });
+
+      // Act
+      await gateway.handleReconnect(raceSocket, { matchId: 'match-race' });
+
+      // Assert
+      expect(socketDisconnectMock).not.toHaveBeenCalled();
+      expect(mockGameService.handleReconnect).toHaveBeenCalledWith(
+        'user-2',
+        'match-race',
+        'socket-p2-race',
+      );
+      expect(socketEmitMock).toHaveBeenCalledWith('game:reconnect_ack', {
+        board: [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0],
+        nextPlayerId: 'user-1',
+        turnTimeLeft: 45,
+        matchId: 'match-race',
+        opponentUsername: 'PlayerOne',
+        yourColor: 1,
+      });
+      expect(socketToMock).toHaveBeenCalledWith('match-race');
+      expect(roomEmitMock).toHaveBeenCalledWith('game:state_update', {
+        board: [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0],
+        nextPlayerId: 'user-1',
+        turnTimeLeft: 45,
+      });
+    });
+  });
 });

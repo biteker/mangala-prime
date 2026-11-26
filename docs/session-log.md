@@ -23,6 +23,24 @@ Kayıtlar en yeniden en eskiye doğru sıralanır.
 **PR:** #...
 ```
 
+### Oturum [2026-11-26] — T-26: `/game` Soket Yarış Durumu, `connectGame` Stale-Socket ve Üst Bar Yeşil Sıra Işığı Düzeltmesi
+
+**Tamamlanan Görev:** T-26 tamamlandı. `GameGateway` içinde bağlantı anındaki asenkron JWT doğrulaması ile `game:reconnect` / `game:move` event'leri arasındaki yarış durumu `ensureAuthenticatedUser(client)` kurtarma yardımcısıyla giderildi ve `handleReconnect` sonrasında odadaki rakibe `game:state_update` yayını eklenerek ikinci oyuncunun katılımının anlık görülmesi sağlandı. `useGameStore.connectGame` aynı `matchId` için aktif soket varsa yeniden `game:reconnect` gönderecek ve farklı maça geçerken eski `yourColor` / `currentPlayerId` / `opponentUsername` alanlarını sıfırlayacak şekilde düzeltildi. `GamePage` üst barındaki yeşil sıra ışığı (`isP1Active`, `isP2Active`) ve `yourColor === null` durumundaki etiket (`'Bağlanıyor...'`) renk atamasına göre (`yourColor === 0` sol, `yourColor === 1` sağ) düzeltildi.
+**Oluşturulan/Değiştirilen Dosyalar:**
+- `backend/src/game/game.gateway.ts` — `ensureAuthenticatedUser`, yarış durumu kurtarma ve `handleReconnect` oda durumu yayını (`game:state_update`)
+- `backend/src/game/game.gateway.spec.ts` — `handleReconnect` token kurtarma ve `game:state_update` yayını için 1 yeni birim testi
+- `frontend/src/stores/game.store.ts` — `connectGame` aktif soket yeniden senkronizasyonu ve maç değişiminde eski kimlik alanlarının temizlenmesi
+- `frontend/src/components/GamePage.tsx` — `isP1Active` / `isP2Active` ve `'Bağlanıyor...'` göstergesi düzeltmeleri
+
+**Test Sonuçları:** 163/163 test geçti (Backend: 138/138, Frontend: 25/25)
+**Derleme:** ✅ Hatasız (`npm run lint`, `npm run test`, `npm run build`)
+**Açık Sorunlar:** Yerel `gh` CLI oturum token'ı geçersiz olduğu için (`gh auth login -h github.com` gerekiyor) commitler yerel feature branch'lerinde biriktiriliyor. Sıradaki görev: T-27 ve T-28.
+**Bir Sonraki Görev:** T-27 & T-28 — Turnuva Maç Sonu Akışı (2. Set / Turnuva Salonu / Aktif Turnuva Koruması) & `theme-pixijs` Sabitlemesi
+**Commit:** fix(game,ui): resolve socket auth race, stale connectGame and turn indicator (T-26)
+**PR:** feature/fix-game-connect-and-turn-ui → feature/fix-endgame-sweep-and-board (yerel stacked branch)
+
+---
+
 ### Oturum [2026-11-26] — T-25: Oyun Motoru Bölge Temizleme (Kural D) & PixiJS Son Hamle Taş Dağılımı Düzeltmesi
 
 **Tamamlanan Görev:** Faz F (`T-25…T-28`, `K-12…K-14`) yol haritası `docs/architecture-roadmap.md` içine kaydedildi ve T-25 tamamlandı. `shared/engine/mangala-engine.ts` Kural D (Bölge Temizleme) içinde rakibin son taşını yakalayarak bitiren oyuncunun kendi kuyularında kalan taşlarının rakip hazineye yazılması hatası giderildi; kalan tüm taşların hamleyi yapıp bölgeyi boşaltan aktif oyuncunun kendi hazinesine (`ownTreasury`) aktarılması sağlandı. `MangalaBoard.ts` içindeki `animateCaptureOrSettle` metodu her iki hazinedeki taş artışını (`p1Deficit` / `p2Deficit`) ayrı ayrı hesaplayarak taşların doğru hazineye uçmasını sağlayacak şekilde düzeltildi. 1 yeni oyun motoru birim testi eklendi.

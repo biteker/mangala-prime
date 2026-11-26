@@ -1,18 +1,12 @@
-# Sıradaki Görev
+# Sıradaki Görev: T-27 & T-28 — Turnuva Maç Sonu Otomatik 2. Set / Turnuva Salonu Akışı & `theme-pixijs` Sabitlemesi
 
----
+## Branch
+`feature/tournament-flow-and-theme-lock` (taban: `feature/fix-game-connect-and-turn-ui`)
 
-## Görev: T-26 — `/game` Soket Yarış Durumu, `connectGame` Stale-Socket ve Üst Bar Yeşil Sıra Işığı Düzeltmesi
+## Kapsam
+1. **T-27:** Turnuva maçlarında oyun sonu ekranında "Rövanş Teklif Et" / "Lobiye Dön" kaldırılması; 2 setlik maçta `game:tournament_next_set` ile otomatik 2. sete geçiş (5 sn geri sayım + buton); tur maçı bittiğinde Turnuva Salonuna dönüş (8 sn geri sayım + buton); `TournamentPage` aktif turnuva ID kalıcılığı + bekleme afişi; `LobbyPage` aktif turnuva bağlantısı.
+2. **T-28:** `theme.store.ts` ve `App.tsx` üzerinde `theme-pixijs` sabitlemesi ve tema değiştirici butonunun kaldırılması.
 
-> **Tam tasarım:** `docs/architecture-roadmap.md` → Bölüm 8.6 (K-13).
-
-### Ön Koşullar
-- [x] T-25 (`feature/fix-endgame-sweep-and-board`) tamamlandı.
-
-### Branch
-`feature/fix-game-connect-and-turn-ui` (base: `develop`)
-
-### Ne Yapılacak?
-1. `backend/src/game/game.gateway.ts`: `ensureAuthenticatedUser` yardımcı metoduyla `handleConnection` / `handleReconnect` yarış durumu engellenecek; `handleReconnect` sonrası odaya güncel `game:state_update` yayınlanacak.
-2. `frontend/src/stores/game.store.ts`: `connectGame(matchId)` eski soket bağlantısında da `yourColor`, `currentPlayerId`, `opponentUsername`, `gameOverDetails` sıfırlayıp yeni `matchId` için `game:reconnect` gönderecek.
-3. `frontend/src/components/GamePage.tsx`: Üst bar `isP1Active` / `isP2Active` bayrakları gerçekten sıranın 1. veya 2. oyuncuda olmasına göre hesaplanacak; `yourColor === null` iken `'Bağlanıyor...'` gösterilecek.
+## Kabul Kriterleri
+- `npm run build -w shared && npm run lint && npm run test && npm run build` hatasız geçer.
+- Mevcut tüm backend ve frontend birim testleri ile yeni eklenen tournament metadata testleri geçer.

@@ -158,8 +158,11 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   connectGame: (matchId: string) => {
     const state = get();
-    // Socket varsa ve aynı maç için kurulduysa (bağlanıyor olsa bile) tekrar oluşturma
+    // Socket varsa ve aynı maç için kurulduysa yeniden bağlanma sinyali gönder ve dön
     if (state.socket && state.matchId === matchId) {
+      if (state.socket.connected) {
+        state.socket.emit('game:reconnect', { matchId });
+      }
       return;
     }
 
@@ -185,12 +188,22 @@ export const useGameStore = create<GameState>((set, get) => ({
       transports: ['websocket'],
     });
 
+    const isSwitchingMatch = state.matchId !== null && state.matchId !== matchId;
+
     set({
       socket: newSocket,
       matchId,
       mode: 'online',
       isLocalPvP: false,
       board: [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0],
+      currentPlayerId: null,
+      ...(isSwitchingMatch
+        ? {
+            yourColor: null,
+            opponentUsername: null,
+            opponentElo: null,
+          }
+        : {}),
       gameError: null,
       gameOverDetails: null,
       disconnectedPlayerId: null,
